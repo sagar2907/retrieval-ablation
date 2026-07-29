@@ -1,0 +1,54 @@
+# --- Secrets -----------------------------------------------------------------
+# Must be the first rule and must never be narrowed. Phase 1 verifies this with
+# `git check-ignore` before any key is written to disk.
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+secrets/
+
+# --- Python ------------------------------------------------------------------
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.venv/
+venv/
+.python-version
+
+# --- Tooling caches ----------------------------------------------------------
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+coverage.xml
+htmlcov/
+
+# --- Corpus and derived artifacts -------------------------------------------
+# The raw corpus is ~20 GB of filings and is fully reproducible from
+# manifests committed under data/manifests/, so it stays out of git.
+data/raw/
+data/interim/
+data/indexes/
+data/qdrant/
+models/
+
+# The API response cache is content-hash keyed and can be large. Excluded so a
+# clone never inherits stale judge output that would silently skip real calls.
+.cache/
+
+# --- Deliberately NOT ignored ------------------------------------------------
+# data/eval/       the labelled retrieval benchmark  -- this is the artifact
+# data/manifests/  corpus checksums for reproducibility
+# results/         ablation tables and metric outputs
+
+# --- OS / editor -------------------------------------------------------------
+.DS_Store
+Thumbs.db
+desktop.ini
+.idea/
+.vscode/
+*.swp

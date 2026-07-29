@@ -1,0 +1,15 @@
+# Normalise to LF in the repository regardless of the checkout platform. Without
+# this, the project is developed on Windows and tested in CI on Linux, so every
+# file would show as modified on one side or the other.
+* text=auto eol=lf
+
+# Fixtures are byte-compared by golden-file tests. Any line-ending translation
+# would change their hashes and break the comparison for reasons unrelated to
+# the code under test.
+tests/fixtures/** -text
+data/eval/** -text
+data/manifests/** -text
+
+*.png binary
+*.pdf binary
+*.whl binary

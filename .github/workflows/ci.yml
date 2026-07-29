@@ -1,0 +1,50 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+# The suite must pass with no secrets available. Nothing in this workflow has
+# access to an API key, which is the mechanism that keeps the offline-test
+# guarantee honest rather than aspirational: a test that quietly needed a key
+# would fail here.
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # 3.12 is the floor declared in pyproject; 3.14 is the development
+        # machine. Testing both catches accidental use of newer syntax.
+        python-version: ["3.12", "3.14"]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Install project (CPU only, no model weights)
+        run: uv pip install --system -e ".[dev]"
+
+      - name: Lint
+        run: uv run --no-project ruff check .
+
+      - name: Format check
+        run: uv run --no-project ruff format --check .
+
+      - name: Test
+        run: uv run --no-project pytest -m "not gpu and not live" --cov=retrieval_ablation
+
+      - name: Confirm no secret was needed
+        # Belt and braces: if a test started depending on an environment key,
+        # this step would still pass, but the Test step above would already have
+        # failed. Kept as documentation of the intent for anyone reading the log.
+        run: echo "suite completed with an empty secret environment"

@@ -1,0 +1,85 @@
+[project]
+name = "retrieval-ablation"
+version = "0.1.0"
+description = "A labelled retrieval benchmark and single-axis ablation study over SEC filings"
+readme = "README.md"
+requires-python = ">=3.12"
+
+dependencies = [
+    "pydantic>=2.9",
+    "pydantic-settings>=2.6",
+    "httpx>=0.27",
+    "numpy>=2.1",
+    "scipy>=1.14",
+    "lxml>=5.3",
+    "qdrant-client>=1.12",
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.32",
+    "jinja2>=3.1",
+    "python-dotenv>=1.0",
+    "tenacity>=9.0",
+    "rich>=13.9",
+]
+
+[project.optional-dependencies]
+# Kept out of the default install so CI stays offline, fast, and CPU-only.
+# Nothing in `tests/` may import from this group.
+gpu = [
+    "torch>=2.9",
+    "sentence-transformers>=3.3",
+    "transformers>=4.46",
+]
+dev = [
+    "pytest>=8.3",
+    "pytest-cov>=6.0",
+    "ruff>=0.8",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/retrieval_ablation"]
+
+# -----------------------------------------------------------------------------
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = [
+    "E", "W",   # pycodestyle
+    "F",        # pyflakes
+    "I",        # isort
+    "N",        # pep8-naming
+    "UP",       # pyupgrade
+    "B",        # bugbear
+    "C4",       # comprehensions
+    "SIM",      # simplify
+    "PTH",      # use pathlib
+    "RUF",      # ruff-specific
+    "ARG",      # unused arguments
+    "PL",       # pylint subset
+    "NPY",      # numpy legacy random / API
+]
+ignore = [
+    "PLR0913",  # many arguments: ablation config objects legitimately have many
+    "PLR2004",  # magic values: metric tests are clearer with literals inline
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["PLR0915"]
+
+# -----------------------------------------------------------------------------
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q --strict-markers --strict-config"
+markers = [
+    "gpu: requires a local GPU and downloaded model weights (deselected in CI)",
+    "live: performs a real network call to a third-party API (deselected in CI)",
+]
+# Fail the run if a test emits an unraisable warning, which is how a leaked
+# network client or unawaited coroutine usually shows up.
+filterwarnings = ["error::pytest.PytestUnraisableExceptionWarning"]
