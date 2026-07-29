@@ -66,6 +66,35 @@ CORPUS_TICKERS: dict[str, str] = {
     "UNH": "health_insurance",
 }
 
+#: Tickers whose filing history is not reachable from the CIK that EDGAR's
+#: ticker map returns. Values are ordered CIK lists, searched in order.
+#:
+#: EDGAR's official mapping gives the *current registrant* CIK. When a company
+#: reincorporates or reorganises under a new holding company, the ticker moves to
+#: the successor entity -- and the successor does not inherit the predecessor's
+#: filing history. A lookup therefore succeeds, returns a real CIK, and yields
+#: too few annual reports, or none at all.
+#:
+#: This is exactly the failure `edgar.py` warns about, caught in practice. Both
+#: entries below were found by a per-ticker count in the manifest, not by any
+#: exception: nothing raised, the companies simply arrived under-represented in a
+#: corpus that still looked complete.
+#:
+#: - XOM resolves to CIK 2115436, which holds no annual reports at all; every
+#:   ExxonMobil 10-K sits under CIK 34088.
+#: - BLK resolves to CIK 2012383 (formerly "BlackRock Funding, Inc. /DE"), which
+#:   holds only the two most recent years. The earlier reports are filed under
+#:   CIK 1364742, now named "BlackRock Finance, Inc.".
+#:
+#: Listed explicitly rather than inferred from `formerNames` or a name-similarity
+#: search. Guessing a predecessor CIK is precisely how a corpus ends up quietly
+#: containing a different company's filings, which is a far worse outcome than a
+#: recorded gap.
+TICKER_CIK_OVERRIDES: dict[str, tuple[int, ...]] = {
+    "XOM": (34088,),
+    "BLK": (2012383, 1364742),
+}
+
 #: Annual reports rather than quarterly. A 10-K carries the full financial
 #: statements, all the notes, and the risk factors -- the material that makes
 #: retrieval hard. A 10-Q is a thinner update and would dilute the corpus.

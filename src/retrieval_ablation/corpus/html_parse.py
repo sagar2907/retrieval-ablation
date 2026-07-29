@@ -726,6 +726,66 @@ def _to_tree(html: str | bytes) -> lxml.html.HtmlElement:
     return lxml.html.fromstring(payload, parser=parser)
 
 
+#: Inline-XBRL wrapper elements that hold machine-readable metadata and are never
+#: rendered. `ix:header` contains `ix:hidden`, `ix:references` and `ix:resources`;
+#: the last of those holds one `xbrli:context` element per reported fact.
+#:
+#: NOT in this list, and deliberately so: `ix:nonfraction`, `ix:nonnumeric` and
+#: `ix:continuation`. Those *wrap the visible content* -- a single filing contained
+#: 11,042 `ix:nonfraction` elements, one around every reported figure in every
+#: financial statement. Dropping them would delete every number in the corpus
+#: while leaving the prose intact, which is close to the worst possible outcome
+#: for a study about retrieving figures from tables.
+_IXBRL_METADATA_TAGS = ("ix:header",)
+
+#: Tags whose content is never document text.
+_NEVER_CONTENT = ("script", "style", "noscript")
+
+
+def _strip_non_content(tree: lxml.html.HtmlElement) -> None:
+    """Remove scripts, styles, and hidden inline-XBRL metadata, in place.
+
+    Inline-XBRL filings carry a large machine-readable payload inside a
+    `display:none` wrapper at the top of the body. Left in, it becomes document
+    text: in one filing it was 526,296 characters, 31.7% of the whole document,
+    consisting entirely of taxonomy URIs, context identifiers and period dates.
+    It produced a single whitespace-free "word" of half a megabyte, which every
+    chunker then emitted as one 131,000-token chunk -- unembeddable by any model,
+    and enough on its own to corrupt term statistics across the entire index.
+
+    Hidden elements are removed by tag rather than by scanning for
+    `display:none`, with one narrow exception below. A blanket `display:none` rule
+    would also delete the thousands of hidden empty `<td>` cells filings use for
+    layout, and removing table cells changes column geometry -- so the general
+    rule is restricted to block containers that actually hold text.
+    """
+    for tag in _NEVER_CONTENT:
+        for element in tree.iter(tag):
+            element.drop_tree()
+
+    for tag in _IXBRL_METADATA_TAGS:
+        # name() matches the literal tag string: parsed as HTML rather than XML,
+        # "ix:header" is the tag name, not a namespaced element, so an //ix:header
+        # XPath would be read as a namespace prefix and fail.
+        for element in tree.xpath(f"//*[name()='{tag}']"):
+            element.drop_tree()
+
+    # Safety net for filings that hide a payload without using ix:header. Limited
+    # to text-bearing block containers, and to substantial blocks only, so a
+    # hidden layout cell or an empty spacer div is left alone.
+    hidden = tree.xpath(
+        "//div[contains(translate(@style,' ',''),'display:none')]"
+        " | //span[contains(translate(@style,' ',''),'display:none')]"
+    )
+    for element in hidden:
+        if len(element.text_content()) > _HIDDEN_BLOCK_MIN_CHARS:
+            element.drop_tree()
+
+
+#: A hidden block larger than this is a metadata payload, not a styling artefact.
+_HIDDEN_BLOCK_MIN_CHARS = 2000
+
+
 def parse_filing(
     doc_id: str,
     html: str | bytes,
@@ -743,8 +803,7 @@ def parse_filing(
         raise ValueError(f"unknown render_tables={render_tables!r}")
 
     tree = _to_tree(html)
-    for element in tree.xpath("//script | //style | //noscript"):
-        element.drop_tree()
+    _strip_non_content(tree)
 
     builder = _Builder()
     _walk(tree, builder, render_tables)

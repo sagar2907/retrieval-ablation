@@ -18,8 +18,15 @@ import json
 import logging
 from pathlib import Path
 
+import httpx
+
 from ..config import INTERIM_DIR, MANIFEST_DIR, ensure_dirs
-from .companies import CORPUS_FORM, CORPUS_TICKERS, FILINGS_PER_COMPANY
+from .companies import (
+    CORPUS_FORM,
+    CORPUS_TICKERS,
+    FILINGS_PER_COMPANY,
+    TICKER_CIK_OVERRIDES,
+)
 from .edgar import EdgarClient, EdgarError, FilingRef
 from .html_parse import parse_filing
 from .models import Block, BlockKind, Document, Span, Table
@@ -111,26 +118,43 @@ def save_document(doc: Document) -> None:
     tmp.replace(path)
 
 
-def select_filings(client: EdgarClient) -> list[FilingRef]:
+def select_filings(client: EdgarClient) -> tuple[list[FilingRef], list[dict]]:
     """Resolve the frozen ticker list into concrete filing references.
+
+    Returns `(refs, gaps)`. Gaps are recorded and returned rather than merely
+    logged, because a log line scrolls past and a silently short corpus still
+    produces a complete-looking ablation table. The manifest carries them so any
+    shortfall is visible next to the numbers computed from it.
 
     Sorted by document id so the corpus order is deterministic regardless of the
     order EDGAR returns things in or of dictionary iteration details.
     """
     refs: list[FilingRef] = []
+    gaps: list[dict] = []
+
     for ticker in sorted(CORPUS_TICKERS):
+        override = TICKER_CIK_OVERRIDES.get(ticker)
         try:
-            found = client.find_filings(ticker, CORPUS_FORM, limit=FILINGS_PER_COMPANY)
+            found = client.find_filings(
+                ticker, CORPUS_FORM, limit=FILINGS_PER_COMPANY, ciks=override
+            )
         except EdgarError as exc:
             # One delisted or renamed ticker must not abort a 120-document build.
-            # Recorded loudly and reported in the manifest as a gap rather than
-            # silently reducing the corpus.
             log.warning("skipping %s: %s", ticker, exc)
+            gaps.append({"ticker": ticker, "reason": str(exc), "n_found": 0})
             continue
-        if not found:
-            log.warning("no %s filings found for %s", CORPUS_FORM, ticker)
+
+        if len(found) < FILINGS_PER_COMPANY:
+            reason = (
+                f"only {len(found)} {CORPUS_FORM} filings available "
+                f"(requested {FILINGS_PER_COMPANY})"
+            )
+            log.warning("%s: %s", ticker, reason)
+            gaps.append({"ticker": ticker, "reason": reason, "n_found": len(found)})
+
         refs.extend(found)
-    return sorted(refs, key=lambda r: r.doc_id)
+
+    return sorted(refs, key=lambda r: r.doc_id), gaps
 
 
 def ingest(
@@ -149,15 +173,32 @@ def ingest(
     client = client or EdgarClient()
 
     try:
-        refs = select_filings(client)
+        refs, gaps = select_filings(client)
         if limit is not None:
             refs = refs[:limit]
 
         entries = []
         for index, ref in enumerate(refs, start=1):
-            raw = client.fetch(ref)
-            raw_digest = hashlib.sha256(raw).hexdigest()
+            # A single document must not abort the run. The first full ingest died
+            # on document 103 of 120 to a transient DNS failure, discarding
+            # nothing (the cache survived) but requiring a manual restart. Since
+            # every fetch is cached, recording the failure and continuing means a
+            # re-run picks up only what is genuinely missing -- and the gap is
+            # visible in the manifest rather than being a traceback in a log.
+            try:
+                raw = client.fetch(ref)
+            except (OSError, httpx.HTTPError) as exc:
+                log.warning("fetch failed for %s: %s: %s", ref.doc_id, type(exc).__name__, exc)
+                gaps.append(
+                    {
+                        "ticker": ref.ticker,
+                        "reason": f"fetch failed for {ref.doc_id}: {type(exc).__name__}",
+                        "n_found": 0,
+                    }
+                )
+                continue
 
+            raw_digest = hashlib.sha256(raw).hexdigest()
             doc = load_document(ref.doc_id)
             if doc is None:
                 doc = parse_filing(
@@ -212,6 +253,9 @@ def ingest(
             "total_tables": sum(e["n_tables"] for e in entries),
             "tickers_requested": sorted(CORPUS_TICKERS),
             "tickers_present": sorted({e["ticker"] for e in entries}),
+            # Recorded so a shortfall is visible beside the numbers derived from
+            # this corpus, instead of being a log line nobody re-reads.
+            "gaps": gaps,
             "documents": entries,
         }
         MANIFEST_PATH.write_text(json.dumps(manifest, indent=2), encoding="utf-8")

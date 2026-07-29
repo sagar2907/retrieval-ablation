@@ -30,6 +30,7 @@ import json
 import logging
 import threading
 import time
+from collections.abc import Sequence
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -41,6 +42,7 @@ from ..config import RAW_DIR, Settings, get_settings
 log = logging.getLogger(__name__)
 
 SUBMISSIONS_URL = "https://data.sec.gov/submissions/CIK{cik:010d}.json"
+SUBMISSIONS_PAGE_URL = "https://data.sec.gov/submissions/"
 TICKER_MAP_URL = "https://www.sec.gov/files/company_tickers.json"
 DOCUMENT_URL = "https://www.sec.gov/Archives/edgar/data/{cik}/{accession}/{document}"
 
@@ -190,42 +192,30 @@ class EdgarClient:
         cached.write_text(json.dumps(payload), encoding="utf-8")
         return payload
 
-    def find_filings(
-        self,
-        ticker: str,
-        form: str = "10-K",
-        limit: int = 4,
+    def submissions_page(self, name: str) -> dict:
+        """One of the older submission pages named in `filings.files`."""
+        cached = self._cache_dir / name
+        if cached.exists():
+            return json.loads(cached.read_text(encoding="utf-8"))
+        payload = self._get(f"{SUBMISSIONS_PAGE_URL}{name}").json()
+        cached.write_text(json.dumps(payload), encoding="utf-8")
+        return payload
+
+    def _refs_from_rows(
+        self, rows: dict, cik: int, ticker: str, company: str, form: str
     ) -> list[FilingRef]:
-        """The `limit` most recent filings of `form`, returned oldest first.
-
-        Oldest-first ordering is deliberate: it keeps document ids and therefore
-        chunk ids stable as newer filings are added, so extending the corpus
-        does not renumber the existing one.
-
-        Amended filings (10-K/A) are excluded. They restate parts of an earlier
-        filing, so including both would put near-duplicate passages in the
-        corpus and make "the" gold passage for a query ambiguous.
-        """
-        cik = self.ticker_to_cik().get(ticker.upper())
-        if cik is None:
-            raise EdgarError(f"ticker {ticker!r} is not in EDGAR's ticker map")
-
-        payload = self.submissions(cik)
-        company = payload.get("name", ticker)
-        recent = payload["filings"]["recent"]
-
-        rows = zip(
-            recent["form"],
-            recent["filingDate"],
-            recent["reportDate"],
-            recent["accessionNumber"],
-            recent["primaryDocument"],
+        paired = zip(
+            rows["form"],
+            rows["filingDate"],
+            rows["reportDate"],
+            rows["accessionNumber"],
+            rows["primaryDocument"],
             strict=True,
         )
-        matches = [
+        return [
             FilingRef(
                 cik=cik,
-                ticker=ticker.upper(),
+                ticker=ticker,
                 company=company,
                 form=f,
                 filing_date=fdate,
@@ -233,12 +223,84 @@ class EdgarClient:
                 accession=acc,
                 document=doc,
             )
-            for f, fdate, rdate, acc, doc in rows
+            for f, fdate, rdate, acc, doc in paired
             # Exact match excludes amendments, whose form is "10-K/A".
             if f == form and doc.endswith((".htm", ".html"))
         ]
-        # `recent` is newest-first; take the newest `limit`, then reverse.
-        return list(reversed(matches[:limit]))
+
+    def find_filings(
+        self,
+        ticker: str,
+        form: str = "10-K",
+        limit: int = 4,
+        ciks: Sequence[int] | None = None,
+    ) -> list[FilingRef]:
+        """The `limit` most recent filings of `form`, returned oldest first.
+
+        Oldest-first ordering is deliberate: it keeps document ids and therefore
+        chunk ids stable as newer filings are added, so extending the corpus does
+        not renumber the existing one.
+
+        Amended filings (10-K/A) are excluded. They restate parts of an earlier
+        filing, so including both would put near-duplicate passages in the corpus
+        and make "the" gold passage for a query ambiguous.
+
+        Older submission pages are read when `recent` does not yield enough
+        matches. This is not an optimisation, it is a correctness requirement:
+        `filings.recent` holds a company's most recent 1,000 filings, and for a
+        large bank that is barely one calendar year. JPMorgan's recent window
+        contained 25,601 filings spanning 2025-07 to 2026-07 and exactly *one*
+        annual report, with 68 further pages unread. Without pagination the four
+        banks in the corpus contributed one document each instead of four, and
+        nothing failed -- the corpus was simply, silently, smaller.
+
+        `ciks` may list several identifiers when a company's history is split
+        across a predecessor and successor registrant; they are searched in order
+        and the results merged. See `companies.TICKER_CIK_OVERRIDES`.
+        """
+        ticker = ticker.upper()
+        if ciks is None:
+            mapped = self.ticker_to_cik().get(ticker)
+            if mapped is None:
+                raise EdgarError(f"ticker {ticker!r} is not in EDGAR's ticker map")
+            ciks = (mapped,)
+
+        matches: list[FilingRef] = []
+        for cik in ciks:
+            if len(matches) >= limit:
+                break
+            payload = self.submissions(cik)
+            company = payload.get("name", ticker)
+            matches.extend(
+                self._refs_from_rows(payload["filings"]["recent"], cik, ticker, company, form)
+            )
+
+            # Pages are listed newest-first; stop as soon as enough are found
+            # rather than downloading a bank's entire 68-page filing history.
+            for page in payload["filings"].get("files", []):
+                if len(matches) >= limit:
+                    break
+                rows = self.submissions_page(page["name"])
+                matches.extend(self._refs_from_rows(rows, cik, ticker, company, form))
+
+        # Sort newest-first explicitly. Concatenating pages and CIKs preserves
+        # order within each source but not across the boundaries, and relying on
+        # that would silently pick the wrong four filings.
+        matches.sort(key=lambda r: r.filing_date, reverse=True)
+
+        # De-duplicate by report date: a predecessor and successor registrant can
+        # both carry the same fiscal year, and two copies of one year would put
+        # near-identical documents in the corpus and make the gold passage for a
+        # query about that year genuinely ambiguous.
+        seen: set[str] = set()
+        unique: list[FilingRef] = []
+        for ref in matches:
+            if ref.report_date in seen:
+                continue
+            seen.add(ref.report_date)
+            unique.append(ref)
+
+        return list(reversed(unique[:limit]))
 
     # -- documents ------------------------------------------------------------
 

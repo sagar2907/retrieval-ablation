@@ -359,6 +359,70 @@ class TestParseFiling:
         assert doc.metadata["ticker"] == "AAPL"
 
 
+class TestInlineXbrlStripping:
+    """Regression: the hidden inline-XBRL payload was being read as document text.
+
+    Filings carry a machine-readable block inside a display:none wrapper at the
+    top of the body. In one real filing it was 526,296 characters -- 31.7% of the
+    document -- consisting entirely of taxonomy URIs, context identifiers and
+    period dates, with no whitespace. It became a single half-megabyte "word", and
+    every chunker dutifully emitted it as one 131,000-token chunk: unembeddable by
+    any model, and enough on its own to wreck term statistics across the index.
+    """
+
+    IXBRL = """<html><body>
+      <div style="display:none">
+        <ix:header>
+          <ix:hidden><ix:nonnumeric>hidden fact</ix:nonnumeric></ix:hidden>
+          <ix:resources>
+            <xbrli:context id="c-1">http://fasb.org/us-gaap/2025#OtherAssetsNoncurrent</xbrli:context>
+            <xbrli:context id="c-2">http://fasb.org/us-gaap/2025#LongTermDebtNoncurrent</xbrli:context>
+          </ix:resources>
+        </ix:header>
+      </div>
+      <p>Total net sales were <ix:nonfraction>416,161</ix:nonfraction> million.</p>
+    </body></html>"""
+
+    def test_metadata_payload_is_removed(self):
+        text = parse_filing("t", self.IXBRL).text
+        assert "fasb.org" not in text
+        assert "xbrli" not in text
+        assert "hidden fact" not in text
+
+    def test_visible_figures_wrapped_in_ix_nonfraction_survive(self):
+        """The distinction that makes this fix safe rather than destructive.
+
+        ix:nonfraction wraps every reported number in a filing. Dropping inline
+        XBRL wholesale would remove all of them, deleting every figure in the
+        corpus while leaving the prose intact.
+        """
+        text = parse_filing("t", self.IXBRL).text
+        assert "416,161" in text
+        assert "Total net sales were 416,161 million." in text
+
+    def test_no_absurdly_long_atom_remains(self):
+        longest = max((len(w) for w in parse_filing("t", self.IXBRL).text.split()), default=0)
+        assert longest < 100
+
+    def test_small_hidden_span_is_left_alone(self):
+        """A hidden styling artefact is not a metadata payload.
+
+        Removing every display:none element would also strip the thousands of
+        hidden empty table cells filings use for layout, and removing cells
+        changes column geometry.
+        """
+        html = '<html><body><span style="display:none">x</span><p>Real text.</p></body></html>'
+        assert "Real text." in parse_filing("t", html).text
+
+    def test_hidden_table_cells_are_not_removed(self):
+        html = """<html><body><table>
+          <tr><td></td><td>2025</td><td>2024</td></tr>
+          <tr><td>Revenue</td><td style="display:none">416,161</td><td>391,035</td></tr>
+        </table></body></html>"""
+        text = parse_filing("t", html).text
+        assert "391,035" in text
+
+
 class TestEncodingHandling:
     def test_bytes_with_xml_declaration_parse(self):
         """Inline-XBRL filings are XHTML carrying an encoding declaration.
