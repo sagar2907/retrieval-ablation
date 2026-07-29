@@ -69,6 +69,12 @@ ignore = [
     "PLR2004",  # magic values: metric tests are clearer with literals inline
 ]
 
+# Em dash and en dash are not accidental lookalikes here: the corpus is SEC
+# filings, which use both for numeric ranges and heading separators, and the
+# parser exists in part to handle them. Declaring them allowed is more honest
+# than sprinkling per-line suppressions over the code that does that work.
+allowed-confusables = ["–", "—"]
+
 [tool.ruff.lint.per-file-ignores]
 "tests/*" = ["PLR0915"]
 
