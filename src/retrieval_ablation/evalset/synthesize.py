@@ -281,9 +281,7 @@ def _query_id(fact: TableFact) -> str:
     identifies the *fact*, which is what is actually being asked about, and lets
     each rendering carry its own correct gold span for the same question.
     """
-    digest = hashlib.sha256(
-        f"{fact.doc_id}|{fact.row_label}|{fact.period}".encode()
-    ).hexdigest()
+    digest = hashlib.sha256(f"{fact.doc_id}|{fact.row_label}|{fact.period}".encode()).hexdigest()
     return f"q-{digest[:12]}"
 
 

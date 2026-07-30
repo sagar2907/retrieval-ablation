@@ -86,6 +86,12 @@ allowed-confusables = ["–", "—"]
 "src/retrieval_ablation/embed/local.py" = ["PLC0415"]
 "src/retrieval_ablation/index/rerank.py" = ["PLC0415"]
 
+# The Kaggle worker clones and pip-installs this repo at runtime, so its imports
+# cannot be resolved at module import time -- they must happen after the install
+# step inside main(). It is a standalone script pasted into a notebook cell, not
+# a library module.
+"notebooks/*.py" = ["PLC0415", "I001", "E402"]
+
 # -----------------------------------------------------------------------------
 [tool.pytest.ini_options]
 testpaths = ["tests"]

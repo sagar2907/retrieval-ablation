@@ -1,0 +1,113 @@
+"""Export first-stage candidate lists for the GPU worker to rerank.
+
+Reranking is split across two machines: the first stage runs here (BM25 is
+CPU-only and fast), the cross-encoder runs on a Kaggle T4 because no free
+reranking API exists and PyTorch cannot load locally. This script writes the
+handoff.
+
+Only candidate *ids* are written, not their text, and the file is gzipped so it can
+be committed and travel with a `git clone`.
+
+Shipping the text was the first design, on the grounds that any drift between the
+local corpus and the remote rebuild would silently pair a query with the wrong
+passage and the cross-encoder would score it confidently. That produced an 86 MB
+file, too large to commit, which would have forced a manual dataset upload into
+every run.
+
+It was also unnecessary. The remote side calls `load_corpus()`, which verifies the
+SHA-256 of every document's parsed text against the committed manifest and raises
+on any mismatch. Given an identical corpus, chunking is a deterministic pure
+function, so chunk ids and chunk texts are guaranteed identical on both sides. The
+invariant that makes ids sufficient was already enforced; the safeguard had to be
+noticed rather than duplicated. The remote side additionally asserts that every
+exported id is present in its rebuilt corpus, so a divergence fails loudly instead
+of producing scores against the wrong passages.
+
+Run: python -m retrieval_ablation.ablation.export_candidates
+"""
+
+from __future__ import annotations
+
+import gzip
+import json
+import logging
+
+from ..config import RESULTS_DIR, ensure_dirs
+from ..corpus.ingest import load_corpus
+from ..evalset.build import QUERIES_PATH
+from ..evalset.schema import read_eval_set
+from ..index.bm25 import BM25Index
+from .configs import build_grid
+from .runner import make_chunker
+
+log = logging.getLogger(__name__)
+
+#: Deepest shortlist any reranking configuration in the grid asks for. Exporting
+#: the deepest once lets every shallower configuration be evaluated from the same
+#: scores by truncation, instead of re-running the cross-encoder per depth.
+MAX_CANDIDATES = 200
+
+
+def main() -> None:
+    logging.basicConfig(level=logging.INFO, format="%(levelname)s %(message)s")
+    ensure_dirs()
+
+    docs = load_corpus()
+    queries = read_eval_set(QUERIES_PATH)
+    log.info("loaded %d documents, %d queries", len(docs), len(queries))
+
+    reranking_configs = [c for c in build_grid() if c.reranker is not None]
+    # Group by what actually determines the candidate list: the chunker and the
+    # first stage. Depth is handled by exporting the maximum.
+    seen: set[tuple[str, str]] = set()
+
+    for config in reranking_configs:
+        signature = (config.chunker, config.retrieval)
+        if signature in seen:
+            continue
+        seen.add(signature)
+
+        if config.retrieval != "bm25":
+            # Hybrid first stages need dense vectors, which are what the GPU
+            # worker is being asked to produce. That candidate list has to be
+            # exported on a second pass, after vectors come back.
+            log.warning(
+                "skipping %s: a %s first stage needs dense vectors that do not exist yet",
+                config.name,
+                config.retrieval,
+            )
+            continue
+
+        chunker = make_chunker(config.chunker)
+        chunks = chunker.chunk_corpus(docs)
+        index = BM25Index(chunks)
+        log.info("%s: %d chunks indexed", config.name, len(chunks))
+
+        payload: dict[str, dict] = {}
+        for query in queries:
+            hits = index.search(query.text, top_k=MAX_CANDIDATES)
+            if not hits:
+                continue
+            payload[query.query_id] = {
+                "query": query.text,
+                "chunker": config.chunker,
+                "candidate_ids": [h.chunk_id for h in hits],
+                "first_stage_scores": [round(h.score, 4) for h in hits],
+            }
+
+        out = RESULTS_DIR / f"candidates-{config.name}.json.gz"
+        with gzip.open(out, "wt", encoding="utf-8") as handle:
+            json.dump(payload, handle)
+
+        pairs = sum(len(v["candidate_ids"]) for v in payload.values())
+        size_mb = out.stat().st_size / 1e6
+        log.info("wrote %s: %d queries, %d pairs, %.2f MB", out.name, len(payload), pairs, size_mb)
+        print(
+            f"\n{out}\n  {len(payload)} queries, {pairs:,} query-passage pairs "
+            f"to score, {size_mb:.2f} MB gzipped"
+        )
+        print("  candidate texts are re-derived remotely from the checksum-verified corpus")
+
+
+if __name__ == "__main__":
+    main()
