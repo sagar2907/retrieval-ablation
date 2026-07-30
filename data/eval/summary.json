@@ -1,0 +1,13 @@
+{
+  "n_queries": 220,
+  "by_kind": {
+    "table_lookup": 220
+  },
+  "by_verification": {
+    "generated": 220
+  },
+  "mean_lexical_overlap": 0.4604183064410337,
+  "n_documents_referenced": 86,
+  "seed": 20260730,
+  "requested": 220
+}
