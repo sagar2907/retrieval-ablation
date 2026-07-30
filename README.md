@@ -4,104 +4,201 @@ A labelled retrieval benchmark over SEC filings, and a single-axis ablation stud
 measuring what each component of a retrieval pipeline is actually worth.
 
 The point of this repository is not the demo. It is the evidence: retrieval
-quality is measured independently of generation quality, against a hand-verified
-set of queries with known gold passages, with confidence intervals and
-significance testing on every comparison.
+quality is measured independently of generation quality, against a set of queries
+with known gold passages, with confidence intervals and significance testing on
+every comparison — and with the confounds named and measured rather than hidden.
 
 ## Why measure retrieval separately
 
 A question-answering system over documents does two things: it finds passages,
-then it writes an answer from them. Almost every published RAG project measures
-only the second step. That conflates two failure modes which have completely
-different fixes — if retrieval returned the wrong passages, no amount of prompt
-engineering recovers the answer.
+then it writes an answer from them. Most published RAG projects measure only the
+second step. That conflates two failure modes with completely different fixes — if
+retrieval returned the wrong passages, no amount of prompt engineering recovers
+the answer.
 
-Separating them requires a labelled set: queries paired with the passage IDs that
-actually contain the answer. With that, retrieval is scored with nDCG@10,
-Recall@50 and MRR, and no language model is involved at all. That makes the
-retrieval ablation both free to run and fully deterministic.
+Separating them requires a labelled set: queries paired with the passage that
+actually contains the answer. With that, retrieval is scored with nDCG@10,
+Recall@50 and MRR, and no language model is involved at all — so the retrieval
+ablation is both free to run and fully deterministic.
 
 ## Corpus
 
-SEC EDGAR 10-K and 10-Q filings. Chosen over the alternatives because:
+**120 SEC 10-K filings: 30 companies × 4 consecutive fiscal years, 68.8M
+characters (~17M tokens, ~27,500 pages), 14,537 extracted tables.**
 
-- **Table-dense.** Financial statements are where naive chunking visibly fails —
-  a table split across two chunks becomes unretrievable and unciteable.
-- **Cross-referential.** "See Note 12 to the Consolidated Financial Statements"
-  means the answer to a question is often not in the passage that mentions it.
-- **Structured.** The mandated Item 1–15 hierarchy gives a real document tree to
-  test structure-aware chunking against.
-- **Public domain.** The eval set can be published without licensing questions,
-  which matters because the labelled benchmark is the artifact most worth
-  sharing.
+Four consecutive years per company is deliberate and load-bearing. Annual reports
+repeat their structure almost verbatim while the figures change, so every
+year-specific question has three near-identical distractors. A single-year corpus
+would make retrieval far too easy and flatter every configuration equally.
 
 Filings are HTML, not PDF. This project parses the original HTML directly rather
-than converting to PDF first — round-tripping through PDF layout analysis
-destroys exactly the table structure being tested.
+than converting to PDF first — round-tripping through PDF layout analysis destroys
+exactly the table structure being tested.
+
+## Measured results
+
+Full corpus, 42,215 chunks, 143 queries judgeable by every configuration.
+Reproduce with `python -m retrieval_ablation.ablation.runner`.
+
+| configuration | axis | nDCG@10 | Recall@50 | MRR |
+|---|---|---|---|---|
+| `baseline-bm25-fixed512` | baseline | **0.1953** | 0.5070 | 0.1741 |
+| `chunk-struct512` | chunking | 0.1884 | **0.5245** | 0.1734 |
+| `chunk-fixed256o32` | chunking | 0.1699 | 0.4126 | 0.1604 |
+| `tables-row-sentences` | table rendering | 0.1688 | 0.4935 | 0.1610 |
+
+Full table with confidence intervals, Holm-corrected p-values, reachability and
+the lexical-overlap split: [`results/ablation.md`](results/ablation.md).
+
+### What these numbers mean, and what they do not
+
+**The absolute values are low, and that is a real result rather than a bug.** The
+project brief assumed a lexical baseline near 0.41. Measured here it is 0.195. Two
+diagnosed causes, both verified by tracing individual queries:
+
+1. **Year confusion accounts for 48% of top-10 failures.** Of 88 queries missed at
+   top-10, 42 had a top hit that was the *same row from the same company in a
+   different fiscal year*. This is the corpus doing what it was designed to do.
+
+2. **Name-dense boilerplate outranks the answer.** Templated queries name the
+   company, and exhibit indexes and legal-proceedings sections repeat the company
+   name dozens of times in one chunk. BM25's term frequency rewards that, so an
+   exhibit list beats the financial statement holding the figure. Classic
+   term-frequency gaming, and precisely the failure a cross-encoder should fix.
+
+Both are headroom the reranking and hybrid arms are meant to close. That makes the
+ablation more informative than a high baseline would, but it also means **these
+numbers are not comparable to published benchmarks** with easier corpora.
+
+**Smaller chunks are clearly worse** (0.1699 vs 0.1953) on both nDCG and Recall.
+**Structure-aware chunking improves Recall@50** (0.5245 vs 0.5070, the best
+measured) while slightly lowering nDCG@10 — it finds the answer more often but not
+higher up. **Row-sentence table rendering is worse than pipe tables** on this
+corpus, which contradicts the intuition that repeating column headers next to
+every value helps.
+
+None of these differences has been checked for significance yet — the
+Holm-corrected paired tests run over the full grid, and the grid is incomplete.
+**Do not quote any of these deltas as a finding until the GPU arms land.**
 
 ## Honest status
 
-Updated at the end of each phase. Nothing is listed as verified unless it has
-been run and the output inspected.
+Nothing below is called verified unless it was run and its output inspected.
 
 ### Built and verified
 
-| Component | Status | Evidence |
+| Component | Evidence |
+|---|---|
+| Corpus ingest, 120 filings | manifest with per-document SHA-256 of raw bytes and parsed text |
+| Table-aware HTML parsing | all 4 Parts, 23 Items, 13 Notes recovered from a real filing; byte-identical reparse |
+| Three chunkers | 66 tests; span-slices-to-text invariant asserted on real documents |
+| Retrieval metrics (nDCG/Recall/MRR) | 29 tests against hand-computed values |
+| Statistics (bootstrap CI, paired permutation, Holm) | 25 tests, determinism asserted under fixed seeds |
+| BM25, dense, RRF fusion, reranking wiring | 66 tests, offline with fakes |
+| Eval set, 216 queries | every gold passage verified to contain the value its query asks for |
+| Ablation runner, 5 lexical configurations | numbers above, on the full corpus |
+
+**338 tests pass, offline, with no API key and no model download.** `ruff` clean.
+
+### Not done
+
+| Missing | Why | What unblocks it |
 |---|---|---|
-| Repo scaffold, lint, offline CI | verified | `ruff check` clean, `pytest` green — see Phase 1 below |
-| `metrics.retrieval` — nDCG@k, Recall@k, MRR | verified | 29 tests, hand-computed expected values |
-| `metrics.stats` — bootstrap CI, paired permutation test, Holm-Bonferroni | verified | 25 tests, determinism asserted under fixed seeds |
+| Dense / hybrid / embedding-model arms | GPU stack could not be installed — see below | network access to `pypi.nvidia.com`, or a machine without Smart App Control |
+| Cross-encoder reranking arms | same | same |
+| Semantic chunking arm | needs an embedding model | same |
+| Query paraphrasing | needs an LLM; would reduce the lexical-overlap confound | `GEMINI_API_KEY` |
+| Generation eval (faithfulness, correctness, citation accuracy) | needs an LLM | `GEMINI_API_KEY` |
+| Long-context baseline comparison | needs a long-context LLM | `GEMINI_API_KEY` |
+| FastAPI service, Docker, citation UI | not started | nothing — next in order |
+| Human verification of eval labels | requires a person | fill in `data/eval/verification_sample.md` |
+| Learning PDF | not started | nothing |
 
-### Not done yet
+Configurations that could not run are recorded in `results/ablation.json` with
+`"measured": false` and a stated reason. **No number is invented for them**, and
+there is a test pinning that behaviour.
 
-Everything else. In planned order: corpus ingest, chunking strategies, eval-set
-construction, retrieval stack, the ablation run, generation eval, long-context
-baseline, service and UI.
+### The GPU blocker, in detail
+
+Windows **Smart App Control is enforced** on the development machine
+(`VerifiedAndReputablePolicyState = 1`). PyTorch ships unsigned native libraries,
+so importing it from Windows Python fails with `WinError 4551`, and the Code
+Integrity event log names `torch_cpu.dll` — meaning **CPU-only PyTorch is blocked
+too**, not just the CUDA build.
+
+Disabling Smart App Control is not an acceptable fix: it is a machine-wide
+security control that cannot be re-enabled without reinstalling Windows.
+
+WSL2 is the supported route and was set up ([`scripts/setup_wsl_gpu.sh`](scripts/setup_wsl_gpu.sh)).
+Its Linux userspace is not governed by the Windows user-mode code-integrity
+policy, and the NVIDIA WSL driver exposes the same RTX 4050 — verified working:
+`nvidia-smi` reports the GPU with 6,141 MiB inside WSL. The remaining obstacle is
+purely network: the Linux torch build resolves CUDA runtime libraries as separate
+multi-gigabyte `nvidia-*` wheels from `pypi.nvidia.com`, and those downloads time
+out repeatedly (6 retry rounds, failing on `nvidia-nccl-cu12`).
+
+To finish the GPU arms:
+
+```bash
+wsl -d Ubuntu -- bash scripts/setup_wsl_gpu.sh
+```
+
+then re-run the ablation from inside WSL. Everything else — tests, lint, git, the
+lexical arms — runs natively on Windows.
 
 ### Known limitations, stated up front
 
-- **Free-tier request quotas bound the LLM-dependent arms.** Google no longer
-  publishes per-model free-tier daily request limits; they are account-specific.
-  The generation, judging and long-context measurements therefore run on a
-  stratified query subsample with reported confidence intervals rather than the
-  full set. This is disclosed in the results rather than hidden by reporting
-  point estimates.
-- **Unmeasured means unmeasured.** Any metric that requires data not yet
-  collected returns `None` and renders as "not measured". This is enforced by
-  test, not convention.
+- **Eval labels are generated, not human-verified.** They are mechanically correct
+  by construction — every gold passage provably contains the value asked for — but
+  nobody has confirmed the queries read naturally or that the labelled span is what
+  a person would cite. `data/eval/verification_sample.md` exists to change that.
+  The schema tracks this per query and a test asserts labels are marked
+  `GENERATED`.
+- **Queries are templated, so they reuse the corpus's wording.** Median content-word
+  overlap with the gold passage is 0.46 (range 0.22–0.88). This hands a lexical
+  matcher an exact string match, so overlap is recorded per query and results are
+  split at 0.4 into low- and high-overlap subsets. A configuration whose advantage
+  exists only in the high-overlap column is winning at string matching.
+- **Some row labels make awkward queries.** Segment tables yield geography labels
+  ("united states") and actuarial tables yield fragments ("expected life in
+  years"). Company-name rows and footnote digits are filtered; these are not yet.
+- **Token counting is approximate** (characters ÷ 4) rather than a real tokenizer.
+  Every configuration uses the same counter, so chunking comparisons are valid,
+  but boundaries differ slightly from a model's own tokenisation.
+- **The grid varies one axis at a time and cannot detect interactions.** One crossed
+  cell (hybrid + reranking) is run explicitly because that interaction is the
+  study's headline claim.
 
 ## Development
 
-Requires Python 3.12+. The default install is CPU-only and has no API
-dependencies, so the full test suite runs offline.
+Python 3.12+. Default install is CPU-only with no API dependencies, so the full
+test suite runs offline.
 
 ```bash
-uv venv
-uv pip install -e ".[dev]"
+uv venv && uv pip install -e ".[dev]"
 ```
-
-Run the checks:
 
 ```bash
 uv run ruff check . && uv run ruff format --check . && uv run pytest
 ```
 
-GPU extras (BGE-M3 embeddings, cross-encoder reranking) are a separate optional
-group so CI never downloads model weights:
+Rebuild everything from scratch:
 
 ```bash
-uv pip install -e ".[gpu]"
+uv run python -m retrieval_ablation.corpus.ingest && uv run python -m retrieval_ablation.evalset.build && uv run python -m retrieval_ablation.ablation.runner
 ```
 
 ## Reproducibility
 
-- Every sampling decision derives from `GLOBAL_SEED` in `config.py`. No function
-  that affects data reads the clock or the global RNG state.
-- The raw corpus is gitignored but reproducible from checksummed manifests in
-  `data/manifests/`.
-- API responses are cached to `.cache/` keyed by content hash, so a re-run
-  neither re-pays nor silently substitutes different output.
+- Every sampling decision derives from `GLOBAL_SEED` in `config.py`. Nothing that
+  affects data reads the clock or the global RNG.
+- The raw corpus is gitignored but reproducible from the checksummed manifest in
+  `data/manifests/corpus.json`, which records the SHA-256 of both the raw bytes
+  and the parsed text of all 120 documents.
+- Query ids are content-addressed on (document, row label, period) — not on
+  character offsets — so the same fact keeps its id when table rendering changes
+  the document text.
 
 ## Licence
 
-Code under this repository is MIT. SEC filings are US public domain.
+MIT. SEC filings are US public domain.

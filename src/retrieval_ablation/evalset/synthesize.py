@@ -270,9 +270,19 @@ def _query_id(fact: TableFact) -> str:
 
     Position-based ids would renumber the whole eval set whenever the corpus or
     the sampling changed, breaking any verification work already done against it.
+
+    The character offset is deliberately NOT part of the hash, and that omission
+    is load-bearing. How a table is rendered into text -- pipe table versus
+    header-repeating row sentences -- is one of the ablation's axes, and changing
+    it changes the canonical text and therefore every offset in the document. If
+    the id depended on the offset, the same underlying fact would get two
+    different ids under two renderings, and the two configurations could not be
+    compared on a shared query set at all. Keying on (document, row label, period)
+    identifies the *fact*, which is what is actually being asked about, and lets
+    each rendering carry its own correct gold span for the same question.
     """
     digest = hashlib.sha256(
-        f"{fact.doc_id}|{fact.row_label}|{fact.period}|{fact.span.start}".encode()
+        f"{fact.doc_id}|{fact.row_label}|{fact.period}".encode()
     ).hexdigest()
     return f"q-{digest[:12]}"
 

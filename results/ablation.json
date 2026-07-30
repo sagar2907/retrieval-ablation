@@ -1,0 +1,291 @@
+{
+  "n_configurations": 8,
+  "n_measured": 5,
+  "results": [
+    {
+      "name": "baseline-bm25-fixed512",
+      "axis": "baseline",
+      "chunker": "fixed512o64",
+      "retrieval": "bm25",
+      "embedding": null,
+      "reranker": null,
+      "candidate_k": 100,
+      "table_rendering": "markdown",
+      "notes": "naive chunk-and-retrieve control",
+      "measured": true,
+      "skipped_reason": null,
+      "n_chunks": 37498,
+      "metrics_all": {
+        "ndcg@10": 0.19052559620511217,
+        "recall@50": 0.5023148148148148,
+        "mrr": 0.16925842445251438
+      },
+      "metrics_common_subset": {
+        "ndcg@10": 0.1952803867721146,
+        "recall@50": 0.506993006993007,
+        "mrr": 0.17408321778504132
+      },
+      "n_scored_all": 216,
+      "n_scored_common": 143,
+      "fraction_reachable": 1.0,
+      "first_stage_recall_ceiling": null,
+      "ndcg10_ci95": [
+        0.14265857338643037,
+        0.25130498862908024
+      ],
+      "ndcg10_low_overlap_queries": 0.10906355443615744,
+      "ndcg10_high_overlap_queries": 0.2253749414554204,
+      "seconds": 0.6
+    },
+    {
+      "name": "chunk-fixed256o32",
+      "axis": "chunking",
+      "chunker": "fixed256o32",
+      "retrieval": "bm25",
+      "embedding": null,
+      "reranker": null,
+      "candidate_k": 100,
+      "table_rendering": "markdown",
+      "notes": "chunking axis: fixed256o32 vs baseline fixed512o64",
+      "measured": true,
+      "skipped_reason": null,
+      "n_chunks": 75083,
+      "metrics_all": {
+        "ndcg@10": 0.1826164153604544,
+        "recall@50": 0.4375,
+        "mrr": 0.16908182569606148
+      },
+      "metrics_common_subset": {
+        "ndcg@10": 0.16985185969404953,
+        "recall@50": 0.4125874125874126,
+        "mrr": 0.16038917076990777
+      },
+      "n_scored_all": 216,
+      "n_scored_common": 143,
+      "fraction_reachable": 1.0,
+      "first_stage_recall_ceiling": null,
+      "ndcg10_ci95": [
+        0.11900408377384639,
+        0.22557830013270186
+      ],
+      "ndcg10_low_overlap_queries": 0.10301332696941103,
+      "ndcg10_high_overlap_queries": 0.19318229092812148,
+      "seconds": 0.9
+    },
+    {
+      "name": "chunk-semantic95",
+      "axis": "chunking",
+      "chunker": "semantic95",
+      "retrieval": "bm25",
+      "embedding": null,
+      "reranker": null,
+      "candidate_k": 100,
+      "table_rendering": "markdown",
+      "notes": "chunking axis: semantic95 vs baseline fixed512o64",
+      "measured": false,
+      "skipped_reason": "bge-m3 unavailable: ModuleNotFoundError: No module named 'sentence_transformers'",
+      "n_chunks": 0,
+      "metrics_all": {},
+      "metrics_common_subset": {},
+      "n_scored_all": 0,
+      "n_scored_common": 0,
+      "fraction_reachable": null,
+      "first_stage_recall_ceiling": null,
+      "ndcg10_ci95": null,
+      "ndcg10_low_overlap_queries": null,
+      "ndcg10_high_overlap_queries": null,
+      "seconds": 0.0
+    },
+    {
+      "name": "chunk-struct512",
+      "axis": "chunking",
+      "chunker": "struct512",
+      "retrieval": "bm25",
+      "embedding": null,
+      "reranker": null,
+      "candidate_k": 100,
+      "table_rendering": "markdown",
+      "notes": "chunking axis: struct512 vs baseline fixed512o64",
+      "measured": true,
+      "skipped_reason": null,
+      "n_chunks": 42215,
+      "metrics_all": {
+        "ndcg@10": 0.19120072425921586,
+        "recall@50": 0.5324074074074074,
+        "mrr": 0.1744958737411851
+      },
+      "metrics_common_subset": {
+        "ndcg@10": 0.18835385125453322,
+        "recall@50": 0.5244755244755245,
+        "mrr": 0.17335377327370421
+      },
+      "n_scored_all": 216,
+      "n_scored_common": 143,
+      "fraction_reachable": 1.0,
+      "first_stage_recall_ceiling": null,
+      "ndcg10_ci95": [
+        0.13501507846029137,
+        0.24582196344897012
+      ],
+      "ndcg10_low_overlap_queries": 0.08371197904702865,
+      "ndcg10_high_overlap_queries": 0.22487978777979425,
+      "seconds": 0.6
+    },
+    {
+      "name": "tables-row-sentences",
+      "axis": "table_rendering",
+      "chunker": "struct512",
+      "retrieval": "bm25",
+      "embedding": null,
+      "reranker": null,
+      "candidate_k": 100,
+      "table_rendering": "row_sentences",
+      "notes": "repeat column headers beside every value instead of a pipe table",
+      "measured": true,
+      "skipped_reason": null,
+      "n_chunks": 40155,
+      "metrics_all": {
+        "ndcg@10": 0.1688198128021778,
+        "recall@50": 0.4935064935064935,
+        "mrr": 0.1609618675847591
+      },
+      "metrics_common_subset": {
+        "ndcg@10": 0.1688198128021778,
+        "recall@50": 0.4935064935064935,
+        "mrr": 0.1609618675847591
+      },
+      "n_scored_all": 143,
+      "n_scored_common": 143,
+      "fraction_reachable": 0.9537037037037037,
+      "first_stage_recall_ceiling": null,
+      "ndcg10_ci95": [
+        0.1215033194260522,
+        0.22182129115994229
+      ],
+      "ndcg10_low_overlap_queries": 0.1013894406020413,
+      "ndcg10_high_overlap_queries": 0.1923568295135462,
+      "seconds": 0.5
+    },
+    {
+      "name": "retrieval-dense-bge",
+      "axis": "retrieval",
+      "chunker": "struct512",
+      "retrieval": "dense",
+      "embedding": "bge-m3",
+      "reranker": null,
+      "candidate_k": 100,
+      "table_rendering": "markdown",
+      "notes": "dense only",
+      "measured": false,
+      "skipped_reason": "bge-m3 unavailable: ModuleNotFoundError: No module named 'sentence_transformers'",
+      "n_chunks": 42215,
+      "metrics_all": {},
+      "metrics_common_subset": {},
+      "n_scored_all": 0,
+      "n_scored_common": 0,
+      "fraction_reachable": null,
+      "first_stage_recall_ceiling": null,
+      "ndcg10_ci95": null,
+      "ndcg10_low_overlap_queries": null,
+      "ndcg10_high_overlap_queries": null,
+      "seconds": 0.0
+    },
+    {
+      "name": "retrieval-hybrid-rrf",
+      "axis": "retrieval",
+      "chunker": "struct512",
+      "retrieval": "hybrid",
+      "embedding": "bge-m3",
+      "reranker": null,
+      "candidate_k": 100,
+      "table_rendering": "markdown",
+      "notes": "BM25 + dense fused with RRF",
+      "measured": false,
+      "skipped_reason": "bge-m3 unavailable: ModuleNotFoundError: No module named 'sentence_transformers'",
+      "n_chunks": 42215,
+      "metrics_all": {},
+      "metrics_common_subset": {},
+      "n_scored_all": 0,
+      "n_scored_common": 0,
+      "fraction_reachable": null,
+      "first_stage_recall_ceiling": null,
+      "ndcg10_ci95": null,
+      "ndcg10_low_overlap_queries": null,
+      "ndcg10_high_overlap_queries": null,
+      "seconds": 0.0
+    },
+    {
+      "name": "retrieval-bm25-struct",
+      "axis": "retrieval",
+      "chunker": "struct512",
+      "retrieval": "bm25",
+      "embedding": null,
+      "reranker": null,
+      "candidate_k": 100,
+      "table_rendering": "markdown",
+      "notes": "lexical control at the same chunking as the dense arms",
+      "measured": true,
+      "skipped_reason": null,
+      "n_chunks": 42215,
+      "metrics_all": {
+        "ndcg@10": 0.19120072425921586,
+        "recall@50": 0.5324074074074074,
+        "mrr": 0.1744958737411851
+      },
+      "metrics_common_subset": {
+        "ndcg@10": 0.18835385125453322,
+        "recall@50": 0.5244755244755245,
+        "mrr": 0.17335377327370421
+      },
+      "n_scored_all": 216,
+      "n_scored_common": 143,
+      "fraction_reachable": 1.0,
+      "first_stage_recall_ceiling": null,
+      "ndcg10_ci95": [
+        0.13501507846029137,
+        0.24582196344897012
+      ],
+      "ndcg10_low_overlap_queries": 0.08371197904702865,
+      "ndcg10_high_overlap_queries": 0.22487978777979425,
+      "seconds": 0.6
+    }
+  ],
+  "significance_vs_baseline": {
+    "chunk-fixed256o32": {
+      "baseline_ndcg10": 0.1952803867721146,
+      "config_ndcg10": 0.1698518596940495,
+      "delta": -0.025428527078065064,
+      "p_raw": 0.2880711928807119,
+      "p_holm": 1.0,
+      "significant_at_05": false,
+      "n_pairs": 143
+    },
+    "chunk-struct512": {
+      "baseline_ndcg10": 0.1952803867721146,
+      "config_ndcg10": 0.18835385125453322,
+      "delta": -0.006926535517581384,
+      "p_raw": 0.7602239776022398,
+      "p_holm": 1.0,
+      "significant_at_05": false,
+      "n_pairs": 143
+    },
+    "tables-row-sentences": {
+      "baseline_ndcg10": 0.1952803867721146,
+      "config_ndcg10": 0.1688198128021778,
+      "delta": -0.026460573969936774,
+      "p_raw": 0.25617438256174385,
+      "p_holm": 1.0,
+      "significant_at_05": false,
+      "n_pairs": 143
+    },
+    "retrieval-bm25-struct": {
+      "baseline_ndcg10": 0.1952803867721146,
+      "config_ndcg10": 0.18835385125453322,
+      "delta": -0.006926535517581384,
+      "p_raw": 0.7602239776022398,
+      "p_holm": 1.0,
+      "significant_at_05": false,
+      "n_pairs": 143
+    }
+  }
+}

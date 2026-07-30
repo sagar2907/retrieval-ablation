@@ -8,11 +8,11 @@ For each one, mark `[x] ok` if the passage genuinely answers the query, or
 only evidence available about how trustworthy the generated labels are in
 bulk, so a completed sample is worth more than a larger unverified set.
 
-Sampled 40 of 220 queries, spread across the lexical-overlap range.
+Sampled 40 of 216 queries, spread across the lexical-overlap range.
 
 ---
 
-## 1. `q-50e83bc1b8a3`
+## 1. `q-68515ec4c774`
 
 **Query:** In 2024, what amount did Coca Cola Co record as purchase obligations?
 
@@ -30,7 +30,7 @@ Sampled 40 of 220 queries, spread across the lexical-overlap range.
 - [ ] ok
 - [ ] reject &mdash; reason:
 
-## 2. `q-90222e290941`
+## 2. `q-9f33eda94a35`
 
 **Query:** Report Goldman Sachs Group Inc's commodity prices figure for the 2021 fiscal year.
 
@@ -48,7 +48,7 @@ Sampled 40 of 220 queries, spread across the lexical-overlap range.
 - [ ] ok
 - [ ] reject &mdash; reason:
 
-## 3. `q-6bba39bacc18`
+## 3. `q-78b1f110cec6`
 
 **Query:** In 2022, what amount did Goldman Sachs Group Inc record as interest rates?
 
@@ -66,43 +66,25 @@ Sampled 40 of 220 queries, spread across the lexical-overlap range.
 - [ ] ok
 - [ ] reject &mdash; reason:
 
-## 4. `q-e0b4b20aceba`
+## 4. `q-d3edb5a86f84`
 
-**Query:** Report Exxon Mobil Corp's united states figure for the 2024 fiscal year.
+**Query:** Chevron Corp international 2022
 
 - lexical overlap: `0.25`
-- document: `xom-10-k-2024-12-31`
-- section: Part IV > Item 16. FORM 10-K SUMMARY
-- expected value: `1,248`
+- document: `cvx-10-k-2022-12-31`
+- section: Part III > Item 14. Principal Accountant Fees and Services
+- expected value: `1,818`
 
 **Labelled passage:**
 
 ```
-| United States | 1,248 |  | 803 |  | 776 |
+| International | 1,818 |  | 1,960 |  | 2,025 |
 ```
 
 - [ ] ok
 - [ ] reject &mdash; reason:
 
-## 5. `q-6246985023da`
-
-**Query:** Report American Express Co's valuation allowances figure for the 2023 fiscal year.
-
-- lexical overlap: `0.29`
-- document: `axp-10-k-2025-12-31`
-- section: Part II > Item 8. FINANCIAL STATEMENTS AND SUPPLEMENTARY DATA > Note 19
-- expected value: `0.1`
-
-**Labelled passage:**
-
-```
-| Valuation allowances | — | 0.1 |
-```
-
-- [ ] ok
-- [ ] reject &mdash; reason:
-
-## 6. `q-7907960093a5`
+## 5. `q-48ee43da658d`
 
 **Query:** Report Nike, Inc.'s foreign earnings figure for the 2023 fiscal year.
 
@@ -120,61 +102,43 @@ Sampled 40 of 220 queries, spread across the lexical-overlap range.
 - [ ] ok
 - [ ] reject &mdash; reason:
 
-## 7. `q-aa8544d40f2a`
+## 6. `q-7e369bb92298`
 
-**Query:** Report Procter & Gamble Co's over 5 years figure for the 2023 fiscal year.
+**Query:** How much did Goldman Sachs Group Inc report for interest rates in 2024?
 
 - lexical overlap: `0.29`
-- document: `pg-10-k-2023-06-30`
-- section: Part II > Item 8. Financial Statements and Supplementary Data > Note 12
-- expected value: `196`
+- document: `gs-10-k-2025-12-31`
+- section: Part II > Item 7. Management’s Discussion and Analysis of Financial Condition and Results of Operations
+- expected value: `$ 121`
 
 **Labelled passage:**
 
 ```
-| Over 5 years | 196 |
+| Interest rates | $ 92 $ 54 | $ 121 | $ | 57 |  |
 ```
 
 - [ ] ok
 - [ ] reject &mdash; reason:
 
-## 8. `q-44c9c73a3009`
+## 7. `q-009f233c4392`
 
-**Query:** In 2025, what amount did Costco Wholesale Corp /New record as deferred membership fees?
+**Query:** In 2022, what amount did Chevron Corp record as united states?
 
 - lexical overlap: `0.33`
-- document: `cost-10-k-2025-08-31`
-- section: Part II > Item 8. Financial Statements and Supplementary Data
-- expected value: `2,854`
+- document: `cvx-10-k-2022-12-31`
+- section: Part III > Item 14. Principal Accountant Fees and Services > Note 14
+- expected value: `$ 50,822`
 
 **Labelled passage:**
 
 ```
-| Deferred membership fees | 2,854 | 2,501 |
+| United States | $ 50,822 | $ 29,219 | $ 14,577 |
 ```
 
 - [ ] ok
 - [ ] reject &mdash; reason:
 
-## 9. `q-7e2735aa091f`
-
-**Query:** In 2025, what amount did Procter & Gamble Co record as translation and other?
-
-- lexical overlap: `0.33`
-- document: `pg-10-k-2025-06-30`
-- section: Part II > Item 8. Financial Statements and Supplementary Data > Note 14
-- expected value: `98`
-
-**Labelled passage:**
-
-```
-| Translation and other | 98 |
-```
-
-- [ ] ok
-- [ ] reject &mdash; reason:
-
-## 10. `q-b24cd6f713d1`
+## 8. `q-50b3acd0c480`
 
 **Query:** What was Blackrock Finance, Inc.'s liquid alternatives for 2023?
 
@@ -192,25 +156,61 @@ Sampled 40 of 220 queries, spread across the lexical-overlap range.
 - [ ] ok
 - [ ] reject &mdash; reason:
 
-## 11. `q-070da32873bf`
+## 9. `q-976b53636c37`
 
-**Query:** Report American Express Co's actual tax rates figure for the 2024 fiscal year.
+**Query:** In 2025, what amount did Costco Wholesale Corp /New record as deferred membership fees?
 
-- lexical overlap: `0.38`
-- document: `axp-10-k-2025-12-31`
-- section: Part II > Item 8. FINANCIAL STATEMENTS AND SUPPLEMENTARY DATA > Note 19
-- expected value: `21.5 %`
+- lexical overlap: `0.33`
+- document: `cost-10-k-2025-08-31`
+- section: Part II > Item 8. Financial Statements and Supplementary Data
+- expected value: `2,854`
 
 **Labelled passage:**
 
 ```
-| Actual tax rates | 21.5 % | 20.3 % |
+| Deferred membership fees | 2,854 | 2,501 |
 ```
 
 - [ ] ok
 - [ ] reject &mdash; reason:
 
-## 12. `q-b10d8b0ae974`
+## 10. `q-ed582dbd6bdc`
+
+**Query:** In 2025, what amount did Goldman Sachs Group Inc record as cet1 capital ratio?
+
+- lexical overlap: `0.33`
+- document: `gs-10-k-2025-12-31`
+- section: Part II > Item 7. Management’s Discussion and Analysis of Financial Condition and Results of Operations
+- expected value: `12.0 %`
+
+**Labelled passage:**
+
+```
+| CET1 capital ratio | 12.0 % | 11.9 % |
+```
+
+- [ ] ok
+- [ ] reject &mdash; reason:
+
+## 11. `q-3daae41313cf`
+
+**Query:** Report Merck & Co., Inc.'s benefit obligation december figure for the 2024 fiscal year.
+
+- lexical overlap: `0.38`
+- document: `mrk-10-k-2024-12-31`
+- section: Part II > Item 8. Financial Statements and Supplementary Data
+- expected value: `$ 10,151`
+
+**Labelled passage:**
+
+```
+| Benefit obligation December 31 | $ 10,151 | $ 10,446 | $ 8,274 | $ 9,042 | $ 1,136 | $ 1,104 |
+```
+
+- [ ] ok
+- [ ] reject &mdash; reason:
+
+## 12. `q-956d97d0649f`
 
 **Query:** What was Goldman Sachs Group Inc's leverage ratio requirement for 2025?
 
@@ -228,61 +228,61 @@ Sampled 40 of 220 queries, spread across the lexical-overlap range.
 - [ ] ok
 - [ ] reject &mdash; reason:
 
-## 13. `q-0476c17db3fd`
+## 13. `q-21b34c85f0c4`
 
-**Query:** How much did Chevron Corp report for affiliated companies in 2024?
+**Query:** Blackrock, Inc. cash management 2025
 
 - lexical overlap: `0.40`
-- document: `cvx-10-k-2024-12-31`
-- section: Part I > Item 1. Business
-- expected value: `1,849`
+- document: `blk-10-k-2025-12-31`
+- section: Part II > Item 7. Management’s Discussion and Analysis of Financial Condition and Results of Operations
+- expected value: `6`
 
 **Labelled passage:**
 
 ```
-| Affiliated Companies | 1,849 | 2,063 | 2,099 |
+| Cash management | 6 | % | 7 | % | 8 | % | 7 | % |
 ```
 
 - [ ] ok
 - [ ] reject &mdash; reason:
 
-## 14. `q-50eb6659dc06`
+## 14. `q-3693270420fd`
 
-**Query:** How much did American Express Co report for expected volatility in 2023?
+**Query:** What was Blackrock, Inc.'s liquid alternatives for 2024?
 
 - lexical overlap: `0.40`
-- document: `axp-10-k-2023-12-31`
-- section: Part II > Item 8. FINANCIAL STATEMENTS AND SUPPLEMENTARY DATA > Note 10
-- expected value: `45 %`
+- document: `blk-10-k-2024-12-31`
+- section: Part II > Item 7. Management’s Discussion and Analysis of Financial Condition and Results of Operations
+- expected value: `4`
 
 **Labelled passage:**
 
 ```
-| Expected volatility | 45 % | 42 % | 41 % |
+| Liquid alternatives | 4 | % | 4 | % | 1 | % | 1 | % |
 ```
 
 - [ ] ok
 - [ ] reject &mdash; reason:
 
-## 15. `q-94d2bf3e7137`
+## 15. `q-66bd501fa69e`
 
-**Query:** Caterpillar Inc commercial paper 2023
+**Query:** What was Nvidia Corp's accounts receivable for 2025?
 
 - lexical overlap: `0.40`
-- document: `cat-10-k-2023-12-31`
-- section: Part II > Item 8. Financial Statements and Supplementary Data
-- expected value: `5.2 %`
+- document: `nvda-10-k-2025-01-26`
+- section: Part IV > Item 15. Exhibits and Financial Statement Schedules
+- expected value: `(13,063)`
 
 **Labelled passage:**
 
 ```
-| Commercial paper | 5.2 % | 4.2 % |
+| Accounts receivable | (13,063) | (6,172) | 822 |
 ```
 
 - [ ] ok
 - [ ] reject &mdash; reason:
 
-## 16. `q-a5b86213a540`
+## 16. `q-9e16afe1be62`
 
 **Query:** What was Coca Cola Co's translation and other for 2025?
 
@@ -300,205 +300,169 @@ Sampled 40 of 220 queries, spread across the lexical-overlap range.
 - [ ] ok
 - [ ] reject &mdash; reason:
 
-## 17. `q-c6d7cfc794ac`
+## 17. `q-e1c368e4c3f4`
 
-**Query:** In 2022, what amount did At&T Inc. record as private equity?
-
-- lexical overlap: `0.40`
-- document: `t-10-k-2022-12-31`
-- section: Part II > Item 8. FINANCIAL STATEMENTS AND SUPPLEMENTARY DATA > Note 14 - PENSION AND POSTRETIREMENT BENEFITS
-- expected value: `14`
-
-**Labelled passage:**
-
-```
-| Private equity | — % - 16 % | 14 | 12 | — % - 6 % | 1 | 1 |
-```
-
-- [ ] ok
-- [ ] reject &mdash; reason:
-
-## 18. `q-e2464ed4e444`
-
-**Query:** How much did Blackrock, Inc. report for january 31, 2025 in 2022?
+**Query:** General Electric Co other changes 2022
 
 - lexical overlap: `0.40`
-- document: `blk-10-k-2024-12-31`
-- section: Part IV > Item 16. Form 10-K Summary
-- expected value: `197,817`
+- document: `ge-10-k-2022-12-31`
+- section: Note 24 - COMMITMENTS, GUARANTEES, PRODUCT WARRANTIES AND OTHER LOSS CONTINGENCIES
+- expected value: `(90)`
 
 **Labelled passage:**
 
 ```
-| January 31, 2025 | — | — | 197,817 |
+| Other changes | (90) | (81) | 14 |
 ```
 
 - [ ] ok
 - [ ] reject &mdash; reason:
 
-## 19. `q-09aa829ca4c1`
+## 18. `q-51a4409bce55`
 
-**Query:** What was Unitedhealth Group Inc's expected life in years for 2022?
+**Query:** Report Goldman Sachs Group Inc's settlement of employee share-based awards figure for the 2022 fiscal year.
+
+- lexical overlap: `0.42`
+- document: `gs-10-k-2022-12-31`
+- section: Part II > Item 8. Financial Statements and Supplementary Data > Note 24
+- expected value: `(2.4)`
+
+**Labelled passage:**
+
+```
+| Settlement of employee share-based awards | (2.4) | (0.7) | (1.0) |
+```
+
+- [ ] ok
+- [ ] reject &mdash; reason:
+
+## 19. `q-38bdfcd52cc6`
+
+**Query:** How much did Unitedhealth Group Inc report for expected dividend yield in 2022?
 
 - lexical overlap: `0.43`
-- document: `unh-10-k-2022-12-31`
-- section: Part II > Item 8. FINANCIAL STATEMENTS AND SUPPLEMENTARY DATA
-- expected value: `4.7`
-
-**Labelled passage:**
-
-```
-| Expected life in years | 4.7 | 4.8 | 5.1 |
-```
-
-- [ ] ok
-- [ ] reject &mdash; reason:
-
-## 20. `q-81a442ebda41`
-
-**Query:** Unitedhealth Group Inc total intangible assets 2024
-
-- lexical overlap: `0.43`
-- document: `unh-10-k-2024-12-31`
-- section: Part II > Item 8. FINANCIAL STATEMENTS AND SUPPLEMENTARY DATA
-- expected value: `$ 10,602`
-
-**Labelled passage:**
-
-```
-| Total intangible assets | $ 10,602 | $ 2,174 |
-```
-
-- [ ] ok
-- [ ] reject &mdash; reason:
-
-## 21. `q-ceda45797b8d`
-
-**Query:** Cisco Systems, Inc. deferred tax assets 2024
-
-- lexical overlap: `0.43`
-- document: `csco-10-k-2024-07-27`
-- section: Part II > Item 8
-- expected value: `6,262`
-
-**Labelled passage:**
-
-```
-| Deferred tax assets | 6,262 | 6,576 |
-```
-
-- [ ] ok
-- [ ] reject &mdash; reason:
-
-## 22. `q-7bbb1d14e532`
-
-**Query:** Report Procter & Gamble Co's present value of lease liabilities figure for the 2023 fiscal year.
-
-- lexical overlap: `0.44`
-- document: `pg-10-k-2023-06-30`
-- section: Part II > Item 8. Financial Statements and Supplementary Data > Note 12
-- expected value: `$ 817`
-
-**Labelled passage:**
-
-```
-| Present value of lease liabilities | $ 817 |
-```
-
-- [ ] ok
-- [ ] reject &mdash; reason:
-
-## 23. `q-023499a2ab9e`
-
-**Query:** Report Boeing Co's other postretirement benefit obligations figure for the 2025 fiscal year.
-
-- lexical overlap: `0.50`
-- document: `ba-10-k-2025-12-31`
-- section: Part II > Item 8. Financial Statements and Supplementary Data > Note 6 - Income Taxes
-- expected value: `562`
-
-**Labelled passage:**
-
-```
-| Other postretirement benefit obligations | 562 | 587 |
-```
-
-- [ ] ok
-- [ ] reject &mdash; reason:
-
-## 24. `q-0da6479a6802`
-
-**Query:** Southern Co alabama power 2023
-
-- lexical overlap: `0.50`
-- document: `so-10-k-2025-12-31`
-- section: Part II > Item 7A. QUANTITATIVE AND QUALITATIVE DISCLOSURES ABOUT MARKET RISK
-- expected value: `40`
-
-**Labelled passage:**
-
-```
-| Alabama Power | — | — | 40 | — | — | 5.5 |
-```
-
-- [ ] ok
-- [ ] reject &mdash; reason:
-
-## 25. `q-244f0fd024ce`
-
-**Query:** Boeing Co valuation allowance 2023
-
-- lexical overlap: `0.50`
-- document: `ba-10-k-2023-12-31`
-- section: Part II > Item 8. Financial Statements and Supplementary Data > Note 4 - Income Taxes
-- expected value: `(4,550)`
-
-**Labelled passage:**
-
-```
-| Valuation allowance | (4,550) | (3,162) |
-```
-
-- [ ] ok
-- [ ] reject &mdash; reason:
-
-## 26. `q-4e0e78b1eecd`
-
-**Query:** What was Duke Energy Corp's natural gas and fuel oil(a) for 2022?
-
-- lexical overlap: `0.50`
-- document: `duk-10-k-2022-12-31`
-- section: Item 1. BUSINESS
-- expected value: `34.2 %`
-
-**Labelled passage:**
-
-```
-| Natural gas and fuel oil(a) | 34.2 % | 31.8 % | 31.3 % | 6.35 | 3.89 | 2.55 |
-```
-
-- [ ] ok
-- [ ] reject &mdash; reason:
-
-## 27. `q-705a18b2a1b8`
-
-**Query:** What was Unitedhealth Group Inc's total acquired intangible assets for 2023?
-
-- lexical overlap: `0.50`
 - document: `unh-10-k-2023-12-31`
 - section: Part II > Item 8. FINANCIAL STATEMENTS AND SUPPLEMENTARY DATA
-- expected value: `$ 2,174`
+- expected value: `1.2%`
 
 **Labelled passage:**
 
 ```
-| Total acquired intangible assets | $ 2,174 | $ 5,814 |
+| Expected dividend yield | 1.3% - 1.5% | 1.2% | 1.3% - 1.5% |
 ```
 
 - [ ] ok
 - [ ] reject &mdash; reason:
 
-## 28. `q-8b893f366341`
+## 20. `q-7c06374309f9`
+
+**Query:** In 2018, what amount did Walmart Inc. record as s&p 500 retailing index?
+
+- lexical overlap: `0.43`
+- document: `wmt-10-k-2023-01-31`
+- section: Part II > Item 5
+- expected value: `100.00`
+
+**Labelled passage:**
+
+```
+| S&P 500 Retailing Index | 100.00 | 108.42 | 127.45 | 180.19 | 195.77 | 160.10 |
+```
+
+- [ ] ok
+- [ ] reject &mdash; reason:
+
+## 21. `q-f84c1e7a6542`
+
+**Query:** In 2024, what amount did Nvidia Corp record as total current assets?
+
+- lexical overlap: `0.43`
+- document: `nvda-10-k-2024-01-28`
+- section: Part IV > Item 15. Exhibit and Financial Statement Schedules
+- expected value: `44,345`
+
+**Labelled passage:**
+
+```
+| Total current assets | 44,345 | 23,073 |
+```
+
+- [ ] ok
+- [ ] reject &mdash; reason:
+
+## 22. `q-f57829a3c551`
+
+**Query:** Costco Wholesale Corp /New interest income and other, net 2024
+
+- lexical overlap: `0.44`
+- document: `cost-10-k-2024-09-01`
+- section: Part II > Item 6. Reserved
+- expected value: `$ 624`
+
+**Labelled passage:**
+
+```
+| Interest income and other, net | $ 624 | $ 533 | $ 205 |
+```
+
+- [ ] ok
+- [ ] reject &mdash; reason:
+
+## 23. `q-14ebb28195eb`
+
+**Query:** In 2025, what amount did American Express Co record as remaining performance period (in years)?
+
+- lexical overlap: `0.50`
+- document: `axp-10-k-2025-12-31`
+- section: Part II > Item 8. FINANCIAL STATEMENTS AND SUPPLEMENTARY DATA > Note 10
+- expected value: `2.9`
+
+**Labelled passage:**
+
+```
+| Remaining performance period (in years) | 2.9 | 2.9 | 2.9 |
+```
+
+- [ ] ok
+- [ ] reject &mdash; reason:
+
+## 24. `q-2e6b34a44cc2`
+
+**Query:** Report American Express Co's u.s. statutory federal income tax rate figure for the 2024 fiscal year.
+
+- lexical overlap: `0.50`
+- document: `axp-10-k-2024-12-31`
+- section: Part II > Item 8. FINANCIAL STATEMENTS AND SUPPLEMENTARY DATA > Note 20
+- expected value: `21.0 %`
+
+**Labelled passage:**
+
+```
+| U.S. statutory federal income tax rate | 21.0 % | 21.0 % | 21.0 % |
+```
+
+- [ ] ok
+- [ ] reject &mdash; reason:
+
+## 25. `q-4ba2ba599e0f`
+
+**Query:** How much did Chevron Corp report for marketable securities sold in 2024?
+
+- lexical overlap: `0.50`
+- document: `cvx-10-k-2025-12-31`
+- section: Part III > Item 14. Principal Accountant Fees and Services > Note 3
+- expected value: `45`
+
+**Labelled passage:**
+
+```
+| Marketable securities sold | — | 45 | 464 |
+```
+
+- [ ] ok
+- [ ] reject &mdash; reason:
+
+## 26. `q-784c39eb2ab9`
 
 **Query:** What was Coca Cola Co's commercial paper borrowings for 2024?
 
@@ -516,61 +480,79 @@ Sampled 40 of 220 queries, spread across the lexical-overlap range.
 - [ ] ok
 - [ ] reject &mdash; reason:
 
-## 29. `q-b71b37b4d785`
+## 27. `q-839b5360416c`
 
-**Query:** At&T Inc. guarantee obligation recorded 2024
+**Query:** How much did Procter & Gamble Co report for total lease payments in 2024?
 
 - lexical overlap: `0.50`
-- document: `t-10-k-2024-12-31`
-- section: Part II > Item 8. FINANCIAL STATEMENTS AND SUPPLEMENTARY DATA > Note 17 - SALES OF RECEIVABLES
-- expected value: `930`
+- document: `pg-10-k-2024-06-30`
+- section: Part II > Item 8. Financial Statements and Supplementary Data > Note 12
+- expected value: `1,031`
 
 **Labelled passage:**
 
 ```
-| Guarantee obligation recorded | 930 |  | 932 |  | 703 |
+| Total lease payments | 1,031 |
 ```
 
 - [ ] ok
 - [ ] reject &mdash; reason:
 
-## 30. `q-befd6e335536`
+## 28. `q-9fe02507e5c0`
 
-**Query:** What was Walmart Inc.'s federal tax credits for 2024?
+**Query:** Southern Co alabama power 2023
 
 - lexical overlap: `0.50`
-- document: `wmt-10-k-2024-01-31`
-- section: Part II > Item 8 > Note 9 - Taxes
-- expected value: `(1.5) %`
+- document: `so-10-k-2025-12-31`
+- section: Part II > Item 7A. QUANTITATIVE AND QUALITATIVE DISCLOSURES ABOUT MARKET RISK
+- expected value: `40`
 
 **Labelled passage:**
 
 ```
-| Federal tax credits | (1.5) % | (1.3) % | (1.1) % |
+| Alabama Power | — | — | 40 | — | — | 5.5 |
 ```
 
 - [ ] ok
 - [ ] reject &mdash; reason:
 
-## 31. `q-cd3b063dbe84`
+## 29. `q-b941f09afa0a`
 
-**Query:** What was Amgen Inc's segment net income for 2025?
+**Query:** Report Boeing Co's other postretirement benefit obligations figure for the 2025 fiscal year.
 
 - lexical overlap: `0.50`
-- document: `amgn-10-k-2025-12-31`
-- section: Part IV > Item 16
-- expected value: `7,711`
+- document: `ba-10-k-2025-12-31`
+- section: Part II > Item 8. Financial Statements and Supplementary Data > Note 6 - Income Taxes
+- expected value: `562`
 
 **Labelled passage:**
 
 ```
-| Segment net income | 7,711 | 4,090 | 6,717 |
+| Other postretirement benefit obligations | 562 | 587 |
 ```
 
 - [ ] ok
 - [ ] reject &mdash; reason:
 
-## 32. `q-e31c0cf148c2`
+## 30. `q-da41dc7a3db7`
+
+**Query:** How much did At&T Inc. report for operating income in 2025?
+
+- lexical overlap: `0.50`
+- document: `t-10-k-2025-12-31`
+- section: Part II > Item 7. MANAGEMENT’S DISCUSSION AND ANALYSIS OF FINANCIAL CONDITION AND RESULTS OF OPERATIONS
+- expected value: `24,162`
+
+**Labelled passage:**
+
+```
+| Operating Income | 24,162 | 19,049 | 23,461 | 26.8 | (18.8) |
+```
+
+- [ ] ok
+- [ ] reject &mdash; reason:
+
+## 31. `q-ea2c041f071a`
 
 **Query:** How much did Goldman Sachs Group Inc report for tax-exempt income, including dividends in 2024?
 
@@ -588,61 +570,61 @@ Sampled 40 of 220 queries, spread across the lexical-overlap range.
 - [ ] ok
 - [ ] reject &mdash; reason:
 
-## 33. `q-495ca380153f`
+## 32. `q-fdaa35bd2eff`
 
-**Query:** In 2025, what amount did Nike, Inc. record as income tax audits and contingency reserves?
+**Query:** What was Merck & Co., Inc.'s short-term investments for 2022?
 
-- lexical overlap: `0.56`
-- document: `nke-10-k-2025-05-31`
-- section: Part II > Item 8. FINANCIAL STATEMENTS AND SUPPLEMENTARY DATA > Note 7 - INCOME TAXES
-- expected value: `2.7 %`
+- lexical overlap: `0.50`
+- document: `mrk-10-k-2022-12-31`
+- section: Part II > Item 8. Financial Statements and Supplementary Data
+- expected value: `498`
 
 **Labelled passage:**
 
 ```
-| Income tax audits and contingency reserves | 2.7 % | 1.8 % | 1.0 % |
+| Short-term investments | 498 | — |
 ```
 
 - [ ] ok
 - [ ] reject &mdash; reason:
 
-## 34. `q-26f1228288b9`
+## 33. `q-0b93ebcaaa7e`
 
-**Query:** Nike, Inc. federal income tax rate 2024
+**Query:** Amgen Inc acquired in-process research and development 2021
 
 - lexical overlap: `0.57`
-- document: `nke-10-k-2024-05-31`
-- section: Part II > Item 8. FINANCIAL STATEMENTS AND SUPPLEMENTARY DATA > Note 7 - INCOME TAXES
-- expected value: `21.0 %`
+- document: `amgn-10-k-2022-12-31`
+- section: Part II > Item 7
+- expected value: `$ 1,505`
 
 **Labelled passage:**
 
 ```
-| Federal income tax rate | 21.0 % | 21.0 % | 21.0 % |
+| Acquired in-process research and development | $ — | NM | $ 1,505 | NM | $ — |
 ```
 
 - [ ] ok
 - [ ] reject &mdash; reason:
 
-## 35. `q-5f97033e73b4`
+## 34. `q-6cb8c10ffa53`
 
-**Query:** How much did Apple Inc. report for net deferred tax assets in 2024?
+**Query:** What was Nike, Inc.'s interest (income) expense, net for 2025?
 
 - lexical overlap: `0.57`
-- document: `aapl-10-k-2024-09-28`
-- section: Part II > Item 8. Financial Statements and Supplementary Data > Note 7 - Income Taxes
-- expected value: `$ 19,202`
+- document: `nke-10-k-2026-05-31`
+- section: Part II > Item 8. FINANCIAL STATEMENTS AND SUPPLEMENTARY DATA > Note 15 - SEGMENT INFORMATION
+- expected value: `(107)`
 
 **Labelled passage:**
 
 ```
-| Net deferred tax assets | $ 19,202 | $ 17,251 |
+| Interest (income) expense, net | (107) |
 ```
 
 - [ ] ok
 - [ ] reject &mdash; reason:
 
-## 36. `q-9529ce24a405`
+## 35. `q-bbfb090e276b`
 
 **Query:** Apple Inc. other non-current assets 2024
 
@@ -660,61 +642,61 @@ Sampled 40 of 220 queries, spread across the lexical-overlap range.
 - [ ] ok
 - [ ] reject &mdash; reason:
 
-## 37. `q-eba853295733`
+## 36. `q-e5229ed51661`
 
-**Query:** Report Merck & Co., Inc.'s acquisition of verona pharma plc, net of cash acquired figure for the 2025 fiscal year.
+**Query:** What was Apple Inc.'s accumulated other comprehensive loss for 2024?
 
-- lexical overlap: `0.58`
-- document: `mrk-10-k-2025-12-31`
+- lexical overlap: `0.57`
+- document: `aapl-10-k-2024-09-28`
 - section: Part II > Item 8. Financial Statements and Supplementary Data
-- expected value: `(10,042)`
+- expected value: `(7,172)`
 
 **Labelled passage:**
 
 ```
-| Acquisition of Verona Pharma plc, net of cash acquired | (10,042) | — | — |
+| Accumulated other comprehensive loss | (7,172) |  | (11,452) |
 ```
 
 - [ ] ok
 - [ ] reject &mdash; reason:
 
-## 38. `q-3c6776461a83`
+## 37. `q-2085c224efbd`
 
-**Query:** How much did Duke Energy Corp report for duke energy ohio in 2025?
+**Query:** Boeing Co estimated amortization expense 2026
 
 - lexical overlap: `0.60`
-- document: `duk-10-k-2025-12-31`
-- section: Item 8. FINANCIAL STATEMENTS AND SUPPLEMENTARY DATA
-- expected value: `2.9 %`
+- document: `ba-10-k-2025-12-31`
+- section: Part II > Item 8. Financial Statements and Supplementary Data > Note 4 - Goodwill and Acquired Intangibles
+- expected value: `$197`
 
 **Labelled passage:**
 
 ```
-| Duke Energy Ohio | 2.9 % | 2.9 % | 2.8 % |
+| Estimated amortization expense | $197 | $182 | $155 | $150 | $144 |
 ```
 
 - [ ] ok
 - [ ] reject &mdash; reason:
 
-## 39. `q-f455ef4f2e47`
+## 38. `q-bf1951123d90`
 
-**Query:** Report At&T Inc.'s long-term rate of return on plan assets figure for the 2024 fiscal year.
+**Query:** How much did Boeing Co report for mortgage backed and asset backed in 2024?
 
 - lexical overlap: `0.60`
-- document: `t-10-k-2024-12-31`
-- section: Part II > Item 8. FINANCIAL STATEMENTS AND SUPPLEMENTARY DATA > Note 14 - PENSION AND POSTRETIREMENT BENEFITS
-- expected value: `7.75 %`
+- document: `ba-10-k-2025-12-31`
+- section: Part II > Item 8. Financial Statements and Supplementary Data > Note 18 - Postretirement Plans
+- expected value: `161`
 
 **Labelled passage:**
 
 ```
-| Long-term rate of return on plan assets | 7.75 % |  | 7.50 % |  | 6.75 % |  | 4.00 % |  | 6.50 % |  | 4.50 % |
+| Mortgage backed and asset backed | 161 | 2 | 5 | $4 | 172 |
 ```
 
 - [ ] ok
 - [ ] reject &mdash; reason:
 
-## 40. `q-4a57f1fd036a`
+## 39. `q-7e0e662a981a`
 
 **Query:** Coca Cola Co benefit payments for other postretirement benefit plans 2026
 
@@ -727,6 +709,24 @@ Sampled 40 of 220 queries, spread across the lexical-overlap range.
 
 ```
 | Benefit payments for other postretirement benefit plans | 21 | 18 | 17 | 15 | 14 | 65 |
+```
+
+- [ ] ok
+- [ ] reject &mdash; reason:
+
+## 40. `q-11fc9704c12b`
+
+**Query:** What was General Electric Co's gains (losses) on retained and sold ownership interests for 2025?
+
+- lexical overlap: `0.67`
+- document: `ge-10-k-2025-12-31`
+- section: Note 19 - OTHER INCOME (LOSS)
+- expected value: `$ 21`
+
+**Labelled passage:**
+
+```
+| Gains (losses) on retained and sold ownership interests | $ 21 | $ 518 | $ 5,778 |
 ```
 
 - [ ] ok
