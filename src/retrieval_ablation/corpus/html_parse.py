@@ -1,7 +1,7 @@
 """Parse EDGAR filing HTML into a canonical `Document` with tables preserved.
 
-Why parse HTML directly instead of converting to PDF and using a document AI
-layout model (Docling, Unstructured): EDGAR filings are *born* as HTML. Their
+Why parse HTML directly instead of converting to PDF and using a layout-analysis
+model (Docling, Unstructured): EDGAR filings are *born* as HTML. Their
 tables carry explicit `<tr>`/`<td>` structure with colspan and rowspan. Rendering
 to PDF discards that and forces a layout model to re-infer cell boundaries from
 pixel positions -- reconstructing, imperfectly, information that was never lost.
