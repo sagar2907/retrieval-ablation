@@ -58,13 +58,16 @@ EMBEDDING_JOBS = [
     ("e5-base", "struct512"),
 ]
 
-#: Reranking is run over the candidate lists the local BM25 and hybrid arms
-#: produce. Those lists are committed by the local side as
-#: results/candidates-<config>.json; if absent, reranking is skipped with a
-#: recorded reason rather than silently producing nothing.
+#: Reranking runs over candidate lists the local side commits as
+#: results/candidates-<config>.json.gz. Those files hold chunk *ids* only; the
+#: texts are rebuilt here from the checksum-verified corpus, which is what keeps
+#: them small enough to travel with a git clone.
+#:
+#: If a file is absent, reranking for it is skipped with a recorded reason rather
+#: than silently producing nothing.
 RERANK_CANDIDATE_FILES = [
-    "candidates-rerank-bm25-100.json",
-    "candidates-hybrid-plus-rerank.json",
+    "candidates-rerank-bm25-100.json.gz",
+    "candidates-hybrid-plus-rerank.json.gz",
 ]
 
 RERANKER = "BAAI/bge-reranker-v2-m3"
@@ -194,7 +197,33 @@ def main() -> None:  # noqa: PLR0915 - a linear script; splitting it would obscu
             )
             continue
 
-        payload = json.loads(path.read_text(encoding="utf-8"))
+        import gzip
+
+        with gzip.open(path, "rt", encoding="utf-8") as handle:
+            payload = json.load(handle)
+
+        # Candidate texts are rebuilt here rather than shipped. Safe because
+        # load_corpus() above verified every document against the committed
+        # SHA-256 manifest, and chunking is a deterministic pure function of the
+        # document, so these chunk ids and texts are identical to the local ones.
+        chunker_name = next(iter(payload.values()))["chunker"]
+        rebuilt = {c.chunk_id: c.text for c in make_chunker(chunker_name).chunk_corpus(docs)}
+        missing = {
+            cid
+            for entry in payload.values()
+            for cid in entry["candidate_ids"]
+            if cid not in rebuilt
+        }
+        if missing:
+            # Fail loudly. Scoring a query against a passage it never retrieved
+            # would produce confident numbers for an experiment that did not run.
+            raise SystemExit(
+                f"{len(missing):,} candidate ids are absent from the rebuilt corpus. "
+                f"The rebuild diverged from the committed manifest; refusing to score."
+            )
+        for entry in payload.values():
+            entry["candidate_texts"] = [rebuilt[c] for c in entry["candidate_ids"]]
+
         if reranker is None:
             reranker = CrossEncoderReranker(RERANKER, batch_size=BATCH_RERANK)
 
@@ -210,7 +239,8 @@ def main() -> None:  # noqa: PLR0915 - a linear script; splitting it would obscu
                 print(f"  {i}/{len(payload)}", flush=True)
         elapsed = time.monotonic() - started
 
-        out = WORK / f"rerank-scores-{candidate_file}"
+        stem = candidate_file.removesuffix(".json.gz")
+        out = WORK / f"rerank-scores-{stem}.json"
         out.write_text(json.dumps(scores), encoding="utf-8")
         pairs = sum(len(v) for v in scores.values())
         manifest["artifacts"].append(
