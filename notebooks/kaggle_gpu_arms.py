@@ -108,11 +108,42 @@ def main() -> None:  # noqa: PLR0915 - a linear script; splitting it would obscu
         raise SystemExit("No GPU. Set Accelerator to GPU T4 in notebook settings.")
 
     # -- code and dependencies -------------------------------------------
+    #
+    # INSTALL STRATEGY, AND WHY IT IS NOT JUST `pip install -e`
+    #
+    # Kaggle images ship a large, mutually-consistent set of preinstalled
+    # packages, and torch is compiled against the exact numpy that shipped with
+    # the image. A plain editable install lets pip resolve this project's
+    # dependency floors against that environment and upgrade numpy or scipy to
+    # satisfy them -- which breaks torch's ABI, and the failure appears later as
+    # an unrelated import error deep inside a model load.
+    #
+    # So: --no-deps for the project, then only the handful of pure-Python
+    # packages that are genuinely imported and are unlikely to be present. Every
+    # numeric and ML package (numpy, scipy, torch, transformers) is left exactly
+    # as the image provides it.
+    #
+    # sentence-transformers is requested unpinned on purpose. Kaggle pins
+    # transformers>=5.0.0; sentence-transformers 5.x declares
+    # transformers<6.0.0,>=4.41.0 and so resolves cleanly, whereas pinning an
+    # older sentence-transformers could drag transformers back to 4.x and
+    # disturb the rest of the image.
     if not REPO_DIR.exists():
         sh(f"git clone --depth 1 {REPO} {REPO_DIR}")
-    sh(f"{sys.executable} -m pip install -q -e {REPO_DIR}")
-    sh(f"{sys.executable} -m pip install -q 'sentence-transformers>=3.3'")
+
+    sh(f"{sys.executable} -m pip install -q --no-deps -e {REPO_DIR}")
+    sh(f"{sys.executable} -m pip install -q lxml pydantic pydantic-settings python-dotenv tenacity")
+    sh(f"{sys.executable} -m pip install -q sentence-transformers")
     sys.path.insert(0, str(REPO_DIR / "src"))
+
+    # Confirm the image's numeric stack is intact before spending an hour on it.
+    # A broken numpy/torch pairing is far cheaper to discover here than after the
+    # corpus rebuild.
+    import numpy
+
+    print(f"numpy {numpy.__version__}, torch {torch.__version__}", flush=True)
+    _ = torch.randn(8, 8, device="cuda") @ torch.randn(8, 8, device="cuda")
+    print("cuda matmul ok", flush=True)
 
     os.environ["EDGAR_USER_AGENT"] = EDGAR_USER_AGENT
     os.chdir(REPO_DIR)

@@ -1246,19 +1246,14 @@ name = "retrieval-ablation"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [
-    { name = "fastapi" },
     { name = "httpx" },
-    { name = "jinja2" },
     { name = "lxml" },
     { name = "numpy" },
     { name = "pydantic" },
     { name = "pydantic-settings" },
     { name = "python-dotenv" },
-    { name = "qdrant-client" },
-    { name = "rich" },
     { name = "scipy" },
     { name = "tenacity" },
-    { name = "uvicorn", extra = ["standard"] },
 ]
 
 [package.optional-dependencies]
@@ -1272,30 +1267,35 @@ gpu = [
     { name = "torch" },
     { name = "transformers" },
 ]
+service = [
+    { name = "fastapi" },
+    { name = "jinja2" },
+    { name = "qdrant-client" },
+    { name = "uvicorn", extra = ["standard"] },
+]
 
 [package.metadata]
 requires-dist = [
-    { name = "fastapi", specifier = ">=0.115" },
+    { name = "fastapi", marker = "extra == 'service'", specifier = ">=0.115" },
     { name = "httpx", specifier = ">=0.27" },
-    { name = "jinja2", specifier = ">=3.1" },
-    { name = "lxml", specifier = ">=5.3" },
-    { name = "numpy", specifier = ">=2.1" },
+    { name = "jinja2", marker = "extra == 'service'", specifier = ">=3.1" },
+    { name = "lxml", specifier = ">=5.0" },
+    { name = "numpy", specifier = ">=1.26" },
     { name = "pydantic", specifier = ">=2.9" },
     { name = "pydantic-settings", specifier = ">=2.6" },
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=8.3" },
     { name = "pytest-cov", marker = "extra == 'dev'", specifier = ">=6.0" },
     { name = "python-dotenv", specifier = ">=1.0" },
-    { name = "qdrant-client", specifier = ">=1.12" },
-    { name = "rich", specifier = ">=13.9" },
+    { name = "qdrant-client", marker = "extra == 'service'", specifier = ">=1.12" },
     { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.8" },
-    { name = "scipy", specifier = ">=1.14" },
+    { name = "scipy", specifier = ">=1.11" },
     { name = "sentence-transformers", marker = "extra == 'gpu'", specifier = ">=3.3" },
-    { name = "tenacity", specifier = ">=9.0" },
+    { name = "tenacity", specifier = ">=8.0" },
     { name = "torch", marker = "extra == 'gpu'", specifier = ">=2.9" },
     { name = "transformers", marker = "extra == 'gpu'", specifier = ">=4.46" },
-    { name = "uvicorn", extras = ["standard"], specifier = ">=0.32" },
+    { name = "uvicorn", extras = ["standard"], marker = "extra == 'service'", specifier = ">=0.32" },
 ]
-provides-extras = ["gpu", "dev"]
+provides-extras = ["gpu", "service", "dev"]
 
 [[package]]
 name = "rich"

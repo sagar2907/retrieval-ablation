@@ -5,20 +5,32 @@ description = "A labelled retrieval benchmark and single-axis ablation study ove
 readme = "README.md"
 requires-python = ">=3.12"
 
+# Core: exactly what corpus parsing, chunking, retrieval and evaluation import,
+# and nothing else. Kept deliberately small because this set is installed into
+# borrowed environments -- a Kaggle GPU session, CI -- where every extra package
+# is a chance to collide with something preinstalled.
+#
+# numpy and scipy floors are as low as the code actually needs, not as high as
+# the development machine happens to have. A floor of numpy>=2.1 would force pip
+# to upgrade numpy inside a Kaggle session, and the preinstalled torch there is
+# compiled against whatever numpy shipped with the image -- upgrading it breaks
+# torch's ABI and the failure surfaces far from its cause. The code uses only
+# `default_rng`, `quantile`, `argpartition` and friends, all present since 1.17.
 dependencies = [
     "pydantic>=2.9",
     "pydantic-settings>=2.6",
     "httpx>=0.27",
-    "numpy>=2.1",
-    "scipy>=1.14",
-    "lxml>=5.3",
-    "qdrant-client>=1.12",
-    "fastapi>=0.115",
-    "uvicorn[standard]>=0.32",
-    "jinja2>=3.1",
+    "numpy>=1.26",
+    "scipy>=1.11",
+    "lxml>=5.0",
+    # Never imported anywhere in src/, and it must stay anyway. pydantic-settings
+    # declares python-dotenv as an *extra*, and reaches for it internally to
+    # honour `env_file`. Without it installed, `.env` loading does not fail --
+    # it silently does nothing, every API key reads as None, and the failure
+    # surfaces much later as an unrelated authentication error. Do not remove it
+    # because a dependency audit reports it as unused.
     "python-dotenv>=1.0",
-    "tenacity>=9.0",
-    "rich>=13.9",
+    "tenacity>=8.0",
 ]
 
 [project.optional-dependencies]
@@ -28,6 +40,16 @@ gpu = [
     "torch>=2.9",
     "sentence-transformers>=3.3",
     "transformers>=4.46",
+]
+# Serving the demo API. Split out because none of it is imported by the corpus,
+# retrieval or evaluation code, and installing it on a GPU worker pulls grpcio,
+# protobuf, uvloop and websockets purely to sit unused -- protobuf in particular
+# is a frequent source of conflicts with preinstalled TensorFlow.
+service = [
+    "qdrant-client>=1.12",
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.32",
+    "jinja2>=3.1",
 ]
 dev = [
     "pytest>=8.3",
