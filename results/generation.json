@@ -1,0 +1,746 @@
+{
+  "model": "gemini-3.6-flash",
+  "n_queries_sampled": 12,
+  "n_queries_total": 216,
+  "retrieval_top_k": 10,
+  "long_context_budget_chars": 800000,
+  "long_context_budget_tokens_approx": 200000,
+  "incomplete_reason": "still rate-limited after 8 attempts on /models/gemini-3.6-flash:generateContent. The daily free-tier quota is likely spent; re-run later. Cached work is preserved, so the run resumes rather than restarts.",
+  "by_arm": {
+    "long_context": {
+      "n_answers": 9,
+      "n_answered": 9,
+      "n_refused": 0,
+      "refusal_rate": 0.0,
+      "value_accuracy_of_answered": 0.5555555555555556,
+      "n_value_scored": 9,
+      "value_accuracy_of_all": 0.5555555555555556,
+      "citation_precision": null,
+      "citation_recall": null,
+      "hallucinated_citation_rate": 0.8888888888888888,
+      "faithfulness": null,
+      "n_faithfulness_judged": 0
+    },
+    "retrieval": {
+      "n_answers": 10,
+      "n_answered": 5,
+      "n_refused": 5,
+      "refusal_rate": 0.5,
+      "value_accuracy_of_answered": 0.6,
+      "n_value_scored": 5,
+      "value_accuracy_of_all": 0.3,
+      "citation_precision": 0.5666666666666667,
+      "citation_recall": 0.8,
+      "hallucinated_citation_rate": 0.0,
+      "faithfulness": null,
+      "n_faithfulness_judged": 0
+    }
+  },
+  "value_accuracy_ci95": {
+    "long_context": {
+      "point": 0.5555555555555556,
+      "low": 0.2222222222222222,
+      "high": 0.8888888888888888,
+      "n": 9
+    },
+    "retrieval": {
+      "point": 0.6,
+      "low": 0.2,
+      "high": 1.0,
+      "n": 5
+    }
+  },
+  "cost": {
+    "long_context": {
+      "n": 9,
+      "prompt_tokens": 1176309,
+      "output_tokens": 325,
+      "mean_prompt_tokens": 130701.0,
+      "total_cost_usd": 1.766901,
+      "cost_per_query_usd": 0.19632233
+    },
+    "retrieval": {
+      "n": 10,
+      "prompt_tokens": 73454,
+      "output_tokens": 275,
+      "mean_prompt_tokens": 7345.4,
+      "total_cost_usd": 0.112243,
+      "cost_per_query_usd": 0.01122435
+    }
+  },
+  "latency": {
+    "long_context": {
+      "n_live": 9,
+      "p50": 5.927,
+      "p95": 8.543,
+      "max": 8.543
+    },
+    "retrieval": {
+      "n_live": 10,
+      "p50": 4.101,
+      "p95": 4.542,
+      "max": 4.542
+    }
+  },
+  "comparison": {
+    "measured": true,
+    "retrieval_cost_per_query_usd": 0.01122435,
+    "long_context_cost_per_query_usd": 0.19632233,
+    "cost_ratio_long_context_over_retrieval": 17.5,
+    "retrieval_mean_prompt_tokens": 7345.4,
+    "long_context_mean_prompt_tokens": 130701.0,
+    "retrieval_p95_latency_s": 4.542,
+    "long_context_p95_latency_s": 8.543,
+    "latency_ratio": 1.9
+  },
+  "api_usage": {
+    "live_calls": 19,
+    "cached_calls": 19,
+    "prompt_tokens": 1249763,
+    "output_tokens": 600,
+    "thought_tokens": 10846,
+    "rate_limited_responses": 8,
+    "seconds_spent_waiting": 391.5,
+    "p95_latency_seconds": 8.543
+  },
+  "answers": [
+    {
+      "query_id": "q-14bb7017d00d",
+      "question": "In 2024, what amount did Cisco Systems, Inc. record as accumulated depreciation?",
+      "answer": "As of July 27, 2024, Cisco Systems, Inc. recorded $61 million in accumulated depreciation relating to equipment on operating lease assets [2].",
+      "context_ids": [
+        "csco-10-k-2024-07-27#00389883-00391442",
+        "csco-10-k-2024-07-27#00342635-00344620",
+        "csco-10-k-2025-07-26#00415348-00418176",
+        "csco-10-k-2025-07-26#00412057-00415322",
+        "csco-10-k-2024-07-27#00426518-00429867",
+        "csco-10-k-2024-07-27#00429893-00432203",
+        "csco-10-k-2025-07-26#00387383-00389080",
+        "csco-10-k-2024-07-27#00224031-00225440",
+        "csco-10-k-2024-07-27#00262783-00264713",
+        "csco-10-k-2025-07-26#00218858-00220267"
+      ],
+      "cited_ids": [
+        "csco-10-k-2024-07-27#00342635-00344620"
+      ],
+      "invalid_citations": [],
+      "refused": false,
+      "prompt_tokens": 7453,
+      "output_tokens": 36,
+      "latency_seconds": 4.1006122000000005,
+      "from_cache": false,
+      "model": "gemini-3.6-flash",
+      "arm": "retrieval"
+    },
+    {
+      "query_id": "q-14bb7017d00d",
+      "question": "In 2024, what amount did Cisco Systems, Inc. record as accumulated depreciation?",
+      "answer": "As of July 27, 2024, Cisco Systems, Inc. reported $7,783 million in accumulated depreciation and amortization for property and equipment, and $61 million in accumulated depreciation for operating lease assets [8].",
+      "context_ids": [
+        "csco-10-k-2024-07-27#fulldoc"
+      ],
+      "cited_ids": [],
+      "invalid_citations": [
+        8
+      ],
+      "refused": false,
+      "prompt_tokens": 105450,
+      "output_tokens": 51,
+      "latency_seconds": 4.830248299999994,
+      "from_cache": false,
+      "model": "gemini-3.6-flash",
+      "arm": "long_context"
+    },
+    {
+      "query_id": "q-0949e40aebaa",
+      "question": "Report Duke Energy Corp's all fuels (cost based on weighted average)(a) figure for the 2022 fiscal year.",
+      "answer": "For the 2022 fiscal year, EU&I's \"All fuels (cost based on weighted average)(a)\" generation by source was 74.3 % and the cost of delivered fuel per net kilowatt-hour generated was 3.75 Cents [1], [2], [3].",
+      "context_ids": [
+        "duk-10-k-2022-12-31#00036748-00038485",
+        "duk-10-k-2023-12-31#00039092-00040594",
+        "duk-10-k-2024-12-31#00039859-00041361",
+        "duk-10-k-2023-12-31#00857912-00859805",
+        "duk-10-k-2024-12-31#00890267-00892005",
+        "duk-10-k-2023-12-31#00859807-00861596",
+        "duk-10-k-2025-12-31#00038406-00040324",
+        "duk-10-k-2024-12-31#00888321-00890265",
+        "duk-10-k-2022-12-31#00248955-00250424",
+        "duk-10-k-2025-12-31#00882173-00883912"
+      ],
+      "cited_ids": [
+        "duk-10-k-2022-12-31#00036748-00038485",
+        "duk-10-k-2023-12-31#00039092-00040594",
+        "duk-10-k-2024-12-31#00039859-00041361"
+      ],
+      "invalid_citations": [],
+      "refused": false,
+      "prompt_tokens": 5050,
+      "output_tokens": 66,
+      "latency_seconds": 3.4301029000000085,
+      "from_cache": false,
+      "model": "gemini-3.6-flash",
+      "arm": "retrieval"
+    },
+    {
+      "query_id": "q-0949e40aebaa",
+      "question": "Report Duke Energy Corp's all fuels (cost based on weighted average)(a) figure for the 2022 fiscal year.",
+      "answer": "For the 2022 fiscal year, Duke Energy's cost for all fuels (cost based on weighted average) was 3.75 cents per net kilowatt-hour generated [11].",
+      "context_ids": [
+        "duk-10-k-2022-12-31#fulldoc"
+      ],
+      "cited_ids": [],
+      "invalid_citations": [
+        11
+      ],
+      "refused": false,
+      "prompt_tokens": 208848,
+      "output_tokens": 42,
+      "latency_seconds": 5.926596700000005,
+      "from_cache": false,
+      "model": "gemini-3.6-flash",
+      "arm": "long_context"
+    },
+    {
+      "query_id": "q-7a80c9a9a77e",
+      "question": "Coca Cola Co purchases of stock for treasury 2024",
+      "answer": "In 2024, purchases of stock for treasury were 27 million shares (under Number of Common Shares Outstanding) and $(1,702) million (under Treasury Stock) [1].",
+      "context_ids": [
+        "ko-10-k-2024-12-31#00329189-00331660",
+        "ko-10-k-2025-12-31#00329088-00331786",
+        "ko-10-k-2022-12-31#00322455-00325510",
+        "ko-10-k-2023-12-31#00321750-00324995",
+        "ko-10-k-2024-12-31#00419045-00420611",
+        "ko-10-k-2025-12-31#00420858-00422868",
+        "ko-10-k-2022-12-31#00414217-00415854",
+        "ko-10-k-2023-12-31#00411894-00413591",
+        "ko-10-k-2024-12-31#00585936-00590776",
+        "ko-10-k-2024-12-31#00000000-00000840"
+      ],
+      "cited_ids": [
+        "ko-10-k-2024-12-31#00329189-00331660"
+      ],
+      "invalid_citations": [],
+      "refused": false,
+      "prompt_tokens": 9857,
+      "output_tokens": 43,
+      "latency_seconds": 4.541858100000013,
+      "from_cache": false,
+      "model": "gemini-3.6-flash",
+      "arm": "retrieval"
+    },
+    {
+      "query_id": "q-7a80c9a9a77e",
+      "question": "Coca Cola Co purchases of stock for treasury 2024",
+      "answer": "In 2024, The Coca-Cola Company's purchases of stock for treasury were $1,795 million [1].",
+      "context_ids": [
+        "ko-10-k-2024-12-31#fulldoc"
+      ],
+      "cited_ids": [
+        "ko-10-k-2024-12-31#fulldoc"
+      ],
+      "invalid_citations": [],
+      "refused": false,
+      "prompt_tokens": 145410,
+      "output_tokens": 30,
+      "latency_seconds": 7.3406564,
+      "from_cache": false,
+      "model": "gemini-3.6-flash",
+      "arm": "long_context"
+    },
+    {
+      "query_id": "q-6bc728443601",
+      "question": "Report American Express Co's actual tax rates figure for the 2024 fiscal year.",
+      "answer": "NOT IN CONTEXT",
+      "context_ids": [
+        "axp-10-k-2024-12-31#00632402-00636036",
+        "axp-10-k-2025-12-31#00631281-00635282",
+        "axp-10-k-2022-12-31#00578034-00581851",
+        "axp-10-k-2023-12-31#00614138-00617794",
+        "axp-10-k-2022-12-31#00581877-00585724",
+        "axp-10-k-2023-12-31#00617820-00621803",
+        "axp-10-k-2024-12-31#00636062-00639717",
+        "axp-10-k-2025-12-31#00627207-00631255",
+        "axp-10-k-2022-12-31#00573465-00575295",
+        "axp-10-k-2022-12-31#00585750-00590347"
+      ],
+      "cited_ids": [],
+      "invalid_citations": [],
+      "refused": true,
+      "prompt_tokens": 11703,
+      "output_tokens": 4,
+      "latency_seconds": 2.787721000000033,
+      "from_cache": false,
+      "model": "gemini-3.6-flash",
+      "arm": "retrieval"
+    },
+    {
+      "query_id": "q-6bc728443601",
+      "question": "Report American Express Co's actual tax rates figure for the 2024 fiscal year.",
+      "answer": "American Express Co's actual tax rate for the 2024 fiscal year was 21.5 % [143].",
+      "context_ids": [
+        "axp-10-k-2025-12-31#fulldoc"
+      ],
+      "cited_ids": [],
+      "invalid_citations": [
+        143
+      ],
+      "refused": false,
+      "prompt_tokens": 161875,
+      "output_tokens": 29,
+      "latency_seconds": 4.472391399999992,
+      "from_cache": false,
+      "model": "gemini-3.6-flash",
+      "arm": "long_context"
+    },
+    {
+      "query_id": "q-d32467bcc363",
+      "question": "In 2025, what amount did Coca Cola Co record as stock-based compensation expense?",
+      "answer": "Before tax, stock-based compensation expense for 2025 was $242 million [3], while the stock-based compensation expense recorded in Capital Surplus was $266 million (or $266) [1].",
+      "context_ids": [
+        "ko-10-k-2025-12-31#00329088-00331786",
+        "ko-10-k-2025-12-31#00420858-00422868",
+        "cat-10-k-2025-12-31#00302987-00304842",
+        "ko-10-k-2025-12-31#00447862-00449106",
+        "ko-10-k-2022-12-31#00322455-00325510",
+        "ko-10-k-2024-12-31#00329189-00331660",
+        "ko-10-k-2023-12-31#00321750-00324995",
+        "ko-10-k-2025-12-31#00022504-00024506",
+        "ko-10-k-2022-12-31#00443100-00444562",
+        "ko-10-k-2024-12-31#00445247-00446628"
+      ],
+      "cited_ids": [
+        "cat-10-k-2025-12-31#00302987-00304842",
+        "ko-10-k-2025-12-31#00329088-00331786"
+      ],
+      "invalid_citations": [],
+      "refused": false,
+      "prompt_tokens": 7953,
+      "output_tokens": 50,
+      "latency_seconds": 4.285274100000038,
+      "from_cache": false,
+      "model": "gemini-3.6-flash",
+      "arm": "retrieval"
+    },
+    {
+      "query_id": "q-d32467bcc363",
+      "question": "In 2025, what amount did Coca Cola Co record as stock-based compensation expense?",
+      "answer": "In 2025, The Coca-Cola Company recorded $279 million as stock-based compensation expense [64], [92].",
+      "context_ids": [
+        "ko-10-k-2025-12-31#fulldoc"
+      ],
+      "cited_ids": [],
+      "invalid_citations": [
+        64,
+        92
+      ],
+      "refused": false,
+      "prompt_tokens": 145069,
+      "output_tokens": 32,
+      "latency_seconds": 8.542618100000027,
+      "from_cache": false,
+      "model": "gemini-3.6-flash",
+      "arm": "long_context"
+    },
+    {
+      "query_id": "q-38bdfcd52cc6",
+      "question": "How much did Unitedhealth Group Inc report for expected dividend yield in 2022?",
+      "answer": "NOT IN CONTEXT",
+      "context_ids": [
+        "unh-10-k-2024-12-31#00312357-00317888",
+        "unh-10-k-2023-12-31#00307179-00312466",
+        "unh-10-k-2022-12-31#00300499-00305730",
+        "unh-10-k-2025-12-31#00330721-00334371",
+        "unh-10-k-2023-12-31#00312491-00315224",
+        "unh-10-k-2024-12-31#00306454-00312332",
+        "unh-10-k-2023-12-31#00301985-00307154",
+        "unh-10-k-2025-12-31#00326067-00330696",
+        "unh-10-k-2022-12-31#00295088-00300474",
+        "unh-10-k-2024-12-31#00303729-00306429"
+      ],
+      "cited_ids": [],
+      "invalid_citations": [],
+      "refused": true,
+      "prompt_tokens": 13586,
+      "output_tokens": 4,
+      "latency_seconds": 2.785190499999999,
+      "from_cache": false,
+      "model": "gemini-3.6-flash",
+      "arm": "retrieval"
+    },
+    {
+      "query_id": "q-38bdfcd52cc6",
+      "question": "How much did Unitedhealth Group Inc report for expected dividend yield in 2022?",
+      "answer": "UnitedHealth Group Inc. reported an expected dividend yield of 1.2% for 2022 [11].",
+      "context_ids": [
+        "unh-10-k-2023-12-31#fulldoc"
+      ],
+      "cited_ids": [],
+      "invalid_citations": [
+        11
+      ],
+      "refused": false,
+      "prompt_tokens": 79882,
+      "output_tokens": 26,
+      "latency_seconds": 3.3372543000000405,
+      "from_cache": false,
+      "model": "gemini-3.6-flash",
+      "arm": "long_context"
+    },
+    {
+      "query_id": "q-68515ec4c774",
+      "question": "In 2024, what amount did Coca Cola Co record as purchase obligations?",
+      "answer": "NOT IN CONTEXT",
+      "context_ids": [
+        "ko-10-k-2024-12-31#00415463-00417463",
+        "ko-10-k-2024-12-31#00419045-00420611",
+        "ko-10-k-2025-12-31#00420858-00422868",
+        "ko-10-k-2024-12-31#00022679-00024677",
+        "ko-10-k-2025-12-31#00022504-00024506",
+        "ko-10-k-2025-12-31#00200471-00202466",
+        "ko-10-k-2024-12-31#00195400-00197403",
+        "ko-10-k-2023-12-31#00408340-00410313",
+        "ko-10-k-2024-12-31#00000000-00000840",
+        "ko-10-k-2022-12-31#00410610-00412637"
+      ],
+      "cited_ids": [],
+      "invalid_citations": [],
+      "refused": true,
+      "prompt_tokens": 5021,
+      "output_tokens": 4,
+      "latency_seconds": 2.851598899999999,
+      "from_cache": false,
+      "model": "gemini-3.6-flash",
+      "arm": "retrieval"
+    },
+    {
+      "query_id": "q-68515ec4c774",
+      "question": "In 2024, what amount did Coca Cola Co record as purchase obligations?",
+      "answer": "As of December 31, 2023, The Coca-Cola Company recorded $13,701 million in purchase obligations due in 2024, out of a total $23,392 million in purchase obligations [56].",
+      "context_ids": [
+        "ko-10-k-2023-12-31#fulldoc"
+      ],
+      "cited_ids": [],
+      "invalid_citations": [
+        56
+      ],
+      "refused": false,
+      "prompt_tokens": 145644,
+      "output_tokens": 57,
+      "latency_seconds": 7.558778300000085,
+      "from_cache": false,
+      "model": "gemini-3.6-flash",
+      "arm": "long_context"
+    },
+    {
+      "query_id": "q-2085c224efbd",
+      "question": "Boeing Co estimated amortization expense 2026",
+      "answer": "NOT IN CONTEXT",
+      "context_ids": [
+        "ba-10-k-2025-12-31#00262487-00262657",
+        "nvda-10-k-2026-01-25#00288004-00289203",
+        "t-10-k-2023-12-31#00283968-00284617",
+        "msft-10-k-2023-06-30#00281030-00281384",
+        "msft-10-k-2026-06-30#00266057-00266416",
+        "abbv-10-k-2025-12-31#00305391-00306646",
+        "pg-10-k-2023-06-30#00223113-00224718",
+        "pg-10-k-2022-06-30#00236763-00238391",
+        "t-10-k-2024-12-31#00267550-00268855",
+        "pg-10-k-2025-06-30#00229441-00231353"
+      ],
+      "cited_ids": [],
+      "invalid_citations": [],
+      "refused": true,
+      "prompt_tokens": 4138,
+      "output_tokens": 4,
+      "latency_seconds": 4.401393199999916,
+      "from_cache": false,
+      "model": "gemini-3.6-flash",
+      "arm": "retrieval"
+    },
+    {
+      "query_id": "q-2085c224efbd",
+      "question": "Boeing Co estimated amortization expense 2026",
+      "answer": "Boeing's estimated amortization expense for 2026 is $197 million [4].",
+      "context_ids": [
+        "ba-10-k-2025-12-31#fulldoc"
+      ],
+      "cited_ids": [],
+      "invalid_citations": [
+        4
+      ],
+      "refused": false,
+      "prompt_tokens": 109854,
+      "output_tokens": 22,
+      "latency_seconds": 6.187660199999982,
+      "from_cache": false,
+      "model": "gemini-3.6-flash",
+      "arm": "long_context"
+    },
+    {
+      "query_id": "q-6fe790e6bdfc",
+      "question": "Nvidia Corp cash and cash equivalents 2023",
+      "answer": "For fiscal year 2023, NVIDIA's cash, cash equivalents and marketable securities were $13.30 billion [1]. As of January 29, 2023, total reported cash equivalents were $3,148 million [3, 7].",
+      "context_ids": [
+        "nvda-10-k-2023-01-29#00166271-00168101",
+        "nvda-10-k-2023-01-29#00255808-00257731",
+        "nvda-10-k-2023-01-29#00275694-00277539",
+        "nvda-10-k-2024-01-28#00279934-00280454",
+        "nvda-10-k-2025-01-26#00286984-00287504",
+        "nvda-10-k-2023-01-29#00060961-00062581",
+        "nvda-10-k-2024-01-28#00292894-00294850",
+        "nvda-10-k-2025-01-26#00063421-00064902",
+        "nvda-10-k-2026-01-25#00056861-00058342",
+        "nvda-10-k-2024-01-28#00251732-00253373"
+      ],
+      "cited_ids": [
+        "nvda-10-k-2023-01-29#00166271-00168101"
+      ],
+      "invalid_citations": [],
+      "refused": false,
+      "prompt_tokens": 4091,
+      "output_tokens": 60,
+      "latency_seconds": 4.197910999999976,
+      "from_cache": false,
+      "model": "gemini-3.6-flash",
+      "arm": "retrieval"
+    },
+    {
+      "query_id": "q-6fe790e6bdfc",
+      "question": "Nvidia Corp cash and cash equivalents 2023",
+      "answer": "As of January 29, 2023, NVIDIA's cash and cash equivalents were $3,389 million [44], [56].",
+      "context_ids": [
+        "nvda-10-k-2023-01-29#fulldoc"
+      ],
+      "cited_ids": [],
+      "invalid_citations": [
+        44,
+        56
+      ],
+      "refused": false,
+      "prompt_tokens": 74277,
+      "output_tokens": 36,
+      "latency_seconds": 4.006692199999975,
+      "from_cache": false,
+      "model": "gemini-3.6-flash",
+      "arm": "long_context"
+    },
+    {
+      "query_id": "q-6bfa3a36c975",
+      "question": "In 2025, what amount did Blackrock, Inc. record as january 31, 2028?",
+      "answer": "NOT IN CONTEXT",
+      "context_ids": [
+        "blk-10-k-2025-12-31#00365981-00367517",
+        "blk-10-k-2024-12-31#00236297-00238212",
+        "blk-10-k-2025-12-31#00589706-00591318",
+        "t-10-k-2025-12-31#00258845-00260891",
+        "blk-10-k-2025-12-31#00243864-00245339",
+        "wmt-10-k-2025-01-31#00219541-00221289",
+        "vz-10-k-2025-12-31#00095224-00097268",
+        "ba-10-k-2025-12-31#00403625-00405131",
+        "blk-10-k-2024-12-31#00637064-00637470",
+        "blk-10-k-2025-12-31#00367519-00368438"
+      ],
+      "cited_ids": [],
+      "invalid_citations": [],
+      "refused": true,
+      "prompt_tokens": 4602,
+      "output_tokens": 4,
+      "latency_seconds": 3.6530762999999524,
+      "from_cache": false,
+      "model": "gemini-3.6-flash",
+      "arm": "retrieval"
+    }
+  ],
+  "scores": [
+    {
+      "query_id": "q-14bb7017d00d",
+      "arm": "retrieval",
+      "refused": false,
+      "value_correct": false,
+      "citation_precision": 1.0,
+      "citation_recall": true,
+      "cited_a_hallucinated_passage": false,
+      "faithfulness": null
+    },
+    {
+      "query_id": "q-14bb7017d00d",
+      "arm": "long_context",
+      "refused": false,
+      "value_correct": false,
+      "citation_precision": null,
+      "citation_recall": null,
+      "cited_a_hallucinated_passage": true,
+      "faithfulness": null
+    },
+    {
+      "query_id": "q-0949e40aebaa",
+      "arm": "retrieval",
+      "refused": false,
+      "value_correct": true,
+      "citation_precision": 0.3333333333333333,
+      "citation_recall": true,
+      "cited_a_hallucinated_passage": false,
+      "faithfulness": null
+    },
+    {
+      "query_id": "q-0949e40aebaa",
+      "arm": "long_context",
+      "refused": false,
+      "value_correct": false,
+      "citation_precision": null,
+      "citation_recall": null,
+      "cited_a_hallucinated_passage": true,
+      "faithfulness": null
+    },
+    {
+      "query_id": "q-7a80c9a9a77e",
+      "arm": "retrieval",
+      "refused": false,
+      "value_correct": true,
+      "citation_precision": 1.0,
+      "citation_recall": true,
+      "cited_a_hallucinated_passage": false,
+      "faithfulness": null
+    },
+    {
+      "query_id": "q-7a80c9a9a77e",
+      "arm": "long_context",
+      "refused": false,
+      "value_correct": false,
+      "citation_precision": null,
+      "citation_recall": null,
+      "cited_a_hallucinated_passage": false,
+      "faithfulness": null
+    },
+    {
+      "query_id": "q-6bc728443601",
+      "arm": "retrieval",
+      "refused": true,
+      "value_correct": null,
+      "citation_precision": null,
+      "citation_recall": null,
+      "cited_a_hallucinated_passage": false,
+      "faithfulness": null
+    },
+    {
+      "query_id": "q-6bc728443601",
+      "arm": "long_context",
+      "refused": false,
+      "value_correct": true,
+      "citation_precision": null,
+      "citation_recall": null,
+      "cited_a_hallucinated_passage": true,
+      "faithfulness": null
+    },
+    {
+      "query_id": "q-d32467bcc363",
+      "arm": "retrieval",
+      "refused": false,
+      "value_correct": true,
+      "citation_precision": 0.5,
+      "citation_recall": true,
+      "cited_a_hallucinated_passage": false,
+      "faithfulness": null
+    },
+    {
+      "query_id": "q-d32467bcc363",
+      "arm": "long_context",
+      "refused": false,
+      "value_correct": false,
+      "citation_precision": null,
+      "citation_recall": null,
+      "cited_a_hallucinated_passage": true,
+      "faithfulness": null
+    },
+    {
+      "query_id": "q-38bdfcd52cc6",
+      "arm": "retrieval",
+      "refused": true,
+      "value_correct": null,
+      "citation_precision": null,
+      "citation_recall": null,
+      "cited_a_hallucinated_passage": false,
+      "faithfulness": null
+    },
+    {
+      "query_id": "q-38bdfcd52cc6",
+      "arm": "long_context",
+      "refused": false,
+      "value_correct": true,
+      "citation_precision": null,
+      "citation_recall": null,
+      "cited_a_hallucinated_passage": true,
+      "faithfulness": null
+    },
+    {
+      "query_id": "q-68515ec4c774",
+      "arm": "retrieval",
+      "refused": true,
+      "value_correct": null,
+      "citation_precision": null,
+      "citation_recall": null,
+      "cited_a_hallucinated_passage": false,
+      "faithfulness": null
+    },
+    {
+      "query_id": "q-68515ec4c774",
+      "arm": "long_context",
+      "refused": false,
+      "value_correct": true,
+      "citation_precision": null,
+      "citation_recall": null,
+      "cited_a_hallucinated_passage": true,
+      "faithfulness": null
+    },
+    {
+      "query_id": "q-2085c224efbd",
+      "arm": "retrieval",
+      "refused": true,
+      "value_correct": null,
+      "citation_precision": null,
+      "citation_recall": null,
+      "cited_a_hallucinated_passage": false,
+      "faithfulness": null
+    },
+    {
+      "query_id": "q-2085c224efbd",
+      "arm": "long_context",
+      "refused": false,
+      "value_correct": true,
+      "citation_precision": null,
+      "citation_recall": null,
+      "cited_a_hallucinated_passage": true,
+      "faithfulness": null
+    },
+    {
+      "query_id": "q-6fe790e6bdfc",
+      "arm": "retrieval",
+      "refused": false,
+      "value_correct": false,
+      "citation_precision": 0.0,
+      "citation_recall": false,
+      "cited_a_hallucinated_passage": false,
+      "faithfulness": null
+    },
+    {
+      "query_id": "q-6fe790e6bdfc",
+      "arm": "long_context",
+      "refused": false,
+      "value_correct": true,
+      "citation_precision": null,
+      "citation_recall": null,
+      "cited_a_hallucinated_passage": true,
+      "faithfulness": null
+    },
+    {
+      "query_id": "q-6bfa3a36c975",
+      "arm": "retrieval",
+      "refused": true,
+      "value_correct": null,
+      "citation_precision": null,
+      "citation_recall": null,
+      "cited_a_hallucinated_passage": false,
+      "faithfulness": null
+    }
+  ]
+}

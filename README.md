@@ -81,6 +81,47 @@ None of these differences has been checked for significance yet — the
 Holm-corrected paired tests run over the full grid, and the grid is incomplete.
 **Do not quote any of these deltas as a finding until the GPU arms land.**
 
+## Retrieval versus long context — measured
+
+`gemini-3.6-flash`, 12 of 216 queries (seeded stratified sample), full details in
+[`results/generation.md`](results/generation.md).
+
+| | retrieval (top-10) | long context (whole filing) | ratio |
+|---|---|---|---|
+| mean prompt tokens | 7,345 | 130,701 | 17.8× |
+| cost per query | $0.011224 | $0.196322 | **17.5×** |
+| p95 latency | 4.54 s | 8.54 s | 1.9× |
+| value accuracy, answered | 0.600 | 0.556 | — |
+| value accuracy, all queries | 0.300 | **0.556** | — |
+| refusal rate | **5 of 10** | 0 of 9 | — |
+| citation precision / recall | 0.567 / 0.800 | n/a by construction | — |
+
+**The brief's "roughly 1,250× cheaper" is not reproducible. Measured: 17.5×.**
+1,250× requires assuming a full 1M-token context, an ~800-token retrieval prompt,
+and zero output cost. The brief's own draft résumé bullet says 1/40th, which is far
+closer to what this measures.
+
+**On this corpus, long context currently wins on accuracy** — 0.556 against 0.300
+over all queries. The reason is visible in the refusal column: retrieval declined
+to answer half the questions, because with nDCG@10 at 0.195 the answer often was
+not in its top-10. When it *did* answer it was slightly more accurate (0.600 vs
+0.556) and it cited its sources, which the long-context arm structurally cannot.
+
+So the honest reading is: retrieval is 17.5× cheaper and 1.9× faster, and loses on
+accuracy today because its first stage is weak — exactly the gap the hybrid and
+reranking arms exist to close. That is a claim the completed grid can test, not one
+to assert now.
+
+Two caveats stated because they cut against the result:
+
+- **Long context is handed the correct filing**; retrieval must find it among 120.
+  The baseline is deliberately generous, so retrieval's cost and latency wins hold
+  despite the comparison being stacked against it.
+- **12 queries is a small sample** and the run was cut short by the free-tier daily
+  quota (19 live calls, 15 rate-limited responses, 712 s spent waiting). Treat the
+  accuracy figures as indicative; the cost and token ratios are solid because they
+  come from the API's own reported token counts.
+
 ## Honest status
 
 Nothing below is called verified unless it was run and its output inspected.
@@ -97,8 +138,10 @@ Nothing below is called verified unless it was run and its output inspected.
 | BM25, dense, RRF fusion, reranking wiring | 66 tests, offline with fakes |
 | Eval set, 216 queries | every gold passage verified to contain the value its query asks for |
 | Ablation runner, 5 lexical configurations | numbers above, on the full corpus |
+| Gemini client: cached, quota-tolerant, token-accounted | live run; 19 calls, 15 rate-limited, resumed from cache |
+| Generation + long-context comparison | numbers above, from the API's own reported token counts |
 
-**338 tests pass, offline, with no API key and no model download.** `ruff` clean.
+**379 tests pass, offline, with no API key and no model download.** `ruff` clean.
 
 ### Not done
 
@@ -107,9 +150,9 @@ Nothing below is called verified unless it was run and its output inspected.
 | Dense / hybrid / embedding-model arms | GPU stack could not be installed — see below | network access to `pypi.nvidia.com`, or a machine without Smart App Control |
 | Cross-encoder reranking arms | same | same |
 | Semantic chunking arm | needs an embedding model | same |
-| Query paraphrasing | needs an LLM; would reduce the lexical-overlap confound | `GEMINI_API_KEY` |
-| Generation eval (faithfulness, correctness, citation accuracy) | needs an LLM | `GEMINI_API_KEY` |
-| Long-context baseline comparison | needs a long-context LLM | `GEMINI_API_KEY` |
+| Query paraphrasing | needs an LLM; would reduce the lexical-overlap confound | free-tier quota |
+| Faithfulness judging | run was cut short by the daily quota before the judge pass | free-tier quota, or re-run tomorrow |
+| Generation + long-context at full sample | 12 of 216 queries measured; quota-bound | free-tier quota, or re-run tomorrow |
 | FastAPI service, Docker, citation UI | not started | nothing — next in order |
 | Human verification of eval labels | requires a person | fill in `data/eval/verification_sample.md` |
 | Learning PDF | not started | nothing |
@@ -179,7 +222,7 @@ uv venv && uv pip install -e ".[dev]"
 ```
 
 ```bash
-uv run ruff check . && uv run ruff format --check . && uv run pytest
+uv run python -m ruff check . && uv run python -m ruff format --check . && uv run python -m pytest
 ```
 
 Rebuild everything from scratch:

@@ -35,13 +35,13 @@ jobs:
         run: uv pip install --system -e ".[dev]"
 
       - name: Lint
-        run: uv run --no-project ruff check .
+        run: uv run --no-project python -m ruff check .
 
       - name: Format check
-        run: uv run --no-project ruff format --check .
+        run: uv run --no-project python -m ruff format --check .
 
       - name: Test
-        run: uv run --no-project pytest -m "not gpu and not live" --cov=retrieval_ablation
+        run: uv run --no-project python -m pytest -m "not gpu and not live" --cov=retrieval_ablation
 
       - name: Confirm no secret was needed
         # Belt and braces: if a test started depending on an environment key,
