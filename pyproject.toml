@@ -98,7 +98,7 @@ ignore = [
 allowed-confusables = ["–", "—"]
 
 [tool.ruff.lint.per-file-ignores]
-"tests/*" = ["PLR0915", "SLF001", "PLR0917"]
+"tests/*" = ["PLR0915", "SLF001", "PLR0917", "ARG005", "PLC0415"]
 
 # Function-level imports here are the design, not an oversight. torch and
 # sentence-transformers are optional dependencies behind the `gpu` extra; if these

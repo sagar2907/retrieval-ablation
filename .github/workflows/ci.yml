@@ -31,8 +31,8 @@ jobs:
         with:
           enable-cache: true
 
-      - name: Install project (CPU only, no model weights)
-        run: uv pip install --system -e ".[dev]"
+      - name: Install project (CPU only, no model weights, no GPU extra)
+        run: uv pip install --system -e ".[dev,service]"
 
       - name: Lint
         run: uv run --no-project python -m ruff check .

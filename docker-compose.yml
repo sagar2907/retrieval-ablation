@@ -1,0 +1,30 @@
+# Runs the retrieval service and UI.
+#
+#   docker compose up --build
+#   open http://localhost:8000
+#
+# The corpus must exist first:
+#   python -m retrieval_ablation.corpus.ingest
+#   python -m retrieval_ablation.evalset.build
+
+services:
+  api:
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      # Read-only: the service only ever reads the corpus and eval set. Mounting
+      # writable would let a container bug corrupt data that took forty minutes
+      # to fetch and is the basis of every published number.
+      - ./data:/app/data:ro
+      # The response cache is writable so /answer does not re-pay for a repeated
+      # question, and survives container restarts.
+      - ./.cache:/app/.cache
+    environment:
+      # Only the key is passed. Everything else is committed configuration, and
+      # passing it through the environment would let a container and a local run
+      # silently disagree about which corpus they are serving.
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-}
+    # Not `env_file: .env` on purpose: that would import EDGAR_USER_AGENT and any
+    # other local settings into the container, where they mean nothing.
+    restart: unless-stopped

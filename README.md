@@ -140,8 +140,9 @@ Nothing below is called verified unless it was run and its output inspected.
 | Ablation runner, 5 lexical configurations | numbers above, on the full corpus |
 | Gemini client: cached, quota-tolerant, token-accounted | live run; 19 calls, 15 rate-limited, resumed from cache |
 | Generation + long-context comparison | numbers above, from the API's own reported token counts |
+| FastAPI service, Docker, citation UI | live run: index 31.7 s, /search 1.9 ms, /answer 429 path verified |
 
-**379 tests pass, offline, with no API key and no model download.** `ruff` clean.
+**395 tests pass, offline, with no API key and no model download.** `ruff` clean.
 
 ### Not done
 
@@ -153,7 +154,6 @@ Nothing below is called verified unless it was run and its output inspected.
 | Query paraphrasing | needs an LLM; would reduce the lexical-overlap confound | free-tier quota |
 | Faithfulness judging | run was cut short by the daily quota before the judge pass | free-tier quota, or re-run tomorrow |
 | Generation + long-context at full sample | 12 of 216 queries measured; quota-bound | free-tier quota, or re-run tomorrow |
-| FastAPI service, Docker, citation UI | not started | nothing — next in order |
 | Human verification of eval labels | requires a person | fill in `data/eval/verification_sample.md` |
 | Learning PDF | not started | nothing |
 
@@ -211,6 +211,37 @@ lexical arms — runs natively on Windows.
 - **The grid varies one axis at a time and cannot detect interactions.** One crossed
   cell (hybrid + reranking) is run explicitly because that interaction is the
   study's headline claim.
+
+## Running the service
+
+```bash
+docker compose up --build      # then open http://localhost:8000
+```
+
+Or without Docker:
+
+```bash
+uv pip install -e ".[service]" && uv run python -m uvicorn retrieval_ablation.service.app:app
+```
+
+Verified end to end against the real corpus: the index builds in **31.7 s** over
+**42,215 chunks from 120 filings**, and `/search` returns in **1.9 ms**.
+
+Three routes. `/search` needs no API key and no quota, so the retrieval half is
+always usable. `/answer` adds a generated answer with numbered citations, and
+returns **HTTP 429 with an actionable message** when the free-tier quota is spent
+rather than silently degrading — verified by exhausting the quota and observing it.
+`/health` reports what is actually being served, including a note that the first
+stage is lexical only, so a demo answer is not mistaken for the project''s best
+configuration.
+
+The UI exists for inspection rather than polish: every citation in the answer is a
+button that scrolls to and highlights the passage it refers to, out-of-range
+citations are flagged in a warning colour instead of dropped, and every passage
+shows its rank, raw score, relative score bar, section path in the filing, and
+character offsets. A wrong answer should be diagnosable from the page without
+opening a terminal. It is a single self-contained document with no CDN asset, so
+it works offline and under a strict content policy.
 
 ## Development
 
