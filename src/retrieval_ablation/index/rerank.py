@@ -59,42 +59,83 @@ class CrossEncoderReranker:
         self._device = device
         self._fp16 = fp16
         self._model = None
+        self._tokenizer = None
+        self._torch_device = "cpu"
 
     def _ensure_loaded(self) -> None:
+        """Load the tokenizer and model directly from transformers.
+
+        DELIBERATELY NOT sentence-transformers' CrossEncoder.
+
+        That wrapper was the first implementation and it broke on a real run.
+        Under sentence-transformers 5.x with transformers 5.x, `CrossEncoder.predict`
+        hands the tokenizer's whole `BatchEncoding` to the model as the positional
+        `input_ids` argument. `XLMRobertaModel.forward` then evaluates
+        `input_ids.device`, which on a `BatchEncoding` is a dict lookup that misses
+        and raises a bare `AttributeError` from deep inside `tokenization_utils_base`
+        -- twelve frames from anything the caller wrote, with no indication that a
+        version pairing is at fault. It failed on a Kaggle T4 after 19 minutes of
+        successful embedding work.
+
+        Calling transformers directly is BAAI's own documented usage for this
+        model, removes a layer that adds nothing here, and cannot break the same
+        way: the tensors are unpacked explicitly at the call site.
+        """
         if self._model is not None:
             return
 
         import torch
-        from sentence_transformers import CrossEncoder
+        from transformers import AutoModelForSequenceClassification, AutoTokenizer
 
         device = self._device or ("cuda" if torch.cuda.is_available() else "cpu")
         log.info("loading reranker %s on %s", self.model_name, device)
-        self._model = CrossEncoder(
-            self.model_name,
-            max_length=self.max_length,
-            device=device,
-            cache_folder=str(MODEL_DIR),
+
+        self._tokenizer = AutoTokenizer.from_pretrained(self.model_name, cache_dir=str(MODEL_DIR))
+        model = AutoModelForSequenceClassification.from_pretrained(
+            self.model_name, cache_dir=str(MODEL_DIR)
         )
         if self._fp16 and device == "cuda":
-            self._model.model = self._model.model.half()
+            model = model.half()
+        self._model = model.to(device).eval()
+        self._torch_device = device
 
     def score(self, query: str, passages: Sequence[str]) -> np.ndarray:
         """Relevance score per passage. Higher is more relevant."""
         if not passages:
             return np.zeros(0, dtype=np.float32)
         self._ensure_loaded()
-        assert self._model is not None
-        scores = self._model.predict(
-            [(query, passage) for passage in passages],
-            batch_size=self.batch_size,
-            show_progress_bar=False,
-        )
-        return np.asarray(scores, dtype=np.float32).ravel()
+        assert self._model is not None and self._tokenizer is not None
+
+        import torch
+
+        out: list[float] = []
+        for start in range(0, len(passages), self.batch_size):
+            batch = list(passages[start : start + self.batch_size])
+            encoded = self._tokenizer(
+                [query] * len(batch),
+                batch,
+                padding=True,
+                truncation=True,
+                max_length=self.max_length,
+                return_tensors="pt",
+            )
+            encoded = {k: v.to(self._torch_device) for k, v in encoded.items()}
+            with torch.no_grad():
+                logits = self._model(**encoded).logits
+            # bge-reranker is a single-logit regression head, so the relevance
+            # score is that one value. Reshaping rather than indexing keeps this
+            # correct if a two-logit checkpoint is ever substituted, where the
+            # last column is the positive class.
+            scores = logits[:, -1] if logits.ndim == 2 and logits.shape[1] > 1 else logits.view(-1)
+            out.extend(scores.float().cpu().tolist())
+
+        return np.asarray(out, dtype=np.float32)
 
     def release(self) -> None:
         if self._model is None:
             return
         self._model = None
+        self._tokenizer = None
         try:
             import gc
 

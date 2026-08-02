@@ -181,6 +181,29 @@ def main() -> None:  # noqa: PLR0915 - a linear script; splitting it would obscu
     }
 
     for model_key, chunker_name in EMBEDDING_JOBS:
+        out = WORK / f"vectors-{model_key}-{chunker_name}.npz"
+        # Skip work already on disk. A Kaggle session survives a failed cell, and
+        # the embedding passes take about nineteen minutes combined -- repeating
+        # them because a later stage crashed wastes GPU quota for nothing.
+        if out.exists():
+            existing = np.load(out, allow_pickle=True)
+            print(
+                f"\n=== {model_key} / {chunker_name}: reusing {out.name} "
+                f"({existing['vectors'].shape[0]:,} vectors) ===",
+                flush=True,
+            )
+            manifest["artifacts"].append(
+                {
+                    "file": out.name,
+                    "embedder": model_key,
+                    "chunker": chunker_name,
+                    "n_chunks": int(existing["vectors"].shape[0]),
+                    "dimension": int(existing["vectors"].shape[1]),
+                    "reused": True,
+                }
+            )
+            continue
+
         chunker = make_chunker(chunker_name)
         chunks = chunker.chunk_corpus(docs)
         print(f"\n=== {model_key} / {chunker_name}: {len(chunks):,} chunks ===", flush=True)
@@ -192,7 +215,6 @@ def main() -> None:  # noqa: PLR0915 - a linear script; splitting it would obscu
         rate = len(chunks) / elapsed if elapsed else 0.0
         print(f"  {elapsed / 60:.1f} min  ({rate:.0f} chunks/sec)", flush=True)
 
-        out = WORK / f"vectors-{model_key}-{chunker_name}.npz"
         np.savez_compressed(
             out,
             vectors=vectors,

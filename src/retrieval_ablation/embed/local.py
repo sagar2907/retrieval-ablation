@@ -104,7 +104,16 @@ class SentenceTransformerEmbedder(Embedder):
         if self._fp16 and device == "cuda":
             self._model = self._model.half()
 
-        self.dimension = int(self._model.get_sentence_embedding_dimension())
+        # sentence-transformers 5.x renamed this; 3.x and 4.x only have the old
+        # name. Preferring the new one and falling back keeps a single code path
+        # working across the version the development machine pins and whatever a
+        # borrowed GPU environment happens to ship.
+        getter = getattr(
+            self._model,
+            "get_embedding_dimension",
+            getattr(self._model, "get_sentence_embedding_dimension", None),
+        )
+        self.dimension = int(getter()) if getter else 0
 
     def encode(self, texts: Sequence[str], is_query: bool = False) -> np.ndarray:
         self._ensure_loaded()
