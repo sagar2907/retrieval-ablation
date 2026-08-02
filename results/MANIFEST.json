@@ -1,0 +1,42 @@
+{
+  "gpu": {
+    "torch": "2.10.0+cu128",
+    "cuda_available": true,
+    "device": "Tesla T4",
+    "vram_mib": 14911
+  },
+  "n_documents": 120,
+  "n_queries": 216,
+  "artifacts": [
+    {
+      "file": "vectors-bge-m3-struct512.npz",
+      "embedder": "bge-m3",
+      "chunker": "struct512",
+      "n_chunks": 42215,
+      "dimension": 1024,
+      "seconds": 810.2,
+      "chunks_per_sec": 52.1
+    },
+    {
+      "file": "vectors-e5-base-struct512.npz",
+      "embedder": "e5-base",
+      "chunker": "struct512",
+      "n_chunks": 42215,
+      "dimension": 768,
+      "seconds": 281.8,
+      "chunks_per_sec": 149.8
+    },
+    {
+      "file": "rerank-scores-candidates-rerank-bm25-100.json",
+      "reranker": "BAAI/bge-reranker-v2-m3",
+      "n_queries": 216,
+      "n_pairs": 43200,
+      "seconds": 894.8,
+      "pairs_per_sec": 48.3
+    },
+    {
+      "file": "candidates-hybrid-plus-rerank.json.gz",
+      "skipped": "candidate list not present in repo"
+    }
+  ]
+}

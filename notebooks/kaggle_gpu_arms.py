@@ -232,6 +232,35 @@ def main() -> None:  # noqa: PLR0915 - a linear script; splitting it would obscu
                 "chunks_per_sec": round(rate, 1),
             }
         )
+        # Query vectors, from the same model in the same session.
+        #
+        # Easy to forget and fatal to omit: a dense index needs BOTH sides
+        # embedded by the same model. Passage vectors alone are unusable, because
+        # the query cannot be embedded anywhere else -- a different model produces
+        # a different vector space, and cosine similarity across two spaces is
+        # meaningless while still returning confident-looking numbers. The first
+        # version of this notebook shipped only passage vectors and the dense arm
+        # could not run at all.
+        #
+        # Cheap: 216 queries against 42,215 passages, so this adds seconds.
+        query_vectors = embedder.encode_queries([q.text for q in queries])
+        qout = WORK / f"queryvectors-{model_key}.npz"
+        np.savez_compressed(
+            qout,
+            vectors=query_vectors,
+            query_ids=np.array([q.query_id for q in queries], dtype=object),
+            embedder=model_key,
+        )
+        manifest["artifacts"].append(
+            {
+                "file": qout.name,
+                "embedder": model_key,
+                "n_queries": len(queries),
+                "dimension": int(query_vectors.shape[1]),
+            }
+        )
+        print(f"  wrote {qout.name} ({len(queries)} query vectors)", flush=True)
+
         # Released before the next model loads. Two of these resident at once
         # exceeds a T4's memory once activations are counted.
         embedder.release()

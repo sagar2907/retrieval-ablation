@@ -37,18 +37,80 @@ exactly the table structure being tested.
 
 ## Measured results
 
-Full corpus, 42,215 chunks, 143 queries judgeable by every configuration.
-Reproduce with `python -m retrieval_ablation.ablation.runner`.
+**9 of 15 configurations measured.** Full corpus, 42,215 chunks, 143 queries
+judgeable by every configuration. Dense vectors and cross-encoder scores produced
+on a Kaggle T4; reproduce with `python -m retrieval_ablation.ablation.runner`.
 
-| configuration | axis | nDCG@10 | Recall@50 | MRR |
+| configuration | axis | nDCG@10 | 95% CI | Recall@50 | MRR | Δ vs base | p (Holm) |
+|---|---|---|---|---|---|---|---|
+| `rerank-candidates-50` | candidates | **0.2145** | [0.160, 0.273] | 0.5245 | 0.1859 | +0.0192 | 1.000 |
+| `rerank-candidates-25` | candidates | 0.2103 | [0.157, 0.268] | 0.5245 | 0.1799 | +0.0150 | 1.000 |
+| `rerank-bm25-100` | reranking | 0.2057 | [0.153, 0.263] | **0.5385** | 0.1798 | +0.0104 | 1.000 |
+| `baseline-bm25-fixed512` | baseline | 0.1953 | [0.143, 0.251] | 0.5070 | 0.1741 | — | — |
+| `chunk-struct512` | chunking | 0.1884 | [0.135, 0.246] | 0.5245 | 0.1734 | −0.0069 | 1.000 |
+| `rerank-candidates-200` | candidates | 0.1854 | [0.134, 0.240] | 0.5035 | 0.1640 | −0.0099 | 1.000 |
+| `chunk-fixed256o32` | chunking | 0.1699 | [0.119, 0.226] | 0.4126 | 0.1604 | −0.0254 | 1.000 |
+| `tables-row-sentences` | table rendering | 0.1688 | [0.122, 0.222] | 0.4935 | 0.1610 | −0.0265 | 1.000 |
+
+Full table with reachability and the overlap split:
+[`results/ablation.md`](results/ablation.md).
+
+### The headline: no difference here is statistically significant
+
+Reranking takes the top three slots, and the brief predicted a "large jump" from
+the cross-encoder. **Zero of eight comparisons survive Holm correction.** The
+smallest *uncorrected* p-value in the entire grid is 0.256; the best configuration
+beats the baseline by +0.0192 with a raw p of 0.538.
+
+With 143 queries the 95% CI on nDCG@10 spans roughly ±0.055, so a 0.019 gap is
+well inside the noise floor. Reporting "reranking lifted nDCG@10 from 0.195 to
+0.215" would be true arithmetic and a false finding. The statistics module exists
+precisely to stop that, and here it earned its place by refusing the result the
+project was set up to produce.
+
+### The real finding, which the aggregate hides
+
+Splitting queries at 0.4 content-word overlap with the gold passage changes the
+picture completely:
+
+| configuration | low-overlap nDCG | vs base | high-overlap nDCG | vs base |
 |---|---|---|---|---|
-| `baseline-bm25-fixed512` | baseline | **0.1953** | 0.5070 | 0.1741 |
-| `chunk-struct512` | chunking | 0.1884 | **0.5245** | 0.1734 |
-| `chunk-fixed256o32` | chunking | 0.1699 | 0.4126 | 0.1604 |
-| `tables-row-sentences` | table rendering | 0.1688 | 0.4935 | 0.1610 |
+| `baseline-bm25-fixed512` | 0.1091 | — | 0.2254 | — |
+| `rerank-bm25-100` | **0.2309** | **+111.7%** | 0.1969 | −12.6% |
+| `rerank-candidates-200` | 0.2104 | +92.9% | 0.1767 | −21.6% |
+| `rerank-candidates-50` | 0.1937 | +77.6% | 0.2218 | −1.6% |
+| `rerank-candidates-25` | 0.1852 | +69.8% | 0.2190 | −2.8% |
 
-Full table with confidence intervals, Holm-corrected p-values, reachability and
-the lexical-overlap split: [`results/ablation.md`](results/ablation.md).
+**The cross-encoder roughly doubles performance on queries that do not share
+wording with their answer, and slightly hurts the ones that do.** That is exactly
+the shape you would predict: where BM25 already has an exact string match there is
+nothing to fix, and reranking can only shuffle a correct top hit downward. Where
+the question is phrased differently from the filing — the case that actually needs
+semantic retrieval — it is worth about 2×.
+
+A single averaged number reports +0.019 and calls it noise. It is a large real
+effect on half the queries, cancelled by a small negative effect on the other
+half. This is why lexical overlap is recorded per query rather than left implicit.
+
+### Candidate depth is non-monotonic, and more is worse
+
+| depth | nDCG@10 | recall ceiling |
+|---|---|---|
+| 25 | 0.2103 | 44.4% |
+| 50 | **0.2145** | 53.2% |
+| 100 | 0.2057 | 61.6% |
+| 200 | 0.1854 | **73.6%** |
+
+Depth 200 has by far the best ceiling — the answer is in its shortlist 73.6% of
+the time, against 44.4% at depth 25 — and the **worst** nDCG@10, below the
+baseline that does no reranking at all. So the cross-encoder is not failing to
+see the answer; given more candidates it actively promotes wrong ones past it.
+The optimum is around 50, and buying a better ceiling past that point costs
+accuracy as well as compute.
+
+That is worth stating plainly because the intuitive tuning move — widen the
+shortlist so the reranker has more to work with — measurably makes things worse
+here.
 
 ### What these numbers mean, and what they do not
 

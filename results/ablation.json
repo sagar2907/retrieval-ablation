@@ -1,6 +1,6 @@
 {
-  "n_configurations": 8,
-  "n_measured": 5,
+  "n_configurations": 15,
+  "n_measured": 9,
   "results": [
     {
       "name": "baseline-bm25-fixed512",
@@ -35,7 +35,7 @@
       ],
       "ndcg10_low_overlap_queries": 0.10906355443615744,
       "ndcg10_high_overlap_queries": 0.2253749414554204,
-      "seconds": 0.6
+      "seconds": 0.5
     },
     {
       "name": "chunk-fixed256o32",
@@ -70,7 +70,7 @@
       ],
       "ndcg10_low_overlap_queries": 0.10301332696941103,
       "ndcg10_high_overlap_queries": 0.19318229092812148,
-      "seconds": 0.9
+      "seconds": 0.8
     },
     {
       "name": "chunk-semantic95",
@@ -129,7 +129,7 @@
       ],
       "ndcg10_low_overlap_queries": 0.08371197904702865,
       "ndcg10_high_overlap_queries": 0.22487978777979425,
-      "seconds": 0.6
+      "seconds": 0.5
     },
     {
       "name": "tables-row-sentences",
@@ -177,7 +177,7 @@
       "table_rendering": "markdown",
       "notes": "dense only",
       "measured": false,
-      "skipped_reason": "bge-m3 unavailable: ModuleNotFoundError: No module named 'sentence_transformers'",
+      "skipped_reason": "passage vectors for bge-m3 are present but queryvectors-bge-m3.npz is not. A dense index needs both sides embedded by the same model; embedding queries with a different model would compare vectors from two spaces and return confident nonsense. Re-run the GPU notebook to produce them.",
       "n_chunks": 42215,
       "metrics_all": {},
       "metrics_common_subset": {},
@@ -201,7 +201,7 @@
       "table_rendering": "markdown",
       "notes": "BM25 + dense fused with RRF",
       "measured": false,
-      "skipped_reason": "bge-m3 unavailable: ModuleNotFoundError: No module named 'sentence_transformers'",
+      "skipped_reason": "passage vectors for bge-m3 are present but queryvectors-bge-m3.npz is not. A dense index needs both sides embedded by the same model; embedding queries with a different model would compare vectors from two spaces and return confident nonsense. Re-run the GPU notebook to produce them.",
       "n_chunks": 42215,
       "metrics_all": {},
       "metrics_common_subset": {},
@@ -247,7 +247,219 @@
       ],
       "ndcg10_low_overlap_queries": 0.08371197904702865,
       "ndcg10_high_overlap_queries": 0.22487978777979425,
+      "seconds": 0.5
+    },
+    {
+      "name": "embed-e5-base",
+      "axis": "embedding",
+      "chunker": "struct512",
+      "retrieval": "dense",
+      "embedding": "e5-base",
+      "reranker": null,
+      "candidate_k": 100,
+      "table_rendering": "markdown",
+      "notes": "embedding axis: e5-base vs bge-m3",
+      "measured": false,
+      "skipped_reason": "passage vectors for e5-base are present but queryvectors-e5-base.npz is not. A dense index needs both sides embedded by the same model; embedding queries with a different model would compare vectors from two spaces and return confident nonsense. Re-run the GPU notebook to produce them.",
+      "n_chunks": 42215,
+      "metrics_all": {},
+      "metrics_common_subset": {},
+      "n_scored_all": 0,
+      "n_scored_common": 0,
+      "fraction_reachable": null,
+      "first_stage_recall_ceiling": null,
+      "ndcg10_ci95": null,
+      "ndcg10_low_overlap_queries": null,
+      "ndcg10_high_overlap_queries": null,
+      "seconds": 0.0
+    },
+    {
+      "name": "embed-finance-e5",
+      "axis": "embedding",
+      "chunker": "struct512",
+      "retrieval": "dense",
+      "embedding": "finance-e5",
+      "reranker": null,
+      "candidate_k": 100,
+      "table_rendering": "markdown",
+      "notes": "embedding axis: finance-e5 vs bge-m3",
+      "measured": false,
+      "skipped_reason": "finance-e5 unavailable: ModuleNotFoundError: No module named 'sentence_transformers'",
+      "n_chunks": 42215,
+      "metrics_all": {},
+      "metrics_common_subset": {},
+      "n_scored_all": 0,
+      "n_scored_common": 0,
+      "fraction_reachable": null,
+      "first_stage_recall_ceiling": null,
+      "ndcg10_ci95": null,
+      "ndcg10_low_overlap_queries": null,
+      "ndcg10_high_overlap_queries": null,
+      "seconds": 0.0
+    },
+    {
+      "name": "rerank-bm25-100",
+      "axis": "reranking",
+      "chunker": "struct512",
+      "retrieval": "bm25",
+      "embedding": null,
+      "reranker": "bge-reranker-v2-m3",
+      "candidate_k": 100,
+      "table_rendering": "markdown",
+      "notes": "cross-encoder on a lexical first stage",
+      "measured": true,
+      "skipped_reason": null,
+      "n_chunks": 42215,
+      "metrics_all": {
+        "ndcg@10": 0.19465200655854423,
+        "recall@50": 0.5509259259259259,
+        "mrr": 0.165910037472221
+      },
+      "metrics_common_subset": {
+        "ndcg@10": 0.20570347285116944,
+        "recall@50": 0.5384615384615384,
+        "mrr": 0.17983802587441583
+      },
+      "n_scored_all": 216,
+      "n_scored_common": 143,
+      "fraction_reachable": 1.0,
+      "first_stage_recall_ceiling": 0.6157407407407407,
+      "ndcg10_ci95": [
+        0.15255952908956075,
+        0.2625223104094112
+      ],
+      "ndcg10_low_overlap_queries": 0.23090719090848744,
+      "ndcg10_high_overlap_queries": 0.19690594862361505,
       "seconds": 0.6
+    },
+    {
+      "name": "rerank-candidates-25",
+      "axis": "candidates",
+      "chunker": "struct512",
+      "retrieval": "bm25",
+      "embedding": null,
+      "reranker": "bge-reranker-v2-m3",
+      "candidate_k": 25,
+      "table_rendering": "markdown",
+      "notes": "shortlist depth 25",
+      "measured": true,
+      "skipped_reason": null,
+      "n_chunks": 42215,
+      "metrics_all": {
+        "ndcg@10": 0.21450654559950963,
+        "recall@50": 0.5324074074074074,
+        "mrr": 0.1751378797625182
+      },
+      "metrics_common_subset": {
+        "ndcg@10": 0.21027388972373615,
+        "recall@50": 0.5244755244755245,
+        "mrr": 0.17987441146795047
+      },
+      "n_scored_all": 216,
+      "n_scored_common": 143,
+      "fraction_reachable": 1.0,
+      "first_stage_recall_ceiling": 0.4444444444444444,
+      "ndcg10_ci95": [
+        0.15700539599784077,
+        0.2678036371692313
+      ],
+      "ndcg10_low_overlap_queries": 0.1851629729296683,
+      "ndcg10_high_overlap_queries": 0.21903902105751452,
+      "seconds": 0.6
+    },
+    {
+      "name": "rerank-candidates-50",
+      "axis": "candidates",
+      "chunker": "struct512",
+      "retrieval": "bm25",
+      "embedding": null,
+      "reranker": "bge-reranker-v2-m3",
+      "candidate_k": 50,
+      "table_rendering": "markdown",
+      "notes": "shortlist depth 50",
+      "measured": true,
+      "skipped_reason": null,
+      "n_chunks": 42215,
+      "metrics_all": {
+        "ndcg@10": 0.20951607078699122,
+        "recall@50": 0.5324074074074074,
+        "mrr": 0.17499818128563172
+      },
+      "metrics_common_subset": {
+        "ndcg@10": 0.21450119114919852,
+        "recall@50": 0.5244755244755245,
+        "mrr": 0.18589651602725704
+      },
+      "n_scored_all": 216,
+      "n_scored_common": 143,
+      "fraction_reachable": 1.0,
+      "first_stage_recall_ceiling": 0.5324074074074074,
+      "ndcg10_ci95": [
+        0.1597878990054221,
+        0.27274130399173707
+      ],
+      "ndcg10_low_overlap_queries": 0.19368905068063394,
+      "ndcg10_high_overlap_queries": 0.22176580621841444,
+      "seconds": 0.7
+    },
+    {
+      "name": "rerank-candidates-200",
+      "axis": "candidates",
+      "chunker": "struct512",
+      "retrieval": "bm25",
+      "embedding": null,
+      "reranker": "bge-reranker-v2-m3",
+      "candidate_k": 200,
+      "table_rendering": "markdown",
+      "notes": "shortlist depth 200",
+      "measured": true,
+      "skipped_reason": null,
+      "n_chunks": 42215,
+      "metrics_all": {
+        "ndcg@10": 0.18494266491004743,
+        "recall@50": 0.5370370370370371,
+        "mrr": 0.15855486039983974
+      },
+      "metrics_common_subset": {
+        "ndcg@10": 0.1853972921456829,
+        "recall@50": 0.5034965034965035,
+        "mrr": 0.1640126041209456
+      },
+      "n_scored_all": 216,
+      "n_scored_common": 143,
+      "fraction_reachable": 1.0,
+      "first_stage_recall_ceiling": 0.7361111111111112,
+      "ndcg10_ci95": [
+        0.1335835372198088,
+        0.24020339615468123
+      ],
+      "ndcg10_low_overlap_queries": 0.21037219040522503,
+      "ndcg10_high_overlap_queries": 0.1766796389796163,
+      "seconds": 0.6
+    },
+    {
+      "name": "hybrid-plus-rerank",
+      "axis": "interaction",
+      "chunker": "struct512",
+      "retrieval": "hybrid",
+      "embedding": "bge-m3",
+      "reranker": "bge-reranker-v2-m3",
+      "candidate_k": 100,
+      "table_rendering": "markdown",
+      "notes": "the production configuration: hybrid retrieval then cross-encoder",
+      "measured": false,
+      "skipped_reason": "passage vectors for bge-m3 are present but queryvectors-bge-m3.npz is not. A dense index needs both sides embedded by the same model; embedding queries with a different model would compare vectors from two spaces and return confident nonsense. Re-run the GPU notebook to produce them.",
+      "n_chunks": 42215,
+      "metrics_all": {},
+      "metrics_common_subset": {},
+      "n_scored_all": 0,
+      "n_scored_common": 0,
+      "fraction_reachable": null,
+      "first_stage_recall_ceiling": null,
+      "ndcg10_ci95": null,
+      "ndcg10_low_overlap_queries": null,
+      "ndcg10_high_overlap_queries": null,
+      "seconds": 0.0
     }
   ],
   "significance_vs_baseline": {
@@ -283,6 +495,42 @@
       "config_ndcg10": 0.18835385125453322,
       "delta": -0.006926535517581384,
       "p_raw": 0.7602239776022398,
+      "p_holm": 1.0,
+      "significant_at_05": false,
+      "n_pairs": 143
+    },
+    "rerank-bm25-100": {
+      "baseline_ndcg10": 0.1952803867721146,
+      "config_ndcg10": 0.2057034728511694,
+      "delta": 0.010423086079054844,
+      "p_raw": 0.7383261673832616,
+      "p_holm": 1.0,
+      "significant_at_05": false,
+      "n_pairs": 143
+    },
+    "rerank-candidates-25": {
+      "baseline_ndcg10": 0.1952803867721146,
+      "config_ndcg10": 0.21027388972373615,
+      "delta": 0.014993502951621553,
+      "p_raw": 0.5936406359364064,
+      "p_holm": 1.0,
+      "significant_at_05": false,
+      "n_pairs": 143
+    },
+    "rerank-candidates-50": {
+      "baseline_ndcg10": 0.1952803867721146,
+      "config_ndcg10": 0.2145011911491985,
+      "delta": 0.019220804377083917,
+      "p_raw": 0.5383461653834617,
+      "p_holm": 1.0,
+      "significant_at_05": false,
+      "n_pairs": 143
+    },
+    "rerank-candidates-200": {
+      "baseline_ndcg10": 0.1952803867721146,
+      "config_ndcg10": 0.1853972921456829,
+      "delta": -0.009883094626431685,
+      "p_raw": 0.7506249375062494,
       "p_holm": 1.0,
       "significant_at_05": false,
       "n_pairs": 143

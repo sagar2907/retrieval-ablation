@@ -27,6 +27,7 @@ import logging
 import time
 from collections.abc import Sequence
 from dataclasses import dataclass, field
+from pathlib import Path
 
 from ..chunking import (
     Chunker,
@@ -48,6 +49,13 @@ from ..evalset.relevance import (
 )
 from ..evalset.schema import EvalQuery, gold_by_query, read_eval_set
 from ..evalset.synthesize import _query_id, extract_table_facts
+from ..index.artifacts import (
+    PrecomputedReranker,
+    dense_index_from_artifact,
+    load_query_vectors,
+    load_rerank_scores,
+    load_vectors,
+)
 from ..index.bm25 import BM25Index
 from ..index.dense import DenseIndex
 from ..index.fusion import HybridRetriever
@@ -155,6 +163,24 @@ def make_chunker(name: str, embedder: Embedder | None = None) -> Chunker:
             name=name,
         )
     raise ValueError(f"unknown chunker {name!r}")
+
+
+def _artifact_vectors(embedding_key: str, chunker: str) -> Path | None:
+    """Path to GPU-produced vectors for this (embedding, chunker) pair, if present."""
+    candidate = RESULTS_DIR / f"vectors-{embedding_key}-{chunker}.npz"
+    return candidate if candidate.exists() else None
+
+
+def _artifact_rerank_scores() -> Path | None:
+    """Path to GPU-produced cross-encoder scores, if present."""
+    for name in (
+        "rerank-scores-candidates-rerank-bm25-100.json",
+        "rerank-scores-candidates-rerank-bm25-100.json.gz",
+    ):
+        path = RESULTS_DIR / name
+        if path.exists():
+            return path
+    return None
 
 
 def _load_embedder(key: str):
@@ -269,14 +295,24 @@ def _prepare(
     embedding_key = example.embedding
     embedder = None
     skip: str | None = None
+    artifact = _artifact_vectors(embedding_key, example.chunker) if embedding_key else None
 
-    if embedding_key or example.chunker.startswith("semantic"):
-        embedder, skip = _load_embedder(embedding_key or "bge-m3")
+    # Precomputed vectors are preferred over loading a model. They are what the
+    # GPU worker produced, torch cannot load on this machine at all, and using
+    # them keeps the dense arm reproducible from committed artifacts rather than
+    # from whatever model version happens to be installed.
+    if embedding_key and artifact is None:
+        embedder, skip = _load_embedder(embedding_key)
         if skip:
             log.warning("group %s: %s", key, skip)
-            # Semantic chunking cannot proceed without an embedder at all.
-            if example.chunker.startswith("semantic"):
-                return _Prepared([], {}, BM25Index([]), None, skipped_reason=skip)
+    elif example.chunker.startswith("semantic"):
+        embedder, skip = _load_embedder("bge-m3")
+        if skip:
+            log.warning("group %s: %s", key, skip)
+            # Semantic chunking needs live embeddings for its breakpoints; there
+            # is no precomputed substitute, because the sentences it embeds do
+            # not exist until it has already run.
+            return _Prepared([], {}, BM25Index([]), None, skipped_reason=skip)
 
     # Re-parse when this group uses a non-default table rendering, because the
     # rendering changes the canonical text and therefore every gold offset.
@@ -299,28 +335,77 @@ def _prepare(
 
     bm25 = BM25Index(chunks)
     dense = None
-    if embedding_key and embedder is not None:
+    if embedding_key and artifact is not None:
+        loaded = load_vectors(artifact, chunks)
+        log.info(
+            "group %s: loaded %s (%d-dim), %d/%d chunks covered",
+            key,
+            artifact.name,
+            loaded.dimension,
+            len(loaded.chunk_ids),
+            len(chunks),
+        )
+        if loaded.n_missing_locally or loaded.n_unmatched_remotely:
+            log.warning(
+                "group %s: %d chunks without vectors, %d vectors without chunks",
+                key,
+                loaded.n_missing_locally,
+                loaded.n_unmatched_remotely,
+            )
+        query_vectors = load_query_vectors(embedding_key, {q.query_id: q.text for q in queries})
+        if query_vectors is None:
+            log.warning(
+                "group %s: no queryvectors-%s.npz. Passage vectors alone cannot "
+                "serve a dense arm -- both sides must come from the same model.",
+                key,
+                embedding_key,
+            )
+        dense = dense_index_from_artifact(artifact, chunks, query_vectors)
+    elif embedding_key and embedder is not None:
         log.info("group %s: embedding %d chunks with %s", key, len(chunks), embedding_key)
         dense = DenseIndex.build(chunks, embedder)
 
     return _Prepared(chunks, qrels, bm25, dense, skipped_reason=skip if embedding_key else None)
 
 
-def _build_retriever(config: Config, prepared: _Prepared):
+def _build_retriever(  # noqa: PLR0911 - each return is a distinct, named unavailability
+    config: Config, prepared: _Prepared, query_ids: dict[str, str] | None = None
+):
     """Assemble the retriever this configuration describes, or return a reason."""
     if config.retrieval == "bm25":
         first = prepared.bm25
     elif config.retrieval == "dense":
         if prepared.dense is None:
             return None, prepared.skipped_reason or "dense index unavailable"
+        if not getattr(prepared.dense.embedder, "can_embed_queries", True):
+            return None, _NO_QUERY_VECTORS.format(model=config.embedding)
         first = prepared.dense
     else:
         if prepared.dense is None:
             return None, prepared.skipped_reason or "dense index unavailable for hybrid"
+        if not getattr(prepared.dense.embedder, "can_embed_queries", True):
+            return None, _NO_QUERY_VECTORS.format(model=config.embedding)
         first = HybridRetriever([prepared.bm25, prepared.dense], k=config.rrf_k)
 
     if config.reranker is None:
         return first, None
+
+    # Precomputed cross-encoder scores are preferred, and on this machine they are
+    # the only option: torch cannot load under the enforced code-integrity policy.
+    # Using them also keeps the reranking arms reproducible from a committed
+    # artifact rather than from whatever model version happens to download.
+    scores_path = _artifact_rerank_scores()
+    if scores_path is not None and query_ids:
+        return (
+            PrecomputedReranker(
+                first,
+                load_rerank_scores(scores_path),
+                query_ids,
+                candidate_k=config.candidate_k,
+                name=config.name,
+            ),
+            None,
+        )
 
     texts = {c.chunk_id: c.text for c in prepared.chunks}
     try:
@@ -332,7 +417,16 @@ def _build_retriever(config: Config, prepared: _Prepared):
     return RerankingRetriever(first, reranker, texts, candidate_k=config.candidate_k), None
 
 
-#: Queries whose content words overlap the gold passage below this fraction are
+#: Reported verbatim in the results table when a dense arm cannot run. Stated as
+#: a missing artifact rather than a code failure, because that is what it is.
+_NO_QUERY_VECTORS = (
+    "passage vectors for {model} are present but queryvectors-{model}.npz is not. "
+    "A dense index needs both sides embedded by the same model; embedding queries "
+    "with a different model would compare vectors from two spaces and return "
+    "confident nonsense. Re-run the GPU notebook to produce them."
+)
+
+#: Queries whose content words overlap the gold passage below this fraction are'
 #: the ones that genuinely test retrieval rather than string matching.
 LOW_OVERLAP_THRESHOLD = 0.4
 
@@ -365,6 +459,9 @@ def run_ablation(  # noqa: PLR0915 - a linear pipeline; splitting it would hide 
 
     overlap = {q.query_id: (q.lexical_overlap or 0.0) for q in queries}
     query_text = {q.query_id: q.text for q in queries}
+    # Reverse map: the Retriever interface takes query text, but precomputed
+    # rerank scores are keyed by query id.
+    id_by_text = {q.text: q.query_id for q in queries}
 
     results: list[Result] = []
     for config in grid:
@@ -377,7 +474,7 @@ def run_ablation(  # noqa: PLR0915 - a linear pipeline; splitting it would hide 
             log.warning("%s: SKIPPED (%s)", config.name, result.skipped_reason)
             continue
 
-        retriever, reason = _build_retriever(config, group)
+        retriever, reason = _build_retriever(config, group, id_by_text)
         if retriever is None:
             result.skipped_reason = reason
             results.append(result)
@@ -421,6 +518,7 @@ def run_ablation(  # noqa: PLR0915 - a linear pipeline; splitting it would hide 
                     table_rendering=config.table_rendering,
                 ),
                 group,
+                id_by_text,
             )
             if first_only is not None:
                 first_run = first_only.run(query_text, top_k=max(config.candidate_k, top_k))

@@ -177,6 +177,18 @@ def ingest(
         if limit is not None:
             refs = refs[:limit]
 
+        # Snapshot the committed manifest before this run overwrites it, so
+        # rebuilt documents can be compared against what the published numbers
+        # were actually computed from.
+        committed_digests: dict[str, str] = {}
+        committed_chars: dict[str, int] = {}
+        if MANIFEST_PATH.exists():
+            prior_manifest = json.loads(MANIFEST_PATH.read_text(encoding="utf-8"))
+            for entry in prior_manifest.get("documents", []):
+                committed_digests[entry["doc_id"]] = entry["text_sha256"]
+                committed_chars[entry["doc_id"]] = entry["n_chars"]
+        drift: list[dict] = []
+
         entries = []
         for index, ref in enumerate(refs, start=1):
             # A single document must not abort the run. The first full ingest died
@@ -217,6 +229,39 @@ def ingest(
                 )
                 save_document(doc)
 
+            # Compare against the manifest as it was *before* this run rewrote it.
+            #
+            # This check exists because its absence was a real hole. `ingest()`
+            # writes the manifest at the end, and `load_corpus()` verifies against
+            # whatever manifest is on disk -- so a fresh ingest followed by
+            # load_corpus verified a run against its own output and could not
+            # detect drift from the committed corpus by construction. The GPU
+            # worker printed "corpus verified: 120 documents" while actually
+            # holding one document 360 characters longer than the committed one,
+            # because SEC had re-posted it between the two fetches.
+            #
+            # Recorded rather than raised: a filing changing upstream is a fact
+            # about the world, not a bug, and aborting a 120-document build over
+            # one changed signature block would be worse than reporting it.
+            prior = committed_digests.get(doc.doc_id)
+            text_digest = sha256_text(doc.text)
+            if prior and prior != text_digest:
+                drift.append(
+                    {
+                        "doc_id": doc.doc_id,
+                        "committed_sha256": prior,
+                        "rebuilt_sha256": text_digest,
+                        "committed_chars": committed_chars.get(doc.doc_id),
+                        "rebuilt_chars": len(doc.text),
+                    }
+                )
+                log.warning(
+                    "%s differs from the committed manifest: %d chars now, %s before",
+                    doc.doc_id,
+                    len(doc.text),
+                    committed_chars.get(doc.doc_id),
+                )
+
             n_tables = sum(1 for b in doc.blocks if b.is_table)
             entries.append(
                 {
@@ -256,6 +301,11 @@ def ingest(
             # Recorded so a shortfall is visible beside the numbers derived from
             # this corpus, instead of being a log line nobody re-reads.
             "gaps": gaps,
+            # Documents whose content changed upstream since the committed
+            # manifest was written. Empty is the normal case; a non-empty list
+            # means artifacts built from this rebuild are not perfectly
+            # interchangeable with ones built from the committed corpus.
+            "drift_from_committed": drift,
             "documents": entries,
         }
         MANIFEST_PATH.write_text(json.dumps(manifest, indent=2), encoding="utf-8")
