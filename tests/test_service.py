@@ -84,17 +84,15 @@ class TestSearch:
 
     def test_exposes_the_score_behind_each_result(self, client):
         """Scores are the point of the service, not decoration."""
-        passage = client.post("/search", json={"query": "research development"}).json()[
-            "passages"
-        ][0]
+        passage = client.post("/search", json={"query": "research development"}).json()["passages"][
+            0
+        ]
         for field in ("score", "score_relative", "section", "char_start", "char_end"):
             assert field in passage
         assert passage["score"] > 0
 
     def test_relative_score_is_one_for_the_top_hit(self, client):
-        passages = client.post("/search", json={"query": "research development"}).json()[
-            "passages"
-        ]
+        passages = client.post("/search", json={"query": "research development"}).json()["passages"]
         assert passages[0]["score_relative"] == pytest.approx(1.0)
         assert all(p["score_relative"] <= 1.0 for p in passages)
 
@@ -131,9 +129,7 @@ class TestAnswerWithoutKey:
 
         config.get_settings.cache_clear()
         monkeypatch.delenv("GEMINI_API_KEY", raising=False)
-        monkeypatch.setattr(
-            service, "get_settings", lambda: config.Settings(gemini_api_key=None)
-        )
+        monkeypatch.setattr(service, "get_settings", lambda: config.Settings(gemini_api_key=None))
         response = client.post("/answer", json={"query": "revenue"})
         assert response.status_code == 503
         assert "search" in response.json()["detail"].lower()

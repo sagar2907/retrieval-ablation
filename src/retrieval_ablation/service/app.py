@@ -233,9 +233,7 @@ def answer(request: SearchRequest) -> AnswerResponse:
 
     try:
         with GeminiClient() as client:
-            generated = generate_answer(
-                client, "live", request.query, chunks, arm="retrieval"
-            )
+            generated = generate_answer(client, "live", request.query, chunks, arm="retrieval")
     except QuotaExhaustedError as exc:
         # 429 rather than 500: this is a quota condition the caller can retry,
         # not a bug in the service.
