@@ -47,7 +47,7 @@ from ..evalset.relevance import (
     common_judgeable_queries,
     reachability,
 )
-from ..evalset.schema import EvalQuery, gold_by_query, read_eval_set
+from ..evalset.schema import EvalQuery, Verification, gold_by_query, read_eval_set
 from ..evalset.synthesize import _query_id, extract_table_facts
 from ..index.artifacts import (
     PrecomputedReranker,
@@ -572,9 +572,13 @@ def significance(results: Sequence[Result]) -> dict[str, dict]:
     }
 
 
-def write_results(results: Sequence[Result], tests: dict[str, dict]) -> None:
+def write_results(
+    results: Sequence[Result], tests: dict[str, dict], suffix: str = ""
+) -> None:
     ensure_dirs()
-    RESULTS_PATH.write_text(
+    json_path = RESULTS_PATH.with_name(f"ablation{suffix}.json")
+    table_path = TABLE_PATH.with_name(f"ablation{suffix}.md")
+    json_path.write_text(
         json.dumps(
             {
                 "n_configurations": len(results),
@@ -586,7 +590,7 @@ def write_results(results: Sequence[Result], tests: dict[str, dict]) -> None:
         ),
         encoding="utf-8",
     )
-    TABLE_PATH.write_text(render_table(results, tests), encoding="utf-8")
+    table_path.write_text(render_table(results, tests), encoding="utf-8")
 
 
 def render_table(results: Sequence[Result], tests: dict[str, dict]) -> str:
@@ -715,6 +719,11 @@ def main() -> None:
         default=None,
         help="limit the corpus, for a fast smoke run",
     )
+    parser.add_argument(
+        "--exclude-rejected",
+        action="store_true",
+        help="drop labels a checker rejected, and write to results/ablation-accepted.*",
+    )
     args = parser.parse_args()
 
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
@@ -723,6 +732,14 @@ def main() -> None:
     if args.max_docs:
         docs = docs[: args.max_docs]
     queries = read_eval_set(QUERIES_PATH)
+    if args.exclude_rejected:
+        # Robustness check, not the headline. Roughly one label in five was
+        # rejected by the checker, so the question is whether the ordering of the
+        # ablation survives dropping them. If the conclusions change, the label
+        # set is doing more work than the retrievers are.
+        before = len(queries)
+        queries = [q for q in queries if q.verification is not Verification.REJECTED]
+        log.info("excluding rejected labels: %d of %d retained", len(queries), before)
 
     grid = build_grid()
     if args.only:
@@ -732,7 +749,8 @@ def main() -> None:
     log.info("running %d configurations over %d documents", len(grid), len(docs))
     results = run_ablation(docs, queries, grid, top_k=args.top_k)
     tests = significance(results)
-    write_results(results, tests)
+    suffix = "-accepted" if args.exclude_rejected else ""
+    write_results(results, tests, suffix)
 
     print(f"\nwrote {RESULTS_PATH}")
     print(f"wrote {TABLE_PATH}")

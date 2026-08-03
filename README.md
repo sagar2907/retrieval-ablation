@@ -143,6 +143,53 @@ None of these differences has been checked for significance yet — the
 Holm-corrected paired tests run over the full grid, and the grid is incomplete.
 **Do not quote any of these deltas as a finding until the GPU arms land.**
 
+### Label quality, and whether the conclusions survive it
+
+All 216 labels were audited by `gemini-3.5-flash-lite`, which was asked to reject
+on specific checkable grounds rather than give a quality score. **44 of 216 were
+rejected — a 20.4% rejection rate**, with 0 unparseable verdicts.
+
+The rejections are concentrated in exactly the failure modes visible by hand
+earlier: the subject of the question is a place or entity name rather than a line
+item (*"united states"*, *"duke energy ohio"*), or the passage contains several
+figures under the same label so the question is ambiguous (*"Expected life in
+years" 4.6, 4.6, …*). Rejected labels are retained with their reason rather than
+deleted, so the size of the discarded set stays visible.
+
+**These are `MODEL_CHECKED`, not `HUMAN_VERIFIED`, and a test enforces that.** A
+model auditing labels a program generated from table structure is not an
+independent second opinion — both can be satisfied by a query that is grammatical
+and meaningless — and it cannot see that a *different* passage would have been the
+better gold. It is a bulk quality signal, not a substitute for a person.
+
+Re-running the whole grid on the 172 accepted labels is the robustness check that
+matters:
+
+| configuration | all 216 | accepted 172 | Δ |
+|---|---|---|---|
+| `rerank-candidates-50` | 0.2145 | 0.2456 | +0.0311 |
+| `rerank-bm25-100` | 0.2057 | 0.2341 | +0.0284 |
+| `rerank-candidates-25` | 0.2103 | 0.2368 | +0.0265 |
+| `baseline-bm25-fixed512` | 0.1953 | 0.2202 | +0.0249 |
+| `chunk-struct512` | 0.1884 | 0.2132 | +0.0248 |
+| `rerank-candidates-200` | 0.1854 | 0.2080 | +0.0226 |
+| `tables-row-sentences` | 0.1688 | 0.1889 | +0.0201 |
+
+Three things to take from it. **Every configuration gains roughly the same amount**
+(+0.020 to +0.031), which is what you would expect if the rejected labels were
+genuinely unanswerable — they penalised every system equally. **The ranking is
+identical**, so no conclusion here rests on the label defects. And **still zero of
+eight comparisons survive Holm correction** (smallest raw p 0.281), so the
+"reranking is not significant" finding is not an artifact of noisy labels either.
+
+The overlap split gets *stronger* on the cleaner subset — `rerank-bm25-100` goes
+from +112% to **+171%** on low-overlap queries while its high-overlap penalty
+deepens from −12.6% to −14.2%. Removing ambiguous labels sharpens the effect rather
+than dissolving it.
+
+Full comparison: [`results/ablation-accepted.md`](results/ablation-accepted.md)
+and [`data/eval/model_check.json`](data/eval/model_check.json).
+
 ## Retrieval versus long context — measured
 
 `gemini-3.6-flash`, 12 of 216 queries (seeded stratified sample), full details in
