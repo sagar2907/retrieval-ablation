@@ -29,6 +29,21 @@ class Verification(enum.StrEnum):
     #: is answerable or that the gold span is the passage a reader would cite.
     GENERATED = "generated"
 
+    #: A language model read the query and the gold passage and judged the
+    #: pairing sound. Strictly weaker than HUMAN_VERIFIED and deliberately a
+    #: separate state rather than a shortcut to it.
+    #:
+    #: The labels being checked were themselves produced by a program, so a model
+    #: adjudicating them is not an independent second opinion in the way a person
+    #: would be: a query that is grammatical but meaningless can satisfy both. It
+    #: also cannot detect that a *different* passage would have been the better
+    #: gold, only that this one is defensible.
+    #:
+    #: What it is genuinely good for is catching obvious junk at a scale nobody
+    #: will sit through by hand, and producing a rejection rate that says
+    #: something real about label quality in bulk.
+    MODEL_CHECKED = "model_checked"
+
     #: A human read the query and the gold passage and confirmed the pairing.
     HUMAN_VERIFIED = "human_verified"
 
@@ -77,6 +92,11 @@ class EvalQuery:
     #: Set only when a paraphrase was produced, naming the model that wrote it, so
     #: a reader can tell generated text from corpus text.
     paraphrase_source: str | None = None
+    #: The model that adjudicated this label, and why it decided as it did.
+    #: Recorded rather than collapsed into the verdict so a reader can disagree
+    #: with the reasoning instead of having to take the verdict on trust.
+    checked_by: str | None = None
+    check_reason: str | None = None
 
     def to_json(self) -> dict:
         return {
@@ -86,6 +106,8 @@ class EvalQuery:
             "verification": self.verification.value,
             "lexical_overlap": self.lexical_overlap,
             "paraphrase_source": self.paraphrase_source,
+            "checked_by": self.checked_by,
+            "check_reason": self.check_reason,
             "metadata": self.metadata,
             "gold": [
                 {
@@ -118,6 +140,8 @@ class EvalQuery:
             lexical_overlap=payload["lexical_overlap"],
             metadata=payload.get("metadata", {}),
             paraphrase_source=payload.get("paraphrase_source"),
+            checked_by=payload.get("checked_by"),
+            check_reason=payload.get("check_reason"),
         )
 
 
