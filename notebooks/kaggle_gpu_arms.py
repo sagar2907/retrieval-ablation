@@ -213,9 +213,19 @@ def main() -> None:  # noqa: PLR0912,PLR0915 - a linear script; splitting it wou
 
     for model_key, chunker_name in EMBEDDING_JOBS:
         out = WORK / f"vectors-{model_key}-{chunker_name}.npz"
+        qout = WORK / f"queryvectors-{model_key}.npz"
+        embedder = None
+
         # Skip work already on disk. A Kaggle session survives a failed cell, and
         # the embedding passes take about nineteen minutes combined -- repeating
         # them because a later stage crashed wastes GPU quota for nothing.
+        #
+        # This branch used to `continue`, which also skipped the query-vector
+        # write below it. That is how a session whose passage vectors survived a
+        # crash produced, on the retry, exactly the same unusable output as the
+        # run before it: passage vectors present, query vectors absent, dense arm
+        # still unmeasurable. The two artifacts are now written independently, so
+        # reusing one never suppresses the other.
         if out.exists():
             existing = np.load(out, allow_pickle=True)
             print(
@@ -233,36 +243,37 @@ def main() -> None:  # noqa: PLR0912,PLR0915 - a linear script; splitting it wou
                     "reused": True,
                 }
             )
-            continue
+        else:
+            chunker = make_chunker(chunker_name)
+            chunks = chunker.chunk_corpus(docs)
+            print(f"\n=== {model_key} / {chunker_name}: {len(chunks):,} chunks ===", flush=True)
 
-        chunker = make_chunker(chunker_name)
-        chunks = chunker.chunk_corpus(docs)
-        print(f"\n=== {model_key} / {chunker_name}: {len(chunks):,} chunks ===", flush=True)
+            embedder = SentenceTransformerEmbedder(model_key, batch_size=BATCH_EMBED)
+            started = time.monotonic()
+            vectors = embedder.encode_passages([c.text for c in chunks])
+            elapsed = time.monotonic() - started
+            rate = len(chunks) / elapsed if elapsed else 0.0
+            print(f"  {elapsed / 60:.1f} min  ({rate:.0f} chunks/sec)", flush=True)
 
-        embedder = SentenceTransformerEmbedder(model_key, batch_size=BATCH_EMBED)
-        started = time.monotonic()
-        vectors = embedder.encode_passages([c.text for c in chunks])
-        elapsed = time.monotonic() - started
-        rate = len(chunks) / elapsed if elapsed else 0.0
-        print(f"  {elapsed / 60:.1f} min  ({rate:.0f} chunks/sec)", flush=True)
+            np.savez_compressed(
+                out,
+                vectors=vectors,
+                chunk_ids=np.array([c.chunk_id for c in chunks], dtype=object),
+                embedder=model_key,
+            )
+            print(f"  wrote {out.name}", flush=True)
+            manifest["artifacts"].append(
+                {
+                    "file": out.name,
+                    "embedder": model_key,
+                    "chunker": chunker_name,
+                    "n_chunks": len(chunks),
+                    "dimension": int(vectors.shape[1]),
+                    "seconds": round(elapsed, 1),
+                    "chunks_per_sec": round(rate, 1),
+                }
+            )
 
-        np.savez_compressed(
-            out,
-            vectors=vectors,
-            chunk_ids=np.array([c.chunk_id for c in chunks], dtype=object),
-            embedder=model_key,
-        )
-        manifest["artifacts"].append(
-            {
-                "file": out.name,
-                "embedder": model_key,
-                "chunker": chunker_name,
-                "n_chunks": len(chunks),
-                "dimension": int(vectors.shape[1]),
-                "seconds": round(elapsed, 1),
-                "chunks_per_sec": round(rate, 1),
-            }
-        )
         # Query vectors, from the same model in the same session.
         #
         # Easy to forget and fatal to omit: a dense index needs BOTH sides
@@ -273,29 +284,34 @@ def main() -> None:  # noqa: PLR0912,PLR0915 - a linear script; splitting it wou
         # version of this notebook shipped only passage vectors and the dense arm
         # could not run at all.
         #
-        # Cheap: 216 queries against 42,215 passages, so this adds seconds.
-        query_vectors = embedder.encode_queries([q.text for q in queries])
-        qout = WORK / f"queryvectors-{model_key}.npz"
-        np.savez_compressed(
-            qout,
-            vectors=query_vectors,
-            query_ids=np.array([q.query_id for q in queries], dtype=object),
-            embedder=model_key,
-        )
-        manifest["artifacts"].append(
-            {
-                "file": qout.name,
-                "embedder": model_key,
-                "n_queries": len(queries),
-                "dimension": int(query_vectors.shape[1]),
-            }
-        )
-        print(f"  wrote {qout.name} ({len(queries)} query vectors)", flush=True)
+        # Cheap: 216 queries, so this adds seconds -- which is why it is worth
+        # loading the model for even when the passage vectors were reused.
+        if qout.exists():
+            print(f"\n  reusing {qout.name}", flush=True)
+        else:
+            if embedder is None:
+                embedder = SentenceTransformerEmbedder(model_key, batch_size=BATCH_EMBED)
+            query_vectors = embedder.encode_queries([q.text for q in queries])
+            np.savez_compressed(
+                qout,
+                vectors=query_vectors,
+                query_ids=np.array([q.query_id for q in queries], dtype=object),
+                embedder=model_key,
+            )
+            manifest["artifacts"].append(
+                {
+                    "file": qout.name,
+                    "embedder": model_key,
+                    "n_queries": len(queries),
+                    "dimension": int(query_vectors.shape[1]),
+                }
+            )
+            print(f"  wrote {qout.name} ({len(queries)} query vectors)", flush=True)
 
         # Released before the next model loads. Two of these resident at once
         # exceeds a T4's memory once activations are counted.
-        embedder.release()
-        print(f"  wrote {out.name}", flush=True)
+        if embedder is not None:
+            embedder.release()
 
     # -- reranking --------------------------------------------------------
     from retrieval_ablation.index.rerank import CrossEncoderReranker
