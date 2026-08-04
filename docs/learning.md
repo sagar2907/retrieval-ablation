@@ -508,12 +508,49 @@ It failed on a T4 after 19 minutes of successful embedding. Fixed by calling
 transformers directly — BAAI's own documented usage — removing the layer rather
 than pinning around it.
 
-**Positional alignment of precomputed vectors.** SEC re-posted one filing between
-the local ingest and the GPU run, making it 360 characters longer. Because chunk
-IDs encode character spans, one chunk got a different ID. Positional alignment
-matched 42,214 of 42,215 and would have shifted every subsequent row by a document
-boundary — assigning one company's vectors to another's chunks, silently. Fixed by
-aligning on ID.
+**Positional alignment of precomputed vectors.** One filing parsed 360 characters
+longer on the GPU worker than locally. Because chunk IDs encode character spans,
+one chunk got a different ID. Positional alignment matched 42,214 of 42,215 and
+would have shifted every subsequent row by a document boundary — assigning one
+company's vectors to another's chunks, silently. Fixed by aligning on ID.
+
+**And the explanation for that drift was wrong.** It was recorded here, in the
+README, and in a commit message as "SEC re-posted the filing" — a plausible story,
+since EDGAR does re-post filings, and one that was never checked. Re-fetching both
+disagreeing documents showed their raw bytes byte-identical to the committed
+manifest, last modified in 2023. Nothing upstream had changed. **The parser was
+not deterministic across machines**, and two independent causes were producing it:
+
+- Microsoft's filing writes `&#149;` five times as a list bullet. HTML5 says
+  numeric references in `0x80–0x9F` are reinterpreted through Windows-1252, so
+  `&#149;` means `•`. Whether libxml2 does this depends on its version; older
+  builds hand back `U+0095`, a meaningless C1 control character. Five characters
+  out of 357,277 — the document length never changed, so only the digest moved.
+- Southern's filing is 19.6 MB, and libxml2 enforces an internal size ceiling.
+  When it trips it does not raise: it stops adding nodes and returns a tree that
+  looks complete. The filing lost its closing paragraph and eleven elements, and
+  the ceiling differs between libxml2 releases — hence two machines, two corpora.
+
+Both are now handled explicitly rather than inherited from whatever libxml2 is
+installed: the C1 range is mapped in `normalize_text`, chosen because it is the
+one place all text passes through *before* any offset is assigned, and every
+parse sets `huge_tree`. After rebuilding, the local corpus reproduces the GPU
+worker's output exactly and the vector files align with zero orphans.
+
+The lesson is not about libxml2. A checksum told me two documents disagreed, and
+I explained the disagreement instead of investigating it. The explanation was
+consistent with every fact I had, cost nothing to believe, and sent me looking in
+the wrong place — at EDGAR, which was blameless — while a reproducibility bug sat
+in the parser. Re-fetching the bytes took two minutes and falsified it outright.
+A cheap test that could have contradicted the story was available the whole time,
+and the story's plausibility is exactly why it did not occur to me to run it.
+
+There is a second-order trap here too. The first rebuild after the fix reported
+*zero* documents changed, which looked like a refutation of the diagnosis. It was
+not: `ingest()` caches parsed documents in `data/interim/` and skips re-parsing,
+so a parser fix does nothing until that cache is cleared. A fix that appears to
+have no effect is not evidence the diagnosis was wrong until you have checked
+that the fix actually ran.
 
 **A self-referential integrity check.** That drift exposed a hole in a safeguard
 this project *advertised*: `ingest()` writes the manifest and `load_corpus()`
@@ -561,7 +598,7 @@ Full corpus, 42,215 chunks, 143 queries judgeable by every configuration.
 | `rerank-candidates-25` | 0.2103 | [0.157, 0.268] | 0.5245 | +0.0150 | 1.000 |
 | `rerank-bm25-100` | 0.2057 | [0.153, 0.263] | **0.5385** | +0.0104 | 1.000 |
 | `baseline-bm25-fixed512` | 0.1953 | [0.143, 0.251] | 0.5070 | — | — |
-| `chunk-struct512` | 0.1884 | [0.135, 0.246] | 0.5245 | −0.0069 | 1.000 |
+| `chunk-struct512` | 0.1874 | [0.134, 0.245] | 0.5245 | −0.0078 | 1.000 |
 | `rerank-candidates-200` | 0.1854 | [0.134, 0.240] | 0.5035 | −0.0099 | 1.000 |
 | `chunk-fixed256o32` | 0.1699 | [0.119, 0.226] | 0.4126 | −0.0254 | 1.000 |
 | `tables-row-sentences` | 0.1688 | [0.122, 0.222] | 0.4935 | −0.0265 | 1.000 |

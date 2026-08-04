@@ -93,6 +93,34 @@ _MIN_CONTENTS_RUN = 5
 _NUMERIC_CELL_RE = re.compile(r"\d")
 
 
+def _windows_1252_c1_map() -> dict[int, str]:
+    """HTML5's mapping for numeric character references in the C1 range.
+
+    A filing that writes `&#149;` means a bullet. The code point it literally
+    names, U+0095, is a C1 control character that means nothing in text. HTML5
+    resolves this the way browsers always have: references in 0x80-0x9F are
+    reinterpreted through Windows-1252, so `&#149;` is U+2022 BULLET. A handful
+    of positions have no Windows-1252 character and are left alone.
+    """
+    table: dict[int, str] = {}
+    for code in range(0x80, 0xA0):
+        try:
+            table[code] = bytes([code]).decode("cp1252")
+        except UnicodeDecodeError:
+            continue  # 0x81, 0x8D, 0x8F, 0x90, 0x9D are undefined in cp1252
+    return table
+
+
+#: Applied before NFKC, which does not touch C1 controls. This exists because
+#: whether libxml2 performs the substitution itself depends on its version, and
+#: the parsed text is what every gold-label offset is measured against -- so the
+#: same filing parsed on two machines produced two different corpora. Doing the
+#: mapping here makes the result identical either way: on a libxml2 that already
+#: mapped it the character is a bullet and this is a no-op, and on one that did
+#: not it becomes the same bullet.
+_C1_TO_CP1252 = _windows_1252_c1_map()
+
+
 def normalize_text(raw: str) -> str:
     """Collapse whitespace and canonicalise Unicode, once and irreversibly.
 
@@ -108,7 +136,7 @@ def normalize_text(raw: str) -> str:
     preserves them: they are not compatibility variants of anything, yet they
     split a word invisibly and so break token matching.
     """
-    text = unicodedata.normalize("NFKC", raw)
+    text = unicodedata.normalize("NFKC", raw.translate(_C1_TO_CP1252))
     # U+200B zero-width space, U+200C/U+200D zero-width joiners, U+FEFF byte
     # order mark, U+00AD soft hyphen. All survive NFKC and all break tokens.
     for invisible in ("\u200b", "\u200c", "\u200d", "\ufeff", "\u00ad"):
@@ -709,8 +737,16 @@ def _to_tree(html: str | bytes) -> lxml.html.HtmlElement:
     if not payload.strip():
         raise ValueError("cannot parse empty document")
 
+    # huge_tree lifts libxml2's built-in size ceilings. They are a denial-of-service
+    # guard for untrusted input and are simply wrong for this corpus: a 10-K runs to
+    # 20 MB of generated markup, and when a limit trips libxml2 does not raise -- it
+    # stops adding nodes and hands back a tree that looks complete. Southern's 2022
+    # filing lost 11 elements and 358 characters off its tail that way, which went
+    # unnoticed because the document still parsed and still looked like a filing.
+    # The exact ceilings differ between libxml2 releases, so this was also a source
+    # of machine-to-machine disagreement.
     if declared:
-        return lxml.html.fromstring(payload)
+        return lxml.html.fromstring(payload, parser=lxml.html.HTMLParser(huge_tree=True))
 
     # No declaration anywhere. lxml then falls back to a legacy single-byte
     # encoding, which turns "Café" into "CafÃ©" -- mis-decoded text would become
@@ -718,11 +754,11 @@ def _to_tree(html: str | bytes) -> lxml.html.HtmlElement:
     # UTF-8 is the correct assumption for undeclared EDGAR documents; if it does
     # not decode, fall back rather than crash, since a slightly wrong character
     # is better than losing the filing entirely.
-    parser = lxml.html.HTMLParser(encoding="utf-8")
+    parser = lxml.html.HTMLParser(encoding="utf-8", huge_tree=True)
     try:
         payload.decode("utf-8")
     except UnicodeDecodeError:
-        parser = lxml.html.HTMLParser(encoding="cp1252")
+        parser = lxml.html.HTMLParser(encoding="cp1252", huge_tree=True)
     return lxml.html.fromstring(payload, parser=parser)
 
 

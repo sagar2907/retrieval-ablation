@@ -3,7 +3,7 @@
   "filings_per_company": 4,
   "render_tables": "markdown",
   "n_documents": 120,
-  "total_chars": 68787050,
+  "total_chars": 68787410,
   "total_tables": 14537,
   "tickers_requested": [
     "AAPL",
@@ -70,6 +70,22 @@
     "XOM"
   ],
   "gaps": [],
+  "drift_from_committed": [
+    {
+      "doc_id": "msft-10-k-2023-06-30",
+      "committed_sha256": "54b2c9e44e0bd5133df3e6cfd3ae5a543217ff3badf14dac00f69383e67cdaf6",
+      "rebuilt_sha256": "e4b41fdf20d1f9ec9ade46cd543a630451921bbabf0e4fa1cb467813099a3b98",
+      "committed_chars": 357277,
+      "rebuilt_chars": 357277
+    },
+    {
+      "doc_id": "so-10-k-2022-12-31",
+      "committed_sha256": "7f64c483e8e9d9f3b57d14462941af0e9573193da3fc10199d1ec2993b067fe7",
+      "rebuilt_sha256": "ddea04281a7a650993f94273f71ba6366b3facea7c4cdf254e4fb54246c11d9e",
+      "committed_chars": 1216695,
+      "rebuilt_chars": 1217055
+    }
+  ],
   "documents": [
     {
       "doc_id": "aapl-10-k-2022-09-24",
@@ -1144,7 +1160,7 @@
       "report_date": "2023-06-30",
       "url": "https://www.sec.gov/Archives/edgar/data/789019/000095017023035122/msft-20230630.htm",
       "raw_sha256": "6506060f3f928e31abcbcfe46792ff4e0ae5c60bd9ad40964933c37ac854a9ea",
-      "text_sha256": "54b2c9e44e0bd5133df3e6cfd3ae5a543217ff3badf14dac00f69383e67cdaf6",
+      "text_sha256": "e4b41fdf20d1f9ec9ade46cd543a630451921bbabf0e4fa1cb467813099a3b98",
       "n_chars": 357277,
       "n_blocks": 1450,
       "n_tables": 82
@@ -1424,9 +1440,9 @@
       "report_date": "2022-12-31",
       "url": "https://www.sec.gov/Archives/edgar/data/92122/000009212223000012/so-20221231.htm",
       "raw_sha256": "549afd2fa80b97731ad576e5757ef26af73e4350f9c787cc8dce51681a386846",
-      "text_sha256": "7f64c483e8e9d9f3b57d14462941af0e9573193da3fc10199d1ec2993b067fe7",
-      "n_chars": 1216695,
-      "n_blocks": 4456,
+      "text_sha256": "ddea04281a7a650993f94273f71ba6366b3facea7c4cdf254e4fb54246c11d9e",
+      "n_chars": 1217055,
+      "n_blocks": 4457,
       "n_tables": 262
     },
     {

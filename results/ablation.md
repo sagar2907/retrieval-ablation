@@ -17,8 +17,8 @@ baseline. Uncorrected, comparing 14 configurations at alpha=0.05 carries a
 | `rerank-candidates-25` | candidates | 0.2103 | [0.157, 0.268] | 0.5245 | 0.1799 | +0.0150 | 1.0000 | no | 143 |
 | `rerank-bm25-100` | reranking | 0.2057 | [0.153, 0.263] | 0.5385 | 0.1798 | +0.0104 | 1.0000 | no | 143 |
 | `baseline-bm25-fixed512` | baseline | 0.1953 | [0.143, 0.251] | 0.5070 | 0.1741 | (baseline) | - | - | 143 |
-| `chunk-struct512` | chunking | 0.1884 | [0.135, 0.246] | 0.5245 | 0.1734 | -0.0069 | 1.0000 | no | 143 |
-| `retrieval-bm25-struct` | retrieval | 0.1884 | [0.135, 0.246] | 0.5245 | 0.1734 | -0.0069 | 1.0000 | no | 143 |
+| `chunk-struct512` | chunking | 0.1874 | [0.134, 0.245] | 0.5245 | 0.1722 | -0.0078 | 1.0000 | no | 143 |
+| `retrieval-bm25-struct` | retrieval | 0.1874 | [0.134, 0.245] | 0.5245 | 0.1722 | -0.0078 | 1.0000 | no | 143 |
 | `rerank-candidates-200` | candidates | 0.1854 | [0.134, 0.240] | 0.5035 | 0.1640 | -0.0099 | 1.0000 | no | 143 |
 | `chunk-fixed256o32` | chunking | 0.1699 | [0.119, 0.226] | 0.4126 | 0.1604 | -0.0254 | 1.0000 | no | 143 |
 | `tables-row-sentences` | table_rendering | 0.1688 | [0.122, 0.222] | 0.4935 | 0.1610 | -0.0265 | 1.0000 | no | 143 |
@@ -37,14 +37,14 @@ reranker from one that never saw the answer.
 | configuration | chunks | reachable | ceiling | nDCG low-overlap | nDCG high-overlap | seconds |
 |---|---|---|---|---|---|---|
 | `baseline-bm25-fixed512` | 37,498 | 100.0% | - | 0.1091 | 0.2254 | 0 |
-| `chunk-fixed256o32` | 75,083 | 100.0% | - | 0.1030 | 0.1932 | 1 |
-| `chunk-struct512` | 42,215 | 100.0% | - | 0.0837 | 0.2249 | 1 |
+| `chunk-fixed256o32` | 75,084 | 100.0% | - | 0.1030 | 0.1932 | 1 |
+| `chunk-struct512` | 42,215 | 100.0% | - | 0.0837 | 0.2236 | 0 |
 | `tables-row-sentences` | 40,155 | 95.4% | - | 0.1014 | 0.1924 | 0 |
-| `retrieval-bm25-struct` | 42,215 | 100.0% | - | 0.0837 | 0.2249 | 0 |
-| `rerank-bm25-100` | 42,215 | 100.0% | 61.6% | 0.2309 | 0.1969 | 1 |
-| `rerank-candidates-25` | 42,215 | 100.0% | 44.4% | 0.1852 | 0.2190 | 1 |
-| `rerank-candidates-50` | 42,215 | 100.0% | 53.2% | 0.1937 | 0.2218 | 1 |
-| `rerank-candidates-200` | 42,215 | 100.0% | 73.6% | 0.2104 | 0.1767 | 1 |
+| `retrieval-bm25-struct` | 42,215 | 100.0% | - | 0.0837 | 0.2236 | 0 |
+| `rerank-bm25-100` | 42,215 | 100.0% | 61.6% | 0.2309 | 0.1969 | 0 |
+| `rerank-candidates-25` | 42,215 | 100.0% | 44.4% | 0.1852 | 0.2190 | 0 |
+| `rerank-candidates-50` | 42,215 | 100.0% | 53.2% | 0.1937 | 0.2218 | 0 |
+| `rerank-candidates-200` | 42,215 | 100.0% | 73.6% | 0.2104 | 0.1767 | 0 |
 
 ## The lexical-overlap confound
 

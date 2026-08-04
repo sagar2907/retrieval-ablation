@@ -164,9 +164,12 @@ def main() -> None:  # noqa: PLR0912,PLR0915 - a linear script; splitting it wou
     # vector file contains a chunk id that does not exist in this repository.
     #
     # So snapshot the committed digests BEFORE ingest() can overwrite them, and
-    # compare against the snapshot afterwards. EDGAR does re-post filings; the
-    # committed corpus is the one the gold spans were labelled against, and a
-    # document that has drifted invalidates every offset in it.
+    # compare against the snapshot afterwards. The committed corpus is the one the
+    # gold spans were labelled against, and a document that differs invalidates
+    # every offset in it. When this check first fired it named two documents whose
+    # raw bytes were byte-identical to the manifest: the disagreement was in the
+    # parser, not the source. That is exactly the case a digest comparison exists
+    # to catch, because nothing else about the run looks wrong.
     committed = json.loads(MANIFEST_PATH.read_text(encoding="utf-8"))
     expected = {d["doc_id"]: d["text_sha256"] for d in committed["documents"]}
     print(f"committed manifest: {committed['n_documents']} documents", flush=True)

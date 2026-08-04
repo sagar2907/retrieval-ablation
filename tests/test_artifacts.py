@@ -4,10 +4,16 @@ Offline: vector files are written to a tmp_path with numpy, no model involved.
 
 These exist because of a real divergence. The GPU worker rebuilds the corpus
 from EDGAR rather than shipping 68 MB of text to a notebook, so two copies of
-the corpus exist and they are not guaranteed to agree -- EDGAR re-posts filings.
-The run that produced `results/vectors-*.npz` held a copy of one document that
-was 360 characters longer than the committed one, which changed the character
-offsets encoded in that document's final chunk id. The loader must notice.
+the corpus exist and they are not guaranteed to agree. The run that produced
+`results/vectors-*.npz` held a copy of one document that parsed 360 characters
+longer than the committed one, which changed the character offsets encoded in
+that document's final chunk id.
+
+The cause was a version-dependent parser, not a changed filing -- see
+`corpus/html_parse.py` -- and it is fixed there. These tests stay because the
+loader is the last line of defence and must not depend on the parser being
+right: any future disagreement has to surface as a counted discrepancy rather
+than as vectors quietly attached to the wrong passages.
 """
 
 from __future__ import annotations

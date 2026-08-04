@@ -447,3 +447,87 @@ class TestEncodingHandling:
     def test_empty_document_is_rejected(self):
         with pytest.raises(ValueError, match="empty"):
             parse_filing("t", b"   ")
+
+
+class TestParseIsIndependentOfLibxml2Version:
+    """Two machines parsing one filing must produce one corpus.
+
+    Both cases below were found the same way: the GPU worker rebuilt the corpus
+    from EDGAR and two of 120 documents disagreed with the committed SHA-256
+    manifest, while the raw bytes fetched from EDGAR were byte-identical. The
+    parse, not the source, was the variable -- and the parsed text is what every
+    gold-label offset is measured against, so a disagreement here silently
+    invalidates the eval set on one of the two machines.
+    """
+
+    def test_c1_numeric_reference_becomes_its_windows_1252_character(self):
+        """`&#149;` is a bullet, not the C1 control character it names.
+
+        Microsoft's 2023 10-K uses `&#149;` five times as a list bullet. Whether
+        libxml2 applies HTML5's Windows-1252 reinterpretation depends on its
+        version: older releases hand back U+0095 literally. Five characters
+        differed out of 357,277, so the document length was unchanged and only
+        the digest moved -- the failure could not be seen by looking at sizes.
+        """
+        doc = parse_filing("t", b"<html><body><p>&#149; We tested controls.</p></body></html>")
+
+        assert "• We tested controls." in doc.text
+        assert "\x95" not in doc.text
+
+    def test_mapping_is_idempotent_on_an_already_mapped_bullet(self):
+        """A newer libxml2 maps it first; this must not then map it again.
+
+        Convergence is the point. The normalisation has to be a no-op on input
+        that already holds the bullet, or the two machines would simply disagree
+        in the opposite direction.
+        """
+        already = parse_filing("t", "<html><body><p>• Item</p></body></html>".encode())
+        literal = parse_filing("t", b"<html><body><p>&#149; Item</p></body></html>")
+
+        assert already.text == literal.text
+
+    def test_c1_positions_undefined_in_windows_1252_are_left_alone(self):
+        """0x81, 0x8D, 0x8F, 0x90 and 0x9D map to nothing, so nothing is invented.
+
+        Guessing a replacement for these would be worse than leaving them: they
+        carry no agreed meaning, and a wrong guess is indistinguishable from real
+        content once it is in the canonical text.
+        """
+        doc = parse_filing("t", b"<html><body><p>a&#129;b</p></body></html>")
+
+        assert "\x81" in doc.text
+
+    def test_every_parse_lifts_libxml2s_size_ceiling(self, monkeypatch):
+        """Oversized filings must not be silently truncated, on either path.
+
+        Southern's 2022 10-K is 19.6 MB of generated markup. Without huge_tree,
+        libxml2 stops adding nodes once an internal ceiling trips and returns a
+        tree that looks complete -- no exception, no warning, no error entry. The
+        filing lost 3 spans, 5 divs, 3 brs and the 358 characters of its closing
+        paragraph, and the only visible symptom was a manifest digest that
+        disagreed with a machine whose libxml2 had a different ceiling.
+
+        This asserts the parser options rather than feeding in an oversized
+        document, deliberately. The ceiling is a libxml2 build constant, so a
+        payload sized to trip it is a test whose meaning depends on the installed
+        libxml2: it would pass here while quietly testing nothing, which is what
+        the first version of this test did at 11.4 MB. Both construction paths
+        are checked because only the undeclared-encoding one was fixed initially.
+        """
+        seen: list[dict] = []
+        real = lxml.html.HTMLParser
+
+        def recording(**kwargs):
+            seen.append(kwargs)
+            return real(**kwargs)
+
+        monkeypatch.setattr(lxml.html, "HTMLParser", recording)
+
+        # Declared encoding, then undeclared -- these take different branches.
+        parse_filing(
+            "t", b'<?xml version="1.0" encoding="UTF-8"?><html><body><p>A.</p></body></html>'
+        )
+        parse_filing("t", b"<html><body><p>B.</p></body></html>")
+
+        assert len(seen) == 2
+        assert all(kwargs.get("huge_tree") for kwargs in seen), seen

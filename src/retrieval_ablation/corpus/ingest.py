@@ -237,8 +237,13 @@ def ingest(
             # load_corpus verified a run against its own output and could not
             # detect drift from the committed corpus by construction. The GPU
             # worker printed "corpus verified: 120 documents" while actually
-            # holding one document 360 characters longer than the committed one,
-            # because SEC had re-posted it between the two fetches.
+            # holding one document 360 characters longer than the committed one.
+            #
+            # That turned out to be a version-dependent parser rather than a
+            # changed filing (see `html_parse.py`), which is the better argument
+            # for this check: an upstream re-post is at least visible in the raw
+            # bytes, whereas identical bytes parsing differently on two machines
+            # leaves no other trace at all.
             #
             # Recorded rather than raised: a filing changing upstream is a fact
             # about the world, not a bug, and aborting a 120-document build over

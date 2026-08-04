@@ -6,15 +6,23 @@ The obvious way to consume a vector file is to assume row *i* corresponds to
 chunk *i* of the locally rebuilt corpus. That worked for 42,214 of 42,215 chunks
 and would have silently mis-assigned every vector after the one that did not.
 
-SEC re-posted one filing between the local ingest and the GPU run, making it 360
-characters longer. Because chunk ids encode character spans, the final chunk of
-that document got a different id, and every subsequent row would have been offset
-by one document boundary under positional alignment -- assigning Southern Company
-vectors to Walmart chunks, with no error anywhere and entirely plausible-looking
-metrics afterwards.
+One filing parsed 360 characters longer on the GPU worker than it did locally.
+Because chunk ids encode character spans, the final chunk of that document got a
+different id, and every subsequent row would have been offset by one document
+boundary under positional alignment -- assigning Southern Company vectors to
+Walmart chunks, with no error anywhere and entirely plausible-looking metrics
+afterwards.
 
-Aligning by id makes that class of failure impossible and turns a silent
-corruption into a counted, reported discrepancy.
+The first explanation recorded here was that SEC had re-posted the filing. That
+was wrong, and worth stating plainly: re-fetching both documents showed their raw
+bytes byte-identical to the committed manifest, last modified in 2023. The two
+machines disagreed because the *parser* disagreed -- libxml2's document size
+ceiling and its handling of C1 numeric character references both vary by version.
+See `corpus/html_parse.py`, which now pins both so the parse is version-stable.
+
+Aligning by id makes that class of failure impossible regardless, and turns a
+silent corruption into a counted, reported discrepancy. It is kept precisely
+because the next source of disagreement will not be one anybody predicted.
 """
 
 from __future__ import annotations

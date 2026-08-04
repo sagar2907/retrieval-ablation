@@ -47,7 +47,7 @@ on a Kaggle T4; reproduce with `python -m retrieval_ablation.ablation.runner`.
 | `rerank-candidates-25` | candidates | 0.2103 | [0.157, 0.268] | 0.5245 | 0.1799 | +0.0150 | 1.000 |
 | `rerank-bm25-100` | reranking | 0.2057 | [0.153, 0.263] | **0.5385** | 0.1798 | +0.0104 | 1.000 |
 | `baseline-bm25-fixed512` | baseline | 0.1953 | [0.143, 0.251] | 0.5070 | 0.1741 | — | — |
-| `chunk-struct512` | chunking | 0.1884 | [0.135, 0.246] | 0.5245 | 0.1734 | −0.0069 | 1.000 |
+| `chunk-struct512` | chunking | 0.1874 | [0.134, 0.245] | 0.5245 | 0.1722 | −0.0078 | 1.000 |
 | `rerank-candidates-200` | candidates | 0.1854 | [0.134, 0.240] | 0.5035 | 0.1640 | −0.0099 | 1.000 |
 | `chunk-fixed256o32` | chunking | 0.1699 | [0.119, 0.226] | 0.4126 | 0.1604 | −0.0254 | 1.000 |
 | `tables-row-sentences` | table rendering | 0.1688 | [0.122, 0.222] | 0.4935 | 0.1610 | −0.0265 | 1.000 |
@@ -171,7 +171,7 @@ matters:
 | `rerank-bm25-100` | 0.2057 | 0.2341 | +0.0284 |
 | `rerank-candidates-25` | 0.2103 | 0.2368 | +0.0265 |
 | `baseline-bm25-fixed512` | 0.1953 | 0.2202 | +0.0249 |
-| `chunk-struct512` | 0.1884 | 0.2132 | +0.0248 |
+| `chunk-struct512` | 0.1874 | 0.2120 | +0.0246 |
 | `rerank-candidates-200` | 0.1854 | 0.2080 | +0.0226 |
 | `tables-row-sentences` | 0.1688 | 0.1889 | +0.0201 |
 
@@ -268,26 +268,31 @@ Nothing below is called verified unless it was run and its output inspected.
 | Generation + long-context at full sample | 12 of 216 queries measured; quota-bound | free-tier quota, or re-run tomorrow |
 | Human verification of eval labels | requires a person; the model-assisted pass is labelled `MODEL_CHECKED`, never `HUMAN_VERIFIED` | fill in `data/eval/verification_sample.md` |
 
-### A known defect in the shipped vector artifacts
+### The parse was not reproducible across machines
 
-`results/vectors-*.npz` contain **one chunk id out of 42,215 that does not exist
-in this repository**. The GPU worker rebuilds the corpus from EDGAR rather than
-shipping 68 MB of text into a notebook, and its copy of the Southern Company 2022
-10-K was 360 characters longer than the committed one, which changed the end
-offset encoded in that document's final chunk id.
+Two of 120 documents disagreed between this machine and the GPU worker. Re-fetching
+both from EDGAR showed their **raw bytes byte-identical** to the committed manifest,
+last modified in 2023. The filings had not changed; the parser had.
 
-The local corpus is the correct one: it matches `data/manifests/corpus.json` by
-SHA-256, and it is what every published number was computed on. The effect is one
-tail chunk with no vector, reported by `load_vectors` as one missing locally and
-one unmatched remotely, and no candidate of any scored query fell in it.
+| Filing | Symptom | Cause |
+|---|---|---|
+| `msft-10-k-2023-06-30` | same 357,277 chars, different digest | `&#149;` × 5. HTML5 reinterprets numeric references in `0x80–0x9F` through Windows-1252, so `&#149;` is `•`. Older libxml2 emits `U+0095` literally. Length-preserving, so no size check could see it. |
+| `so-10-k-2022-12-31` | 1,216,695 → 1,217,055 chars | libxml2 applies an internal size ceiling to a 19.6 MB document. When it trips, libxml2 does not raise — it stops adding nodes. The filing silently lost 3 spans, 5 divs, 3 brs and its closing paragraph. |
 
-The root cause was not the drift — EDGAR does re-post filings — but that the
-worker could not detect it. `ingest()` **rewrites** the manifest that
-`load_corpus()` then verifies against, so the check compared the new corpus to a
-description of itself and printed `corpus verified` regardless. The worker now
-snapshots the committed digests before ingest and refuses to embed on a mismatch.
-Aligning vectors by chunk id rather than row position is what kept this to a
-counted gap instead of 20,000 passages silently holding each other's vectors.
+Both are fixed in `corpus/html_parse.py`: the C1 range is mapped explicitly so the
+result is identical whichever libxml2 is installed, and every parse now sets
+`huge_tree`. The local corpus was rebuilt, and it now reproduces the GPU worker's
+output exactly. **The vector artifacts align perfectly — 0 chunks without a vector,
+0 vectors without a chunk**, where previously one chunk of 42,215 was orphaned.
+
+Two things are worth recording. Deleting `data/interim/` is required for a parser
+fix to take effect at all — the first rebuild reported "0 documents changed" purely
+because it reused the cached parse. And the corpus was only 360 characters short in
+68.8M, but that was luck: the same ceiling silently truncates *any* document past
+it, and nothing in the run reports it.
+
+The eval set survived: all 216 gold spans still resolve, Microsoft has none, and
+Southern's single span sits at offset 287,704 — far below the tail that changed.
 
 Configurations that could not run are recorded in `results/ablation.json` with
 `"measured": false` and a stated reason. **No number is invented for them**, and
