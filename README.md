@@ -246,25 +246,48 @@ Nothing below is called verified unless it was run and its output inspected.
 | Statistics (bootstrap CI, paired permutation, Holm) | 25 tests, determinism asserted under fixed seeds |
 | BM25, dense, RRF fusion, reranking wiring | 66 tests, offline with fakes |
 | Eval set, 216 queries | every gold passage verified to contain the value its query asks for |
-| Ablation runner, 5 lexical configurations | numbers above, on the full corpus |
+| Ablation runner, 9 configurations | numbers above, on the full corpus |
+| Cross-encoder reranking arms | Kaggle T4: 43,200 pairs scored, 48.3 pairs/s; scores committed |
+| GPU passage embeddings (BGE-M3, E5-base) | Kaggle T4: 42,215 chunks each, 52.1 and 149.8 chunks/s |
+| Model-assisted label audit | 216 labels rechecked, 44 rejected; ranking unchanged on the accepted subset |
+| Learning document + PDF renderer | 18 pages, every page rasterised and round-tripped through a text extractor |
 | Gemini client: cached, quota-tolerant, token-accounted | live run; 19 calls, 15 rate-limited, resumed from cache |
 | Generation + long-context comparison | numbers above, from the API's own reported token counts |
 | FastAPI service, Docker, citation UI | live run: index 31.7 s, /search 1.9 ms, /answer 429 path verified |
 
-**395 tests pass, offline, with no API key and no model download.** `ruff` clean.
+**425 tests pass, offline, with no API key and no model download.** `ruff` clean.
 
 ### Not done
 
 | Missing | Why | What unblocks it |
 |---|---|---|
-| Dense / hybrid / embedding-model arms | GPU stack could not be installed — see below | network access to `pypi.nvidia.com`, or a machine without Smart App Control |
-| Cross-encoder reranking arms | same | same |
-| Semantic chunking arm | needs an embedding model | same |
+| Dense / hybrid arms (6 of 15 configurations) | the GPU run emitted passage vectors but no **query** vectors, and both sides of a cosine must come from the same model | one more Kaggle session; the worker now writes `queryvectors-*.npz` |
+| Semantic chunking arm | needs live embeddings — the sentences it embeds do not exist until it has already run, so there is no precomputed substitute | same Kaggle session |
 | Query paraphrasing | needs an LLM; would reduce the lexical-overlap confound | free-tier quota |
 | Faithfulness judging | run was cut short by the daily quota before the judge pass | free-tier quota, or re-run tomorrow |
 | Generation + long-context at full sample | 12 of 216 queries measured; quota-bound | free-tier quota, or re-run tomorrow |
-| Human verification of eval labels | requires a person | fill in `data/eval/verification_sample.md` |
-| Learning PDF | not started | nothing |
+| Human verification of eval labels | requires a person; the model-assisted pass is labelled `MODEL_CHECKED`, never `HUMAN_VERIFIED` | fill in `data/eval/verification_sample.md` |
+
+### A known defect in the shipped vector artifacts
+
+`results/vectors-*.npz` contain **one chunk id out of 42,215 that does not exist
+in this repository**. The GPU worker rebuilds the corpus from EDGAR rather than
+shipping 68 MB of text into a notebook, and its copy of the Southern Company 2022
+10-K was 360 characters longer than the committed one, which changed the end
+offset encoded in that document's final chunk id.
+
+The local corpus is the correct one: it matches `data/manifests/corpus.json` by
+SHA-256, and it is what every published number was computed on. The effect is one
+tail chunk with no vector, reported by `load_vectors` as one missing locally and
+one unmatched remotely, and no candidate of any scored query fell in it.
+
+The root cause was not the drift — EDGAR does re-post filings — but that the
+worker could not detect it. `ingest()` **rewrites** the manifest that
+`load_corpus()` then verifies against, so the check compared the new corpus to a
+description of itself and printed `corpus verified` regardless. The worker now
+snapshots the committed digests before ingest and refuses to embed on a mismatch.
+Aligning vectors by chunk id rather than row position is what kept this to a
+counted gap instead of 20,000 passages silently holding each other's vectors.
 
 Configurations that could not run are recorded in `results/ablation.json` with
 `"measured": false` and a stated reason. **No number is invented for them**, and

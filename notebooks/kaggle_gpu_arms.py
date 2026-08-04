@@ -75,6 +75,7 @@ BATCH_EMBED = 64
 BATCH_RERANK = 64
 
 # ---------------------------------------------------------------------------
+import hashlib
 import json
 import os
 import subprocess
@@ -91,7 +92,7 @@ def sh(cmd: str) -> None:
     subprocess.run(cmd, shell=True, check=True)
 
 
-def main() -> None:  # noqa: PLR0915 - a linear script; splitting it would obscure the order
+def main() -> None:  # noqa: PLR0912,PLR0915 - a linear script; splitting it would obscure the order
     report: dict[str, object] = {}
 
     # -- environment ------------------------------------------------------
@@ -153,16 +154,43 @@ def main() -> None:  # noqa: PLR0915 - a linear script; splitting it would obscu
     from retrieval_ablation.evalset.schema import read_eval_set
 
     # -- corpus -----------------------------------------------------------
-    # The committed manifest records the SHA-256 of every document's parsed text.
-    # load_corpus() verifies each one and raises on mismatch, so a corpus that
-    # differs from the one the gold labels were built against cannot be embedded
-    # by accident.
+    # The committed manifest records the SHA-256 of every document's parsed text,
+    # and load_corpus() checks each document against it. That check alone is
+    # worthless here: ingest() REWRITES the manifest from whatever it just
+    # downloaded, so load_corpus() would be verifying the new corpus against a
+    # description of itself and could never disagree. An earlier run printed
+    # "corpus verified" while holding a copy of the Southern Company 2022 10-K
+    # that was 360 characters longer than the committed one, and the resulting
+    # vector file contains a chunk id that does not exist in this repository.
+    #
+    # So snapshot the committed digests BEFORE ingest() can overwrite them, and
+    # compare against the snapshot afterwards. EDGAR does re-post filings; the
+    # committed corpus is the one the gold spans were labelled against, and a
+    # document that has drifted invalidates every offset in it.
     committed = json.loads(MANIFEST_PATH.read_text(encoding="utf-8"))
+    expected = {d["doc_id"]: d["text_sha256"] for d in committed["documents"]}
     print(f"committed manifest: {committed['n_documents']} documents", flush=True)
     print("rebuilding corpus from EDGAR (this takes roughly 20-40 minutes)", flush=True)
     ingest()
     docs = load_corpus()
-    print(f"corpus verified: {len(docs)} documents", flush=True)
+
+    drifted = sorted(
+        d.doc_id
+        for d in docs
+        if expected.get(d.doc_id) != hashlib.sha256(d.text.encode("utf-8")).hexdigest()
+    )
+    absent = sorted(set(expected) - {d.doc_id for d in docs})
+    if drifted or absent:
+        # Fail loudly rather than embed it. Vectors are keyed by chunk id, and a
+        # chunk id encodes character offsets, so a drifted document yields ids
+        # that silently fail to match on the local side -- a missing arm reported
+        # as a successful run.
+        raise SystemExit(
+            f"corpus diverged from the committed manifest: "
+            f"{len(drifted)} document(s) with a different text digest {drifted[:5]}, "
+            f"{len(absent)} missing {absent[:5]}. Refusing to embed."
+        )
+    print(f"corpus verified against committed digests: {len(docs)} documents", flush=True)
 
     queries = read_eval_set(QUERIES_PATH)
     print(f"eval set: {len(queries)} queries", flush=True)
@@ -284,10 +312,13 @@ def main() -> None:  # noqa: PLR0915 - a linear script; splitting it would obscu
         with gzip.open(path, "rt", encoding="utf-8") as handle:
             payload = json.load(handle)
 
-        # Candidate texts are rebuilt here rather than shipped. Safe because
-        # load_corpus() above verified every document against the committed
-        # SHA-256 manifest, and chunking is a deterministic pure function of the
-        # document, so these chunk ids and texts are identical to the local ones.
+        # Candidate texts are rebuilt here rather than shipped. Safe because the
+        # corpus was compared against the SNAPSHOTTED committed digests above,
+        # and chunking is a deterministic pure function of the document, so these
+        # chunk ids and texts are identical to the local ones. The check below is
+        # kept even so: it is independent of the manifest comparison, and back
+        # when the manifest comparison was vacuous it was the only thing standing
+        # between a drifted corpus and a confidently wrong set of scores.
         chunker_name = next(iter(payload.values()))["chunker"]
         rebuilt = {c.chunk_id: c.text for c in make_chunker(chunker_name).chunk_corpus(docs)}
         missing = {

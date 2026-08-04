@@ -522,6 +522,25 @@ verifies against whatever manifest is on disk. A fresh ingest followed by
 "corpus verified: 120 documents" while holding a document that differed from the
 committed one.
 
+**And the fix for it was half a fix — which is the more useful lesson.** The
+worker was changed to read the committed manifest into a variable *before*
+calling `ingest()`, and that was recorded as done. It was not: the snapshot was
+read, printed as a document count, and never compared to anything. The
+self-referential check downstream was untouched and still always passed. This
+survived until the vector files were audited chunk id by chunk id against a fresh
+local rebuild, which is when the one stale id turned up — the drift had been
+shipped, unnoticed, in an artifact the repository presents as verified.
+
+Two things are worth taking from it. First, a safeguard that cannot fail is
+indistinguishable from no safeguard, and reading the right value is not the same
+as checking it; the code *looked* like a verification because a variable named
+`committed` appeared next to a print statement. Second, the thing that actually
+contained the damage was not a check at all but a representation choice — keying
+vectors by chunk id meant the mismatch had somewhere to show up as a count.
+Defences that make a whole class of error *structurally visible* outrank
+defences that test for it, because the test is only as good as the last person's
+attention and the structure holds regardless.
+
 **An undefined metric rendered as a real zero.** The long-context arm showed
 citation precision `0.000` beside retrieval's `0.567`, reading as "long context
 cites badly". It *cannot* cite a gold chunk — its context is one whole-document
