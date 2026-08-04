@@ -114,6 +114,18 @@ allowed-confusables = ["–", "—"]
 # a library module.
 "notebooks/*.py" = ["PLC0415", "I001", "E402"]
 
+# render_pdf.py is a standalone document renderer: one linear markdown walk with
+# a branch per construct, which is clearer read top to bottom than split across
+# helpers, and it imports its rasteriser only when verification runs.
+#
+# RUF001 flags ambiguous unicode in strings, and this file is deliberately full
+# of it: the characters it complains about (x, non-breaking space, alpha, delta)
+# are the *keys* of the table that maps them to ASCII, because the PDF core fonts
+# are Latin-1 only and anything outside that range renders as a black box. Ruff is
+# reading the cure as the disease. Suppressing per line would put a noqa on every
+# entry of a table whose entire purpose is to name these characters.
+"scripts/render_pdf.py" = ["PLR0912", "PLR0915", "PLC0415", "RUF001", "RUF100"]
+
 # -----------------------------------------------------------------------------
 [tool.pytest.ini_options]
 testpaths = ["tests"]

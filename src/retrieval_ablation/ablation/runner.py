@@ -572,9 +572,7 @@ def significance(results: Sequence[Result]) -> dict[str, dict]:
     }
 
 
-def write_results(
-    results: Sequence[Result], tests: dict[str, dict], suffix: str = ""
-) -> None:
+def write_results(results: Sequence[Result], tests: dict[str, dict], suffix: str = "") -> None:
     ensure_dirs()
     json_path = RESULTS_PATH.with_name(f"ablation{suffix}.json")
     table_path = TABLE_PATH.with_name(f"ablation{suffix}.md")

@@ -52,6 +52,11 @@ results/queryvectors-*.npz
 # to commit.
 results/retrieval-ablation/
 
+# Page rasters written by scripts/render_pdf.py so the rendering can be checked
+# by eye. They are a verification step, not an output: regenerated on every run,
+# and the PDF they were produced from is tracked right next to them.
+docs/_preview/
+
 # --- Deliberately NOT ignored ------------------------------------------------
 # data/eval/       the labelled retrieval benchmark  -- this is the artifact
 # data/manifests/  corpus checksums for reproducibility
