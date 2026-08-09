@@ -171,3 +171,32 @@ class TestLoadQueryVectors:
 
     def test_a_missing_file_is_not_an_error(self, tmp_path):
         assert load_query_vectors("absent", {"q1": "ask a"}, directory=tmp_path) is None
+
+    def test_the_matching_artifact_wins_regardless_of_filename(self, tmp_path):
+        """Two eval sets can have vectors side by side; content picks the right one.
+
+        Selecting by filename would need a naming convention kept in step by hand
+        across the notebook, the loader, and whoever copies files out of a Kaggle
+        session. The recorded text already decides correctness, so it decides
+        selection too.
+        """
+        write_query_vectors(tmp_path / "queryvectors-fake.npz", ["q1"], ["original wording"])
+        write_query_vectors(
+            tmp_path / "queryvectors-fake-paraphrased.npz", ["q1"], ["rewritten wording"]
+        )
+
+        original = load_query_vectors("fake", {"q1": "original wording"}, directory=tmp_path)
+        rewritten = load_query_vectors("fake", {"q1": "rewritten wording"}, directory=tmp_path)
+
+        assert original is not None and set(original) == {"original wording"}
+        assert rewritten is not None and set(rewritten) == {"rewritten wording"}
+
+    def test_an_unverifiable_artifact_does_not_block_a_good_one(self, tmp_path):
+        """A legacy file sitting beside a valid one must not veto it."""
+        write_query_vectors(tmp_path / "queryvectors-fake.npz", ["q1"], None)
+        write_query_vectors(tmp_path / "queryvectors-fake-new.npz", ["q1"], ["ask a"])
+
+        got = load_query_vectors("fake", {"q1": "ask a"}, directory=tmp_path)
+
+        assert got is not None
+        assert set(got) == {"ask a"}

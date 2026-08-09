@@ -74,6 +74,22 @@ RERANKER = "BAAI/bge-reranker-v2-m3"
 BATCH_EMBED = 64
 BATCH_RERANK = 64
 
+#: Which eval set to embed the queries from.
+#:
+#: "original"    -> data/eval/queries.jsonl
+#: "paraphrased" -> data/eval/queries-paraphrased.jsonl
+#:
+#: The two files hold the same query ids and the same gold spans and differ only
+#: in the wording of the questions, which is what makes the two ablation runs
+#: comparable. It is also why this switch has to exist: a query vector is only
+#: valid for the text it was built from, and the local loader now refuses to
+#: serve vectors whose recorded text does not match the queries being scored.
+#: Embedding the wrong file produces an artifact that is silently useless for the
+#: run it was meant to unblock.
+#:
+#: Output filenames carry the choice, so both sets can live side by side.
+QUERY_SET = "paraphrased"
+
 # ---------------------------------------------------------------------------
 import hashlib
 import json
@@ -195,7 +211,20 @@ def main() -> None:  # noqa: PLR0912,PLR0915 - a linear script; splitting it wou
         )
     print(f"corpus verified against committed digests: {len(docs)} documents", flush=True)
 
-    queries = read_eval_set(QUERIES_PATH)
+    if QUERY_SET not in ("original", "paraphrased"):
+        raise SystemExit(f"QUERY_SET must be 'original' or 'paraphrased', not {QUERY_SET!r}")
+    queries_path = (
+        QUERIES_PATH
+        if QUERY_SET == "original"
+        else QUERIES_PATH.with_name("queries-paraphrased.jsonl")
+    )
+    if not queries_path.exists():
+        raise SystemExit(
+            f"{queries_path} is not in the repository. Run "
+            f"`python -m retrieval_ablation.evalset.paraphrase` locally and commit it first."
+        )
+    queries = read_eval_set(queries_path)
+    print(f"query set: {QUERY_SET} ({queries_path.name})", flush=True)
     print(f"eval set: {len(queries)} queries", flush=True)
 
     from retrieval_ablation.ablation.runner import make_chunker
@@ -213,7 +242,12 @@ def main() -> None:  # noqa: PLR0912,PLR0915 - a linear script; splitting it wou
 
     for model_key, chunker_name in EMBEDDING_JOBS:
         out = WORK / f"vectors-{model_key}-{chunker_name}.npz"
-        qout = WORK / f"queryvectors-{model_key}.npz"
+        # The query set is part of the identity of a query-vector file. Writing
+        # both to one name would mean a paraphrased run silently replacing the
+        # original run's artifact, and the local loader would then refuse the
+        # file for the original eval set -- trading one measured arm for another.
+        suffix = "" if QUERY_SET == "original" else f"-{QUERY_SET}"
+        qout = WORK / f"queryvectors-{model_key}{suffix}.npz"
         embedder = None
 
         # Skip work already on disk. A Kaggle session survives a failed cell, and

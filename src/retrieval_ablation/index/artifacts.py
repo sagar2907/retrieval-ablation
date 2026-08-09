@@ -174,43 +174,63 @@ def load_query_vectors(
     costs the credibility of every number beside it.
     """
     root = directory or RESULTS_DIR
-    path = root / f"queryvectors-{embedder_name}.npz"
-    if not path.exists():
+
+    # Every artifact for this model is a candidate, and the recorded text decides
+    # which one belongs to the queries being scored. Selecting by filename instead
+    # would mean one eval set's vectors overwriting another's, or a naming
+    # convention that has to be kept in step by hand across a notebook, a loader
+    # and whoever copies files out of a Kaggle session. The name is a hint; the
+    # text is the authority.
+    candidates = sorted(root.glob(f"queryvectors-{embedder_name}.npz")) + sorted(
+        root.glob(f"queryvectors-{embedder_name}-*.npz")
+    )
+    if not candidates:
         return None
 
-    payload = np.load(path, allow_pickle=True)
-    if "query_texts" not in payload:
+    best: dict[str, np.ndarray] = {}
+    best_name = ""
+    unverifiable: list[str] = []
+    for path in candidates:
+        payload = np.load(path, allow_pickle=True)
+        if "query_texts" not in payload:
+            unverifiable.append(path.name)
+            continue
+
+        ids = [str(q) for q in payload["query_ids"]]
+        embedded = [str(t) for t in payload["query_texts"]]
+        vectors = np.asarray(payload["vectors"], dtype=np.float32)
+
+        matched: dict[str, np.ndarray] = {}
+        for query_id, embedded_text, row in zip(ids, embedded, vectors, strict=True):
+            current = query_text_by_id.get(query_id)
+            if current is not None and current == embedded_text:
+                matched[current] = row
+        if len(matched) > len(best):
+            best, best_name = matched, path.name
+
+    if unverifiable:
         log.warning(
-            "%s carries no query_texts, so the vectors cannot be shown to match the "
-            "queries being scored. Refusing to use it; re-run the GPU notebook.",
-            path.name,
+            "ignoring %s: no query_texts recorded, so the vectors cannot be shown to "
+            "match the queries being scored. Re-run the GPU notebook.",
+            ", ".join(unverifiable),
+        )
+    if not best:
+        log.warning(
+            "none of %s was embedded from the query text being scored (%d queries). "
+            "The dense arm needs a GPU run against this eval set.",
+            ", ".join(p.name for p in candidates),
+            len(query_text_by_id),
         )
         return None
-
-    ids = [str(q) for q in payload["query_ids"]]
-    embedded = [str(t) for t in payload["query_texts"]]
-    vectors = np.asarray(payload["vectors"], dtype=np.float32)
-
-    by_text: dict[str, np.ndarray] = {}
-    stale = 0
-    for query_id, embedded_text, row in zip(ids, embedded, vectors, strict=True):
-        current = query_text_by_id.get(query_id)
-        if current is None:
-            continue
-        if current != embedded_text:
-            stale += 1
-            continue
-        by_text[current] = row
-
-    if stale:
+    if len(best) < len(query_text_by_id):
         log.warning(
-            "%s: %d of %d query vectors were embedded from different text and were "
-            "dropped. The query set has been rewritten since the GPU run.",
-            path.name,
-            stale,
-            len(ids),
+            "%s covers %d of %d queries; the rest were embedded from different text "
+            "and were dropped.",
+            best_name,
+            len(best),
+            len(query_text_by_id),
         )
-    return by_text or None
+    return best
 
 
 def dense_index_from_artifact(
