@@ -40,19 +40,19 @@ reranker from one that never saw the answer.
 
 | configuration | chunks | reachable | ceiling | nDCG low-overlap | nDCG high-overlap | seconds |
 |---|---|---|---|---|---|---|
-| `baseline-bm25-fixed512` | 37,498 | 100.0% | - | 0.1091 | 0.2254 | 0 |
+| `baseline-bm25-fixed512` | 37,498 | 100.0% | - | 0.1091 | 0.2254 | 1 |
 | `chunk-fixed256o32` | 75,084 | 100.0% | - | 0.1030 | 0.1932 | 1 |
-| `chunk-struct512` | 42,215 | 100.0% | - | 0.0837 | 0.2236 | 0 |
+| `chunk-struct512` | 42,215 | 100.0% | - | 0.0837 | 0.2236 | 1 |
 | `tables-row-sentences` | 40,155 | 95.4% | - | 0.1014 | 0.1924 | 0 |
 | `retrieval-dense-bge` | 42,215 | 100.0% | - | 0.1346 | 0.1143 | 2 |
 | `retrieval-hybrid-rrf` | 42,215 | 100.0% | - | 0.1374 | 0.2207 | 2 |
-| `retrieval-bm25-struct` | 42,215 | 100.0% | - | 0.0837 | 0.2236 | 0 |
+| `retrieval-bm25-struct` | 42,215 | 100.0% | - | 0.0837 | 0.2236 | 1 |
 | `embed-e5-base` | 42,215 | 100.0% | - | 0.0467 | 0.0394 | 1 |
-| `rerank-bm25-100` | 42,215 | 100.0% | 61.6% | 0.2309 | 0.1969 | 0 |
-| `rerank-candidates-25` | 42,215 | 100.0% | 44.4% | 0.1852 | 0.2190 | 0 |
-| `rerank-candidates-50` | 42,215 | 100.0% | 53.2% | 0.1937 | 0.2218 | 0 |
-| `rerank-candidates-200` | 42,215 | 100.0% | 73.6% | 0.2104 | 0.1767 | 0 |
-| `hybrid-plus-rerank` | 42,215 | 100.0% | 60.2% | 0.2274 | 0.1908 | 2 |
+| `rerank-bm25-100` | 42,215 | 100.0% | 61.6% | 0.2309 | 0.1969 | 1 |
+| `rerank-candidates-25` | 42,215 | 100.0% | 44.4% | 0.1852 | 0.2190 | 1 |
+| `rerank-candidates-50` | 42,215 | 100.0% | 53.2% | 0.1937 | 0.2218 | 1 |
+| `rerank-candidates-200` | 42,215 | 100.0% | 73.6% | 0.2104 | 0.1767 | 1 |
+| `hybrid-plus-rerank` | 42,215 | 100.0% | 60.2% | 0.2274 | 0.1908 | 3 |
 
 ## The lexical-overlap confound
 

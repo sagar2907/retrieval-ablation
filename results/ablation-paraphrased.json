@@ -1,6 +1,6 @@
 {
   "n_configurations": 15,
-  "n_measured": 9,
+  "n_measured": 5,
   "results": [
     {
       "name": "baseline-bm25-fixed512",
@@ -35,7 +35,7 @@
       ],
       "ndcg10_low_overlap_queries": 0.04058059394713698,
       "ndcg10_high_overlap_queries": 0.1300615052793994,
-      "seconds": 3.8
+      "seconds": 0.8
     },
     {
       "name": "chunk-fixed256o32",
@@ -70,7 +70,7 @@
       ],
       "ndcg10_low_overlap_queries": 0.020989891801909726,
       "ndcg10_high_overlap_queries": 0.1519701876267046,
-      "seconds": 6.0
+      "seconds": 1.4
     },
     {
       "name": "chunk-semantic95",
@@ -129,7 +129,7 @@
       ],
       "ndcg10_low_overlap_queries": 0.038138412015192136,
       "ndcg10_high_overlap_queries": 0.16921391964970783,
-      "seconds": 3.8
+      "seconds": 0.8
     },
     {
       "name": "tables-row-sentences",
@@ -164,7 +164,7 @@
       ],
       "ndcg10_low_overlap_queries": 0.03825520514314767,
       "ndcg10_high_overlap_queries": 0.1583921620771883,
-      "seconds": 3.5
+      "seconds": 0.8
     },
     {
       "name": "retrieval-dense-bge",
@@ -177,7 +177,7 @@
       "table_rendering": "markdown",
       "notes": "dense only",
       "measured": false,
-      "skipped_reason": "passage vectors for bge-m3 are present but queryvectors-bge-m3.npz is not. A dense index needs both sides embedded by the same model; embedding queries with a different model would compare vectors from two spaces and return confident nonsense. Re-run the GPU notebook to produce them.",
+      "skipped_reason": "no usable query vectors for bge-m3: queryvectors-bge-m3.npz is absent, or records different query text than the set being scored (check the loader warning above). A dense index needs both sides embedded by the same model on the same wording; reusing vectors from other text compares two things that were never asked and returns confident nonsense. Re-run the GPU notebook against this eval set to produce them.",
       "n_chunks": 42215,
       "metrics_all": {},
       "metrics_common_subset": {},
@@ -201,7 +201,7 @@
       "table_rendering": "markdown",
       "notes": "BM25 + dense fused with RRF",
       "measured": false,
-      "skipped_reason": "passage vectors for bge-m3 are present but queryvectors-bge-m3.npz is not. A dense index needs both sides embedded by the same model; embedding queries with a different model would compare vectors from two spaces and return confident nonsense. Re-run the GPU notebook to produce them.",
+      "skipped_reason": "no usable query vectors for bge-m3: queryvectors-bge-m3.npz is absent, or records different query text than the set being scored (check the loader warning above). A dense index needs both sides embedded by the same model on the same wording; reusing vectors from other text compares two things that were never asked and returns confident nonsense. Re-run the GPU notebook against this eval set to produce them.",
       "n_chunks": 42215,
       "metrics_all": {},
       "metrics_common_subset": {},
@@ -247,7 +247,7 @@
       ],
       "ndcg10_low_overlap_queries": 0.038138412015192136,
       "ndcg10_high_overlap_queries": 0.16921391964970783,
-      "seconds": 3.5
+      "seconds": 0.8
     },
     {
       "name": "embed-e5-base",
@@ -260,7 +260,7 @@
       "table_rendering": "markdown",
       "notes": "embedding axis: e5-base vs bge-m3",
       "measured": false,
-      "skipped_reason": "passage vectors for e5-base are present but queryvectors-e5-base.npz is not. A dense index needs both sides embedded by the same model; embedding queries with a different model would compare vectors from two spaces and return confident nonsense. Re-run the GPU notebook to produce them.",
+      "skipped_reason": "no usable query vectors for e5-base: queryvectors-e5-base.npz is absent, or records different query text than the set being scored (check the loader warning above). A dense index needs both sides embedded by the same model on the same wording; reusing vectors from other text compares two things that were never asked and returns confident nonsense. Re-run the GPU notebook against this eval set to produce them.",
       "n_chunks": 42215,
       "metrics_all": {},
       "metrics_common_subset": {},
@@ -307,30 +307,19 @@
       "candidate_k": 100,
       "table_rendering": "markdown",
       "notes": "cross-encoder on a lexical first stage",
-      "measured": true,
-      "skipped_reason": null,
+      "measured": false,
+      "skipped_reason": "rerank-scores-candidates-rerank-bm25-100.json.gz holds no cross-encoder scores for the wording being scored: it either predates query-text provenance or was computed against a different eval set. Reusing it would rerank these queries with scores derived from other questions. Re-run the GPU notebook against this eval set.",
       "n_chunks": 42215,
-      "metrics_all": {
-        "ndcg@10": 0.14703079682808126,
-        "recall@50": 0.33796296296296297,
-        "mrr": 0.12706842554229608
-      },
-      "metrics_common_subset": {
-        "ndcg@10": 0.13765815294388045,
-        "recall@50": 0.2937062937062937,
-        "mrr": 0.12317952328073786
-      },
-      "n_scored_all": 216,
-      "n_scored_common": 143,
-      "fraction_reachable": 1.0,
-      "first_stage_recall_ceiling": 0.35648148148148145,
-      "ndcg10_ci95": [
-        0.09032479512621575,
-        0.1891484069239304
-      ],
-      "ndcg10_low_overlap_queries": 0.12725321688450691,
-      "ndcg10_high_overlap_queries": 0.262517385656363,
-      "seconds": 3.6
+      "metrics_all": {},
+      "metrics_common_subset": {},
+      "n_scored_all": 0,
+      "n_scored_common": 0,
+      "fraction_reachable": null,
+      "first_stage_recall_ceiling": null,
+      "ndcg10_ci95": null,
+      "ndcg10_low_overlap_queries": null,
+      "ndcg10_high_overlap_queries": null,
+      "seconds": 0.0
     },
     {
       "name": "rerank-candidates-25",
@@ -342,30 +331,19 @@
       "candidate_k": 25,
       "table_rendering": "markdown",
       "notes": "shortlist depth 25",
-      "measured": true,
-      "skipped_reason": null,
+      "measured": false,
+      "skipped_reason": "rerank-scores-candidates-rerank-bm25-100.json.gz holds no cross-encoder scores for the wording being scored: it either predates query-text provenance or was computed against a different eval set. Reusing it would rerank these queries with scores derived from other questions. Re-run the GPU notebook against this eval set.",
       "n_chunks": 42215,
-      "metrics_all": {
-        "ndcg@10": 0.10069868326673158,
-        "recall@50": 0.24537037037037038,
-        "mrr": 0.09122792070402365
-      },
-      "metrics_common_subset": {
-        "ndcg@10": 0.091904044582222,
-        "recall@50": 0.21678321678321677,
-        "mrr": 0.08486268776015793
-      },
-      "n_scored_all": 216,
-      "n_scored_common": 143,
-      "fraction_reachable": 1.0,
-      "first_stage_recall_ceiling": 0.1712962962962963,
-      "ndcg10_ci95": [
-        0.05252587559684821,
-        0.13565360959311726
-      ],
-      "ndcg10_low_overlap_queries": 0.08871453504562354,
-      "ndcg10_high_overlap_queries": 0.1301781590214035,
-      "seconds": 3.6
+      "metrics_all": {},
+      "metrics_common_subset": {},
+      "n_scored_all": 0,
+      "n_scored_common": 0,
+      "fraction_reachable": null,
+      "first_stage_recall_ceiling": null,
+      "ndcg10_ci95": null,
+      "ndcg10_low_overlap_queries": null,
+      "ndcg10_high_overlap_queries": null,
+      "seconds": 0.0
     },
     {
       "name": "rerank-candidates-50",
@@ -377,30 +355,19 @@
       "candidate_k": 50,
       "table_rendering": "markdown",
       "notes": "shortlist depth 50",
-      "measured": true,
-      "skipped_reason": null,
+      "measured": false,
+      "skipped_reason": "rerank-scores-candidates-rerank-bm25-100.json.gz holds no cross-encoder scores for the wording being scored: it either predates query-text provenance or was computed against a different eval set. Reusing it would rerank these queries with scores derived from other questions. Re-run the GPU notebook against this eval set.",
       "n_chunks": 42215,
-      "metrics_all": {
-        "ndcg@10": 0.1169248641719891,
-        "recall@50": 0.24537037037037038,
-        "mrr": 0.10021165473405398
-      },
-      "metrics_common_subset": {
-        "ndcg@10": 0.10584423338544133,
-        "recall@50": 0.21678321678321677,
-        "mrr": 0.09115406376307239
-      },
-      "n_scored_all": 216,
-      "n_scored_common": 143,
-      "fraction_reachable": 1.0,
-      "first_stage_recall_ceiling": 0.24537037037037038,
-      "ndcg10_ci95": [
-        0.06533981415505272,
-        0.15046180620520874
-      ],
-      "ndcg10_low_overlap_queries": 0.09814817955682836,
-      "ndcg10_high_overlap_queries": 0.19819687932879695,
-      "seconds": 3.6
+      "metrics_all": {},
+      "metrics_common_subset": {},
+      "n_scored_all": 0,
+      "n_scored_common": 0,
+      "fraction_reachable": null,
+      "first_stage_recall_ceiling": null,
+      "ndcg10_ci95": null,
+      "ndcg10_low_overlap_queries": null,
+      "ndcg10_high_overlap_queries": null,
+      "seconds": 0.0
     },
     {
       "name": "rerank-candidates-200",
@@ -412,30 +379,19 @@
       "candidate_k": 200,
       "table_rendering": "markdown",
       "notes": "shortlist depth 200",
-      "measured": true,
-      "skipped_reason": null,
+      "measured": false,
+      "skipped_reason": "rerank-scores-candidates-rerank-bm25-100.json.gz holds no cross-encoder scores for the wording being scored: it either predates query-text provenance or was computed against a different eval set. Reusing it would rerank these queries with scores derived from other questions. Re-run the GPU notebook against this eval set.",
       "n_chunks": 42215,
-      "metrics_all": {
-        "ndcg@10": 0.1473528990844172,
-        "recall@50": 0.37962962962962965,
-        "mrr": 0.12650072254258848
-      },
-      "metrics_common_subset": {
-        "ndcg@10": 0.1342110892078615,
-        "recall@50": 0.32867132867132864,
-        "mrr": 0.120819689118255
-      },
-      "n_scored_all": 216,
-      "n_scored_common": 143,
-      "fraction_reachable": 1.0,
-      "first_stage_recall_ceiling": 0.4305555555555556,
-      "ndcg10_ci95": [
-        0.08797659911448183,
-        0.18494409867371525
-      ],
-      "ndcg10_low_overlap_queries": 0.1308499331578398,
-      "ndcg10_high_overlap_queries": 0.1745449618081223,
-      "seconds": 3.7
+      "metrics_all": {},
+      "metrics_common_subset": {},
+      "n_scored_all": 0,
+      "n_scored_common": 0,
+      "fraction_reachable": null,
+      "first_stage_recall_ceiling": null,
+      "ndcg10_ci95": null,
+      "ndcg10_low_overlap_queries": null,
+      "ndcg10_high_overlap_queries": null,
+      "seconds": 0.0
     },
     {
       "name": "hybrid-plus-rerank",
@@ -448,7 +404,7 @@
       "table_rendering": "markdown",
       "notes": "the production configuration: hybrid retrieval then cross-encoder",
       "measured": false,
-      "skipped_reason": "passage vectors for bge-m3 are present but queryvectors-bge-m3.npz is not. A dense index needs both sides embedded by the same model; embedding queries with a different model would compare vectors from two spaces and return confident nonsense. Re-run the GPU notebook to produce them.",
+      "skipped_reason": "no usable query vectors for bge-m3: queryvectors-bge-m3.npz is absent, or records different query text than the set being scored (check the loader warning above). A dense index needs both sides embedded by the same model on the same wording; reusing vectors from other text compares two things that were never asked and returns confident nonsense. Re-run the GPU notebook against this eval set to produce them.",
       "n_chunks": 42215,
       "metrics_all": {},
       "metrics_common_subset": {},
@@ -497,42 +453,6 @@
       "p_raw": 0.9238076192380762,
       "p_holm": 1.0,
       "significant_at_05": false,
-      "n_pairs": 143
-    },
-    "rerank-bm25-100": {
-      "baseline_ndcg10": 0.047463740972695616,
-      "config_ndcg10": 0.13765815294388048,
-      "delta": 0.09019441197118484,
-      "p_raw": 0.00019998000199980003,
-      "p_holm": 0.0015998400159984002,
-      "significant_at_05": true,
-      "n_pairs": 143
-    },
-    "rerank-candidates-25": {
-      "baseline_ndcg10": 0.047463740972695616,
-      "config_ndcg10": 0.091904044582222,
-      "delta": 0.04444030360952638,
-      "p_raw": 0.006999300069993001,
-      "p_holm": 0.034996500349965,
-      "significant_at_05": true,
-      "n_pairs": 143
-    },
-    "rerank-candidates-50": {
-      "baseline_ndcg10": 0.047463740972695616,
-      "config_ndcg10": 0.10584423338544134,
-      "delta": 0.058380492412745705,
-      "p_raw": 0.0005999400059994001,
-      "p_holm": 0.0035996400359964006,
-      "significant_at_05": true,
-      "n_pairs": 143
-    },
-    "rerank-candidates-200": {
-      "baseline_ndcg10": 0.047463740972695616,
-      "config_ndcg10": 0.1342110892078615,
-      "delta": 0.08674734823516589,
-      "p_raw": 0.00039996000399960006,
-      "p_holm": 0.0027997200279972004,
-      "significant_at_05": true,
       "n_pairs": 143
     }
   }

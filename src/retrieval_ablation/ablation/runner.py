@@ -397,10 +397,16 @@ def _build_retriever(  # noqa: PLR0911 - each return is a distinct, named unavai
     # artifact rather than from whatever model version happens to download.
     scores_path = _artifact_rerank_scores()
     if scores_path is not None and query_ids:
+        # query_ids maps text -> id; the loader needs the inverse to check that
+        # each score was computed against the wording being asked now.
+        by_id = {query_id: text for text, query_id in query_ids.items()}
+        scores = load_rerank_scores(scores_path, by_id)
+        if not scores:
+            return None, _STALE_RERANK_SCORES.format(file=scores_path.name)
         return (
             PrecomputedReranker(
                 first,
-                load_rerank_scores(scores_path),
+                scores,
                 query_ids,
                 candidate_k=config.candidate_k,
                 name=config.name,
@@ -426,6 +432,16 @@ def _build_retriever(  # noqa: PLR0911 - each return is a distinct, named unavai
 #: query being scored, which is exactly what happens on the paraphrased eval set.
 #: An earlier version of this message said the file "is not" there, which would
 #: send a reader looking for something that is sitting in results/.
+#: A cross-encoder score depends on the query wording as much as the passage, so
+#: scores computed against other text are not a weaker measurement of this one --
+#: they are a measurement of a different experiment.
+_STALE_RERANK_SCORES = (
+    "{file} holds no cross-encoder scores for the wording being scored: it either "
+    "predates query-text provenance or was computed against a different eval set. "
+    "Reusing it would rerank these queries with scores derived from other "
+    "questions. Re-run the GPU notebook against this eval set."
+)
+
 _NO_QUERY_VECTORS = (
     "no usable query vectors for {model}: queryvectors-{model}.npz is absent, or "
     "records different query text than the set being scored (check the loader "

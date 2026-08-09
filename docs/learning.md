@@ -639,26 +639,36 @@ label word for word. Paraphrasing rewrites the questions the way a person would
 ask them, touching nothing else — same corpus, same gold spans, same query ids,
 same 143 shared queries. Then the grid runs again.
 
-| configuration | original | paraphrased | Δ vs base | p (Holm) |
-|---|---|---|---|---|
-| `rerank-bm25-100` | 0.2057 | 0.1377 | **+0.0902** | **0.0016** ✓ |
-| `rerank-candidates-200` | 0.1854 | 0.1342 | **+0.0867** | **0.0028** ✓ |
-| `rerank-candidates-50` | 0.2145 | 0.1058 | **+0.0584** | **0.0036** ✓ |
-| `rerank-candidates-25` | 0.2103 | 0.0919 | **+0.0444** | **0.0350** ✓ |
-| `baseline-bm25-fixed512` | 0.1953 | 0.0475 | — | — |
+| configuration | original | paraphrased | change |
+|---|---|---|---|
+| `chunk-struct512` | 0.1874 | 0.0482 | −74% |
+| `baseline-bm25-fixed512` | 0.1953 | 0.0475 | **−76%** |
+| `tables-row-sentences` | 0.1688 | 0.0475 | −72% |
+| `chunk-fixed256o32` | 0.1699 | 0.0311 | −82% |
 
-On the original queries, nothing favouring any configuration was significant. On
-the paraphrased queries, **every reranking configuration is significant**.
+Roughly three quarters of what BM25 was scoring came from questions that quoted
+their own answer. Mean overlap falls 0.4613 → 0.1684; the high-overlap bucket goes
+from 158 queries to 17. The chunking and table-rendering axes stay null on both
+wordings, so those genuinely are non-findings rather than confounded ones.
 
-No retriever changed. The benchmark was giving BM25 an exact string match on 73%
-of its queries, and a first stage that already has the answer at rank 1 gives a
-reranker nothing to improve. Removing that advantage did not make reranking
-better; it made it measurable.
+**This section first reported that all four reranking configurations became
+significant on the paraphrased queries. That was wrong, and retracting it is more
+instructive than the claim was.**
 
-Notice also that the candidate-depth finding **inverts**. Depth 200 was the worst
-configuration on the original queries and is second best here — consistent with a
-reranker that is now doing real work, for which a deeper shortlist is an
-opportunity rather than more chances to err.
+The reranking and dense arms are served from precomputed GPU artifacts keyed by
+query id. Paraphrasing keeps query ids deliberately — that is what makes the two
+eval sets comparable. So the paraphrased run reused cross-encoder scores and query
+vectors computed from the *original* wording: the reranker was scoring
+`(original question, passage)` pairs whose questions quote the answer, while being
+credited for ranking paraphrased ones. The measured "improvement" was substantially
+the confound leaking back in through the artifact.
+
+Nothing raised. Coverage was complete. The p-values were small, correctly
+computed, and correctly corrected. What made the number attractive — a large
+effect, appearing exactly where the hypothesis predicted, after a deliberate
+intervention — is precisely what should have made it suspicious. It confirmed what
+was expected, and that is when a result gets the least scrutiny and deserves the
+most.
 
 The lesson generalises past retrieval. Every piece of statistical machinery in
 this project was correct: the paired test, the bootstrap intervals, the

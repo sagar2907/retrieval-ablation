@@ -302,12 +302,64 @@ class PrecomputedReranker(Retriever):
         return ordered[:top_k]
 
 
-def load_rerank_scores(path: Path) -> dict[str, dict[str, float]]:
-    """Read cross-encoder scores, gzipped or plain."""
+def load_rerank_scores(
+    path: Path, query_text_by_id: Mapping[str, str] | None = None
+) -> dict[str, dict[str, float]]:
+    """Read cross-encoder scores, gzipped or plain, keyed by query id.
+
+    A cross-encoder score is a function of the query text as much as the passage,
+    so these scores are only valid for the wording they were computed from. Query
+    ids survive a rewrite of that wording -- which is exactly what the paraphrased
+    eval set does -- so an id match is not evidence the score belongs to the query
+    now being asked.
+
+    That was not hypothetical. The paraphrased ablation reported all four
+    reranking configurations as significant improvements while reusing scores
+    computed from the original questions, whose wording quotes the answer passage.
+    The reranker was being handed the very lexical overlap the paraphrasing existed
+    to remove.
+
+    Pass `query_text_by_id` to have that checked. A file written before the text
+    was recorded cannot be checked and returns nothing, which surfaces as an
+    unmeasured arm rather than as a confident wrong number.
+    """
     if path.suffix == ".gz":
         with gzip.open(path, "rt", encoding="utf-8") as handle:
-            return json.load(handle)
-    return json.loads(path.read_text(encoding="utf-8"))
+            payload = json.load(handle)
+    else:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+
+    # Newer files wrap the scores so the query text can travel with them; older
+    # ones are the bare {query_id: {chunk_id: score}} mapping.
+    wrapped = isinstance(payload, dict) and "scores" in payload and "query_texts" in payload
+    scores: dict[str, dict[str, float]] = payload["scores"] if wrapped else payload
+
+    if query_text_by_id is None:
+        return scores
+
+    if not wrapped:
+        log.warning(
+            "%s records no query text, so its scores cannot be shown to belong to "
+            "the queries being scored. Refusing to use it; re-run the GPU notebook "
+            "against this eval set.",
+            path.name,
+        )
+        return {}
+
+    embedded: Mapping[str, str] = payload["query_texts"]
+    kept = {
+        query_id: table
+        for query_id, table in scores.items()
+        if embedded.get(query_id) == query_text_by_id.get(query_id)
+    }
+    if len(kept) < len(scores):
+        log.warning(
+            "%s: %d of %d queries were scored against different wording and were dropped.",
+            path.name,
+            len(scores) - len(kept),
+            len(scores),
+        )
+    return kept
 
 
 def available_artifacts(directory: Path | None = None) -> dict[str, Path]:

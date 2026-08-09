@@ -59,43 +59,43 @@ on a Kaggle T4; reproduce with `python -m retrieval_ablation.ablation.runner`.
 Full table with reachability and the overlap split:
 [`results/ablation.md`](results/ablation.md).
 
-### The headline: the benchmark was hiding the effect it was built to measure
+### What paraphrasing shows so far, and what it cannot yet show
 
-Rewriting the questions so they stop quoting the filing's own row labels changes
-the conclusion of the entire study. Same corpus, same gold spans, same query ids,
-same 143 shared queries — only the wording of the questions differs.
+Rewriting the questions so they stop quoting the filing's own row labels — same
+corpus, same gold spans, same query ids, same 143 shared queries, only the wording
+different — collapses every lexical configuration:
 
-| configuration | original queries | paraphrased | Δ vs baseline | p (Holm) |
-|---|---|---|---|---|
-| `rerank-bm25-100` | 0.2057 | 0.1377 | **+0.0902** | **0.0016** ✓ |
-| `rerank-candidates-200` | 0.1854 | 0.1342 | **+0.0867** | **0.0028** ✓ |
-| `rerank-candidates-50` | 0.2145 | 0.1058 | **+0.0584** | **0.0036** ✓ |
-| `rerank-candidates-25` | 0.2103 | 0.0919 | **+0.0444** | **0.0350** ✓ |
-| `chunk-struct512` | 0.1874 | 0.0482 | +0.0008 | 1.000 |
-| `baseline-bm25-fixed512` | 0.1953 | 0.0475 | — | — |
-| `chunk-fixed256o32` | 0.1699 | 0.0311 | −0.0164 | 1.000 |
+| configuration | original queries | paraphrased | change |
+|---|---|---|---|
+| `chunk-struct512` | 0.1874 | 0.0482 | −74% |
+| `baseline-bm25-fixed512` | 0.1953 | 0.0475 | **−76%** |
+| `tables-row-sentences` | 0.1688 | 0.0475 | −72% |
+| `chunk-fixed256o32` | 0.1699 | 0.0311 | −82% |
 
-On the original queries **not one comparison favouring any configuration was
-significant**. On the paraphrased queries **all four reranking configurations are
-significant after Holm correction**, at +0.044 to +0.090.
+Mean lexical overlap falls 0.4613 → 0.1684 and the high-overlap bucket collapses
+from 158 queries to 17. Roughly three quarters of what BM25 was scoring came from
+questions that quoted their own answer. **No chunking or table-rendering
+difference is significant on either wording** — those axes remain null results.
 
-Nothing about the retrievers changed. The benchmark was handing BM25 an exact
-string match on 73% of its queries, and a first stage that already has the answer
-at rank 1 leaves a reranker nothing to do. Removing that advantage does not make
-reranking better — it makes it *visible*.
+**The reranking and dense arms are not measured on the paraphrased queries**, and
+an earlier version of this section reported them as significant improvements. That
+was wrong and is retracted. Both arms are served from precomputed GPU artifacts
+keyed by query id, and query ids deliberately survive a rewrite of the query text —
+that is what makes the two eval sets comparable. So the paraphrased run silently
+reused cross-encoder scores and query vectors computed from the *original*
+wording, which is precisely the lexical overlap the paraphrasing existed to
+remove. The reranker was being handed the answer's own words while being credited
+for finding them.
 
-Two further things fall out of the same table. Absolute scores collapse for every
-configuration, and hardest for the purely lexical ones: the baseline drops 76%
-(0.1953 → 0.0475) while `rerank-bm25-100` drops 33%. And the candidate-depth
-result **inverts** — depth 200 was the worst configuration on the original queries
-and is the second best here, which is what you would expect once the reranker is
-doing real work and a deeper shortlist is an opportunity rather than a liability.
+Both artifacts now record the text they were computed against, and the loaders
+refuse anything they cannot tie to the queries being scored. Measuring those arms
+needs one GPU run against `data/eval/queries-paraphrased.jsonl`.
 
-The lesson is not about reranking. A benchmark that systematically advantages one
-arm will report that arm winning, with tight confidence intervals and a
-correction for multiple comparisons applied conscientiously to the wrong numbers.
-None of the statistical machinery in this project detected the problem, because
-none of it was wrong. Measuring the confound is what found it.
+The lesson stands independently of the numbers, and is sharper for having caught
+this the hard way: a benchmark that systematically advantages one arm will report
+that arm winning, with tight confidence intervals and a multiple-comparison
+correction applied conscientiously to the wrong numbers. No statistical machinery
+in this project detected either problem, because none of it was wrong.
 
 ### On the original queries, the only significant result was a configuration doing worse
 
