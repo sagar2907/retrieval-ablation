@@ -3,9 +3,11 @@
 from __future__ import annotations
 
 import json
+from typing import ClassVar
 
 import pytest
 
+from retrieval_ablation.corpus import ingest as ingest_module
 from retrieval_ablation.corpus.companies import (
     CORPUS_FORM,
     CORPUS_TICKERS,
@@ -14,6 +16,7 @@ from retrieval_ablation.corpus.companies import (
 from retrieval_ablation.corpus.ingest import (
     document_from_json,
     document_to_json,
+    refs_from_manifest,
     sha256_text,
 )
 from retrieval_ablation.corpus.models import Block, BlockKind, Document, Span, Table
@@ -117,3 +120,61 @@ class TestCorpusDefinition:
         too easy and every configuration would score alike.
         """
         assert FILINGS_PER_COMPANY >= 3
+
+
+class TestRefsFromManifest:
+    """A committed manifest must fully describe the corpus it names."""
+
+    MANIFEST: ClassVar[dict] = {
+        "documents": [
+            {
+                "doc_id": "pg-10-k-2022-06-30",
+                "ticker": "PG",
+                "company": "PROCTER & GAMBLE Co",
+                "form": "10-K",
+                "report_date": "2022-06-30",
+                "url": (
+                    "https://www.sec.gov/Archives/edgar/data/80424/"
+                    "000008042422000082/pg-20220630.htm"
+                ),
+                "text_sha256": "abc",
+                "n_chars": 10,
+            }
+        ]
+    }
+
+    def test_a_filing_is_recovered_exactly_from_its_url(self):
+        """The URL carries CIK, accession and document, which is enough to refetch.
+
+        Regression: the corpus was defined as "the four most recent 10-Ks per
+        company", which is a query and not a corpus -- its answer changes whenever
+        a company files. On 2026-08-09 Procter & Gamble filed its FY2026 10-K, the
+        window slid, and a rebuild produced pg-10-k-2026-06-30 while dropping
+        pg-10-k-2022-06-30, a document the gold labels point into. Pinning to the
+        manifest makes the corpus reproducible regardless of what companies do
+        afterwards.
+        """
+        refs = refs_from_manifest(self.MANIFEST)
+
+        assert len(refs) == 1
+        ref = refs[0]
+        assert ref.cik == 80424
+        assert ref.accession == "000008042422000082"
+        assert ref.document == "pg-20220630.htm"
+        assert ref.doc_id == "pg-10-k-2022-06-30"
+        # Round-trips: the reconstructed reference rebuilds the same URL.
+        assert ref.url == self.MANIFEST["documents"][0]["url"]
+
+    def test_an_unparseable_url_raises_rather_than_guessing(self):
+        """Silently skipping would produce a short corpus that still looks whole."""
+        broken = {"documents": [dict(self.MANIFEST["documents"][0], url="https://example.com/x")]}
+
+        with pytest.raises(ValueError, match="filing reference"):
+            refs_from_manifest(broken)
+
+    def test_pinned_ingest_requires_a_manifest_to_pin_to(self, monkeypatch, tmp_path):
+        """Better to refuse than to quietly re-select and call it pinned."""
+        monkeypatch.setattr(ingest_module, "MANIFEST_PATH", tmp_path / "absent.json")
+
+        with pytest.raises(ValueError, match="no committed manifest"):
+            ingest_module.ingest(pinned=True, client=object())

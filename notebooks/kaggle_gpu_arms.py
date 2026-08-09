@@ -193,21 +193,34 @@ def main() -> None:  # noqa: PLR0912,PLR0915 - a linear script; splitting it wou
     ingest()
     docs = load_corpus()
 
+    # Three distinct problems, reported separately. An earlier version folded the
+    # first two together, because `expected.get(doc_id)` returns None for a
+    # document the manifest has never heard of and None never equals a digest. So
+    # a brand-new filing was announced as "1 document with a different text
+    # digest", which describes a corrupted document rather than an extra one and
+    # sends the reader looking in entirely the wrong place.
+    committed_ids = set(expected)
+    present_ids = {d.doc_id for d in docs}
+    unexpected = sorted(present_ids - committed_ids)
+    absent = sorted(committed_ids - present_ids)
     drifted = sorted(
         d.doc_id
         for d in docs
-        if expected.get(d.doc_id) != hashlib.sha256(d.text.encode("utf-8")).hexdigest()
+        if d.doc_id in committed_ids
+        and expected[d.doc_id] != hashlib.sha256(d.text.encode("utf-8")).hexdigest()
     )
-    absent = sorted(set(expected) - {d.doc_id for d in docs})
-    if drifted or absent:
+    if drifted or absent or unexpected:
         # Fail loudly rather than embed it. Vectors are keyed by chunk id, and a
         # chunk id encodes character offsets, so a drifted document yields ids
         # that silently fail to match on the local side -- a missing arm reported
         # as a successful run.
         raise SystemExit(
-            f"corpus diverged from the committed manifest: "
-            f"{len(drifted)} document(s) with a different text digest {drifted[:5]}, "
-            f"{len(absent)} missing {absent[:5]}. Refusing to embed."
+            "corpus diverged from the committed manifest: "
+            f"{len(drifted)} changed {drifted[:5]}, "
+            f"{len(absent)} missing {absent[:5]}, "
+            f"{len(unexpected)} not in the manifest {unexpected[:5]}. Refusing to embed. "
+            "If filings appeared or disappeared, the corpus was re-selected rather "
+            "than pinned -- ingest(pinned=True) rebuilds exactly the committed set."
         )
     print(f"corpus verified against committed digests: {len(docs)} documents", flush=True)
 

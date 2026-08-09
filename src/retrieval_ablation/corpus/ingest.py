@@ -16,6 +16,7 @@ from __future__ import annotations
 import hashlib
 import json
 import logging
+import re
 from pathlib import Path
 
 import httpx
@@ -157,23 +158,89 @@ def select_filings(client: EdgarClient) -> tuple[list[FilingRef], list[dict]]:
     return sorted(refs, key=lambda r: r.doc_id), gaps
 
 
+_URL_RE = re.compile(r"/data/(\d+)/([0-9]+)/([^/]+)$")
+
+
+def refs_from_manifest(manifest: dict) -> list[FilingRef]:
+    """Reconstruct the exact filings a committed manifest names.
+
+    The URL identifies a filing completely -- CIK, accession, document -- so a
+    manifest is a sufficient description of a corpus, not merely a description of
+    what one run happened to select.
+    """
+    refs: list[FilingRef] = []
+    for entry in manifest.get("documents", []):
+        match = _URL_RE.search(entry["url"])
+        if match is None:
+            raise ValueError(f"cannot parse a filing reference out of {entry['url']!r}")
+        cik, accession, document = match.groups()
+        refs.append(
+            FilingRef(
+                cik=int(cik),
+                ticker=entry["ticker"],
+                company=entry.get("company", ""),
+                form=entry["form"],
+                filing_date=entry.get("filing_date", ""),
+                report_date=entry["report_date"],
+                accession=accession,
+                document=document,
+            )
+        )
+    return sorted(refs, key=lambda r: r.doc_id)
+
+
+def _resolve_refs(
+    client: EdgarClient, pinned: bool | None, prior: dict | None
+) -> tuple[list[FilingRef], list[dict]]:
+    """Decide which filings this run is about: the committed set, or today's."""
+    if pinned is None:
+        pinned = prior is not None
+    if not pinned:
+        return select_filings(client)
+    if prior is None:
+        raise ValueError("pinned=True but no committed manifest exists to pin to")
+    refs = refs_from_manifest(prior)
+    log.info("pinned to the committed manifest: %d filings", len(refs))
+    return refs, list(prior.get("gaps", []))
+
+
 def ingest(
     render_tables: str = "markdown",
     limit: int | None = None,
     client: EdgarClient | None = None,
+    pinned: bool | None = None,
 ) -> dict:
     """Fetch and parse the corpus, returning the manifest.
 
     `render_tables` is threaded through because it changes the canonical text and
     therefore every offset. Two corpora built with different values are not
     interchangeable, so the manifest records which was used.
+
+    `pinned` rebuilds exactly the filings the committed manifest names instead of
+    re-selecting from EDGAR. It defaults to true whenever a manifest exists, and
+    that default is the important part.
+
+    The corpus was originally defined as "the four most recent 10-Ks per company",
+    which is not a corpus but a query -- and its answer changes every time one of
+    the thirty companies files an annual report. On 2026-08-09 a rebuild failed
+    because Procter & Gamble had filed its FY2026 10-K: the window slid forward,
+    pg-10-k-2026-06-30 appeared, and pg-10-k-2022-06-30 fell out of a corpus whose
+    gold labels point into it. Nothing had gone wrong; the definition simply did
+    not survive contact with time. Pinning to the manifest makes the corpus
+    reproducible indefinitely, which a benchmark has to be to mean anything.
+
+    Pass `pinned=False` to deliberately re-select, which is how the corpus gets
+    rolled forward on purpose rather than by accident.
     """
     ensure_dirs()
     owns_client = client is None
     client = client or EdgarClient()
 
     try:
-        refs, gaps = select_filings(client)
+        prior: dict | None = None
+        if MANIFEST_PATH.exists():
+            prior = json.loads(MANIFEST_PATH.read_text(encoding="utf-8"))
+        refs, gaps = _resolve_refs(client, pinned, prior)
         if limit is not None:
             refs = refs[:limit]
 
@@ -182,11 +249,9 @@ def ingest(
         # were actually computed from.
         committed_digests: dict[str, str] = {}
         committed_chars: dict[str, int] = {}
-        if MANIFEST_PATH.exists():
-            prior_manifest = json.loads(MANIFEST_PATH.read_text(encoding="utf-8"))
-            for entry in prior_manifest.get("documents", []):
-                committed_digests[entry["doc_id"]] = entry["text_sha256"]
-                committed_chars[entry["doc_id"]] = entry["n_chars"]
+        for entry in (prior or {}).get("documents", []):
+            committed_digests[entry["doc_id"]] = entry["text_sha256"]
+            committed_chars[entry["doc_id"]] = entry["n_chars"]
         drift: list[dict] = []
 
         entries = []
