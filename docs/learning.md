@@ -596,22 +596,41 @@ Full corpus, 42,215 chunks, 143 queries judgeable by every configuration.
 |---|---|---|---|---|---|
 | `rerank-candidates-50` | **0.2145** | [0.160, 0.273] | 0.5245 | +0.0192 | 1.000 |
 | `rerank-candidates-25` | 0.2103 | [0.157, 0.268] | 0.5245 | +0.0150 | 1.000 |
-| `rerank-bm25-100` | 0.2057 | [0.153, 0.263] | **0.5385** | +0.0104 | 1.000 |
+| `rerank-bm25-100` | 0.2057 | [0.153, 0.263] | 0.5385 | +0.0104 | 1.000 |
+| `hybrid-plus-rerank` | 0.2003 | [0.148, 0.256] | **0.5455** | +0.0050 | 1.000 |
+| `retrieval-hybrid-rrf` | 0.1991 | [0.146, 0.254] | 0.4965 | +0.0039 | 1.000 |
 | `baseline-bm25-fixed512` | 0.1953 | [0.143, 0.251] | 0.5070 | — | — |
 | `chunk-struct512` | 0.1874 | [0.134, 0.245] | 0.5245 | −0.0078 | 1.000 |
 | `rerank-candidates-200` | 0.1854 | [0.134, 0.240] | 0.5035 | −0.0099 | 1.000 |
 | `chunk-fixed256o32` | 0.1699 | [0.119, 0.226] | 0.4126 | −0.0254 | 1.000 |
 | `tables-row-sentences` | 0.1688 | [0.122, 0.222] | 0.4935 | −0.0265 | 1.000 |
+| `retrieval-dense-bge` | 0.1196 | [0.077, 0.167] | 0.3077 | −0.0757 | 0.130 |
+| `embed-e5-base` | 0.0413 | [0.019, 0.068] | 0.2168 | −0.1540 | **0.001** |
 
-### Finding 1 — nothing here is statistically significant
+### Finding 1 — nothing was shown to help; one thing was shown to hurt
 
-Reranking takes the top three slots, and **zero of eight comparisons survive Holm
-correction.** The smallest *uncorrected* p-value anywhere is 0.256; the best
-configuration's raw p is 0.538. At 143 queries the CI spans about ±0.055, so a
-0.019 gap is inside the noise.
+Reranking takes the top four slots, and **no improvement survives Holm
+correction** — the best configuration's corrected p is 1.000. At 143 queries the
+CI spans about ±0.055, so a 0.019 gap is inside the noise.
 
 Writing "reranking lifted nDCG@10 from 0.195 to 0.215" would be correct arithmetic
 and a false finding.
+
+Exactly one comparison in the grid does survive: `embed-e5-base` at 0.1540 *below*
+baseline, p = 0.001. That asymmetry is worth sitting with. The study was built to
+detect improvements and detected none; the only thing it could resolve at this
+sample size was a configuration failing badly. Significance is a statement about
+effect size relative to noise, not about importance, and a benchmark too small to
+confirm the effect you are hoping for is still perfectly capable of confirming one
+you are not.
+
+A result that large invites a bug hypothesis, and E5 has an obvious one: it
+requires literal `query: ` and `passage: ` prefixes and loses a lot of accuracy
+without them. The prefixes were verified present in the code path, and then the
+claim was checked rather than trusted, by asking where the gold passages actually
+land. Random ranking among 42,215 chunks would put gold in the top 1,000 for about
+2.4% of queries; E5 manages 59.3%, against BGE-M3's 71.8%. E5 is working. It is
+just worse here — and the next section explains most of what "here" is doing.
 
 ### Finding 2 — the average hides a large real effect
 
@@ -623,12 +642,36 @@ Splitting queries at 0.4 content-word overlap with their gold passage:
 | `rerank-bm25-100` | **0.2309** | **+111.7%** | 0.1969 | −12.6% |
 | `rerank-candidates-200` | 0.2104 | +92.9% | 0.1767 | −21.6% |
 | `rerank-candidates-50` | 0.1937 | +77.6% | 0.2218 | −1.6% |
+| `retrieval-hybrid-rrf` | 0.1374 | +25.9% | 0.2207 | −2.1% |
+| `retrieval-dense-bge` | 0.1346 | +23.4% | 0.1143 | −49.3% |
+| `embed-e5-base` | 0.0467 | −57.2% | 0.0394 | −82.5% |
 
 **The cross-encoder roughly doubles performance where the question does not share
 wording with its answer, and slightly hurts where it does.** Exactly the right
 shape: where BM25 already has an exact string match there is nothing to fix, and
 reordering can only push a correct top hit down. The +0.019 average is a large
 positive on half the queries cancelled by a small negative on the other half.
+
+The dense rows make the same point from the other direction, and they are the
+reason the overall dense numbers should not be read as "embeddings are bad at
+finance". `retrieval-dense-bge` is the **only** configuration in the whole grid
+whose low-overlap score *exceeds* its high-overlap score — 0.1346 against 0.1143.
+Every lexical configuration roughly doubles in the other direction. That is the
+signature of a method that does not match on strings: it gains nothing when the
+query reuses the document's wording, and loses nothing when it does not.
+
+Which means the benchmark is not neutral between the two families. Its queries are
+generated from table rows and reuse the row labels verbatim, handing BM25 an exact
+match on most of them. On the low-overlap subset — the queries that look more like
+something a person would type — `retrieval-dense-bge` (0.1346) beats the baseline
+(0.1091), and `retrieval-hybrid-rrf` (0.1374) beats everything except reranking.
+The defensible claim is "BM25 wins on queries phrased in the filing's own words",
+not "BM25 wins on SEC filings", and the difference between those two sentences is
+the entire value of having measured the split.
+
+This is also the clearest argument for query paraphrasing, which is not done. A
+benchmark that systematically advantages one arm will report that arm winning, and
+will do so with tight confidence intervals and a straight face.
 
 ### Finding 3 — deeper shortlists are worse
 
@@ -653,12 +696,20 @@ ohio") and on passages with several figures under one label.
 
 Re-running the whole grid on the 172 accepted labels:
 
-- Every configuration gains **+0.020 to +0.031** — the signature of labels that
-  were genuinely unanswerable, penalising all systems equally.
-- **The ranking is identical.** No conclusion rests on the label defects.
-- **Still zero of eight significant** (smallest raw p 0.281).
+- Twelve of thirteen configurations gain **+0.020 to +0.031** — the signature of
+  labels that were genuinely unanswerable, penalising all systems about equally.
+  The exception is `embed-e5-base`, which *loses* 0.0035: bad labels were not what
+  was holding it back.
+- **The ranking is stable, not identical.** Top three and bottom four unchanged;
+  `retrieval-hybrid-rrf` and `hybrid-plus-rerank` trade ranks 4 and 5 across a gap
+  of 0.0025. That is noise, and is why neither is reported as a finding.
+- **The significance picture is unchanged**: no improvement survives Holm on
+  either label set, and `embed-e5-base` is the single significant comparison at
+  p = 0.001 on both.
 - The overlap effect gets *stronger*: `rerank-bm25-100` goes from +112% to
-  **+171%** on low-overlap queries.
+  **+171%** on low-overlap queries, and `retrieval-dense-bge` inverts harder still
+  — 0.2212 low against 0.1220 high, now **beating the baseline's low-overlap
+  0.1276 by +73%** while trailing it badly overall.
 
 These are marked `MODEL_CHECKED`, never `HUMAN_VERIFIED`, and a test enforces it.
 A model auditing labels a program generated from the same tables is not an

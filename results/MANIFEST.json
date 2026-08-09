@@ -14,8 +14,14 @@
       "chunker": "struct512",
       "n_chunks": 42215,
       "dimension": 1024,
-      "seconds": 810.2,
-      "chunks_per_sec": 52.1
+      "seconds": 847.3,
+      "chunks_per_sec": 49.8
+    },
+    {
+      "file": "queryvectors-bge-m3.npz",
+      "embedder": "bge-m3",
+      "n_queries": 216,
+      "dimension": 1024
     },
     {
       "file": "vectors-e5-base-struct512.npz",
@@ -23,16 +29,22 @@
       "chunker": "struct512",
       "n_chunks": 42215,
       "dimension": 768,
-      "seconds": 281.8,
-      "chunks_per_sec": 149.8
+      "seconds": 294.6,
+      "chunks_per_sec": 143.3
+    },
+    {
+      "file": "queryvectors-e5-base.npz",
+      "embedder": "e5-base",
+      "n_queries": 216,
+      "dimension": 768
     },
     {
       "file": "rerank-scores-candidates-rerank-bm25-100.json",
       "reranker": "BAAI/bge-reranker-v2-m3",
       "n_queries": 216,
       "n_pairs": 43200,
-      "seconds": 894.8,
-      "pairs_per_sec": 48.3
+      "seconds": 927.5,
+      "pairs_per_sec": 46.6
     },
     {
       "file": "candidates-hybrid-plus-rerank.json.gz",

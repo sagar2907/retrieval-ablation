@@ -37,7 +37,7 @@ exactly the table structure being tested.
 
 ## Measured results
 
-**9 of 15 configurations measured.** Full corpus, 42,215 chunks, 143 queries
+**13 of 15 configurations measured.** Full corpus, 42,215 chunks, 143 queries
 judgeable by every configuration. Dense vectors and cross-encoder scores produced
 on a Kaggle T4; reproduce with `python -m retrieval_ablation.ablation.runner`.
 
@@ -45,28 +45,69 @@ on a Kaggle T4; reproduce with `python -m retrieval_ablation.ablation.runner`.
 |---|---|---|---|---|---|---|---|
 | `rerank-candidates-50` | candidates | **0.2145** | [0.160, 0.273] | 0.5245 | 0.1859 | +0.0192 | 1.000 |
 | `rerank-candidates-25` | candidates | 0.2103 | [0.157, 0.268] | 0.5245 | 0.1799 | +0.0150 | 1.000 |
-| `rerank-bm25-100` | reranking | 0.2057 | [0.153, 0.263] | **0.5385** | 0.1798 | +0.0104 | 1.000 |
+| `rerank-bm25-100` | reranking | 0.2057 | [0.153, 0.263] | 0.5385 | 0.1798 | +0.0104 | 1.000 |
+| `hybrid-plus-rerank` | interaction | 0.2003 | [0.148, 0.256] | **0.5455** | 0.1729 | +0.0050 | 1.000 |
+| `retrieval-hybrid-rrf` | retrieval | 0.1991 | [0.146, 0.254] | 0.4965 | 0.1736 | +0.0039 | 1.000 |
 | `baseline-bm25-fixed512` | baseline | 0.1953 | [0.143, 0.251] | 0.5070 | 0.1741 | — | — |
 | `chunk-struct512` | chunking | 0.1874 | [0.134, 0.245] | 0.5245 | 0.1722 | −0.0078 | 1.000 |
 | `rerank-candidates-200` | candidates | 0.1854 | [0.134, 0.240] | 0.5035 | 0.1640 | −0.0099 | 1.000 |
 | `chunk-fixed256o32` | chunking | 0.1699 | [0.119, 0.226] | 0.4126 | 0.1604 | −0.0254 | 1.000 |
 | `tables-row-sentences` | table rendering | 0.1688 | [0.122, 0.222] | 0.4935 | 0.1610 | −0.0265 | 1.000 |
+| `retrieval-dense-bge` | retrieval | 0.1196 | [0.077, 0.167] | 0.3077 | 0.1036 | −0.0757 | 0.130 |
+| `embed-e5-base` | embedding | 0.0413 | [0.019, 0.068] | 0.2168 | 0.0337 | −0.1540 | **0.001** |
 
 Full table with reachability and the overlap split:
 [`results/ablation.md`](results/ablation.md).
 
-### The headline: no difference here is statistically significant
+### The headline: the only significant result is a configuration doing worse
 
-Reranking takes the top three slots, and the brief predicted a "large jump" from
-the cross-encoder. **Zero of eight comparisons survive Holm correction.** The
-smallest *uncorrected* p-value in the entire grid is 0.256; the best configuration
-beats the baseline by +0.0192 with a raw p of 0.538.
+Reranking takes the top four slots, and the brief predicted a "large jump" from
+the cross-encoder. **No improvement over the baseline is statistically
+significant.** The best configuration beats the baseline by +0.0192 with a
+Holm-corrected p of 1.000.
+
+Exactly one comparison in the grid survives correction, and it is
+`embed-e5-base` scoring **0.1540 *below*** the baseline at p = 0.001. Nothing was
+shown to help; one thing was shown to hurt.
 
 With 143 queries the 95% CI on nDCG@10 spans roughly ±0.055, so a 0.019 gap is
-well inside the noise floor. Reporting "reranking lifted nDCG@10 from 0.195 to
-0.215" would be true arithmetic and a false finding. The statistics module exists
-precisely to stop that, and here it earned its place by refusing the result the
-project was set up to produce.
+well inside the noise floor while a 0.154 gap is not. Reporting "reranking lifted
+nDCG@10 from 0.195 to 0.215" would be true arithmetic and a false finding. The
+statistics module exists precisely to stop that, and here it earned its place by
+refusing the result the project was set up to produce while passing the one
+nobody wanted.
+
+### Dense retrieval loses — and the overlap split says why
+
+Both dense arms land far below every lexical configuration. Before reading that
+as "embeddings are bad at finance", look at where each configuration's score
+comes from:
+
+| configuration | nDCG low-overlap | nDCG high-overlap | direction |
+|---|---|---|---|
+| `baseline-bm25-fixed512` | 0.1091 | 0.2254 | **+107%** high |
+| `chunk-struct512` | 0.0837 | 0.2236 | +167% high |
+| `retrieval-hybrid-rrf` | 0.1374 | 0.2207 | +61% high |
+| `retrieval-dense-bge` | **0.1346** | **0.1143** | **−15%** — *inverted* |
+| `embed-e5-base` | 0.0467 | 0.0394 | −16% — *inverted* |
+
+`retrieval-dense-bge` is the **only** configuration whose low-overlap score beats
+its high-overlap score, and `embed-e5-base` is the only other one close to flat.
+Every lexical configuration roughly doubles when the query shares wording with the
+answer, because that is what BM25 matches on. The dense arms do not, so they
+neither gain from the overlap nor lose from its absence.
+
+That matters because this benchmark's queries are generated from table rows and
+reuse the document's own row labels, handing BM25 an exact string match on most of
+them. The dense arms are being scored on a benchmark whose construction favours
+their competitor. The defensible claim is **not** "BM25 beats dense on SEC filings"
+but "BM25 beats dense on queries phrased in the filing's own words" — and on the
+low-overlap subset, `retrieval-dense-bge` (0.1346) beats the baseline (0.1091) and
+`retrieval-hybrid-rrf` (0.1374) beats everything except reranking.
+
+Query paraphrasing is the fix, it is not done, and until it is the dense arms'
+headline numbers are a lower bound. The next section shows the same split doing
+the same work for reranking.
 
 ### The real finding, which the aggregate hides
 
@@ -139,9 +180,11 @@ higher up. **Row-sentence table rendering is worse than pipe tables** on this
 corpus, which contradicts the intuition that repeating column headers next to
 every value helps.
 
-None of these differences has been checked for significance yet — the
-Holm-corrected paired tests run over the full grid, and the grid is incomplete.
-**Do not quote any of these deltas as a finding until the GPU arms land.**
+The GPU arms have since landed and the Holm-corrected tests run over the whole
+grid. Every one of these chunking and rendering deltas comes back with a corrected
+p of 1.000, so **none of them is a finding** — they are the shape of the noise at
+n = 143. The one comparison that does survive correction is `embed-e5-base`
+scoring below the baseline.
 
 ### Label quality, and whether the conclusions survive it
 
@@ -175,12 +218,21 @@ matters:
 | `rerank-candidates-200` | 0.1854 | 0.2080 | +0.0226 |
 | `tables-row-sentences` | 0.1688 | 0.1889 | +0.0201 |
 
-Three things to take from it. **Every configuration gains roughly the same amount**
-(+0.020 to +0.031), which is what you would expect if the rejected labels were
-genuinely unanswerable — they penalised every system equally. **The ranking is
-identical**, so no conclusion here rests on the label defects. And **still zero of
-eight comparisons survive Holm correction** (smallest raw p 0.281), so the
-"reranking is not significant" finding is not an artifact of noisy labels either.
+Three things to take from it. **Twelve of thirteen configurations gain between
++0.020 and +0.031**, which is what you would expect if the rejected labels were
+genuinely unanswerable — they penalised every system about equally. The exception
+is `embed-e5-base`, which *loses* 0.0035: it was not being held back by bad
+labels, and removing them does not rescue it.
+
+**The ranking is stable but not identical.** The top three and the bottom four are
+unchanged; `retrieval-hybrid-rrf` and `hybrid-plus-rerank` swap places at ranks 4
+and 5, on a gap of 0.0025 — which is noise, and is exactly why neither is called a
+finding. No conclusion here rests on the label defects.
+
+And **the significance picture is unchanged**: no improvement survives Holm
+correction on either label set, and `embed-e5-base` remains the single significant
+comparison at p = 0.001 on both. Neither the null result nor the one real effect
+is an artifact of noisy labels.
 
 The overlap split gets *stronger* on the cleaner subset — `rerank-bm25-100` goes
 from +112% to **+171%** on low-overlap queries while its high-overlap penalty
@@ -246,24 +298,25 @@ Nothing below is called verified unless it was run and its output inspected.
 | Statistics (bootstrap CI, paired permutation, Holm) | 25 tests, determinism asserted under fixed seeds |
 | BM25, dense, RRF fusion, reranking wiring | 66 tests, offline with fakes |
 | Eval set, 216 queries | every gold passage verified to contain the value its query asks for |
-| Ablation runner, 9 configurations | numbers above, on the full corpus |
-| Cross-encoder reranking arms | Kaggle T4: 43,200 pairs scored, 48.3 pairs/s; scores committed |
-| GPU passage embeddings (BGE-M3, E5-base) | Kaggle T4: 42,215 chunks each, 52.1 and 149.8 chunks/s |
-| Model-assisted label audit | 216 labels rechecked, 44 rejected; ranking unchanged on the accepted subset |
-| Learning document + PDF renderer | 18 pages, every page rasterised and round-tripped through a text extractor |
+| Ablation runner, 13 configurations | numbers above, on the full corpus |
+| Cross-encoder reranking arms | Kaggle T4: 43,200 pairs scored, 46.6 pairs/s; scores committed |
+| Dense and hybrid arms | Kaggle T4: 42,215 passage + 216 query vectors per model, aligned by id with 0 orphans |
+| GPU embeddings (BGE-M3, E5-base) | Kaggle T4: 49.8 and 143.3 chunks/s; model commit hashes recorded |
+| Model-assisted label audit | 216 labels rechecked, 44 rejected; conclusions unchanged on the accepted subset |
+| Learning document + PDF renderer | every page rasterised and round-tripped through a text extractor |
 | Gemini client: cached, quota-tolerant, token-accounted | live run; 19 calls, 15 rate-limited, resumed from cache |
 | Generation + long-context comparison | numbers above, from the API's own reported token counts |
 | FastAPI service, Docker, citation UI | live run: index 31.7 s, /search 1.9 ms, /answer 429 path verified |
 
-**425 tests pass, offline, with no API key and no model download.** `ruff` clean.
+**429 tests pass, offline, with no API key and no model download.** `ruff` clean.
 
 ### Not done
 
 | Missing | Why | What unblocks it |
 |---|---|---|
-| Dense / hybrid arms (6 of 15 configurations) | the GPU run emitted passage vectors but no **query** vectors, and both sides of a cosine must come from the same model | one more Kaggle session; the worker now writes `queryvectors-*.npz` |
-| Semantic chunking arm | needs live embeddings — the sentences it embeds do not exist until it has already run, so there is no precomputed substitute | same Kaggle session |
-| Query paraphrasing | needs an LLM; would reduce the lexical-overlap confound | free-tier quota |
+| `chunk-semantic95` | needs live embeddings — the sentences it embeds do not exist until it has already run, so there is no precomputed substitute; the GPU worker does not currently emit them | extend `notebooks/kaggle_gpu_arms.py` to run the semantic chunker on the GPU and ship its chunk boundaries |
+| `embed-finance-e5` | the GPU run embedded BGE-M3 and E5-base only | add `finance-e5` to `EMBEDDING_JOBS` and re-run the notebook |
+| **Query paraphrasing** — the most important gap | the benchmark's queries reuse the filing's own row labels, which systematically favours BM25 over the dense arms; the overlap split measures the confound but does not remove it | free-tier quota |
 | Faithfulness judging | run was cut short by the daily quota before the judge pass | free-tier quota, or re-run tomorrow |
 | Generation + long-context at full sample | 12 of 216 queries measured; quota-bound | free-tier quota, or re-run tomorrow |
 | Human verification of eval labels | requires a person; the model-assisted pass is labelled `MODEL_CHECKED`, never `HUMAN_VERIFIED` | fill in `data/eval/verification_sample.md` |

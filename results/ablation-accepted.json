@@ -1,6 +1,6 @@
 {
   "n_configurations": 15,
-  "n_measured": 9,
+  "n_measured": 13,
   "results": [
     {
       "name": "baseline-bm25-fixed512",
@@ -35,7 +35,7 @@
       ],
       "ndcg10_low_overlap_queries": 0.12757830128713346,
       "ndcg10_high_overlap_queries": 0.24201205231811038,
-      "seconds": 0.7
+      "seconds": 0.5
     },
     {
       "name": "chunk-fixed256o32",
@@ -70,7 +70,7 @@
       ],
       "ndcg10_low_overlap_queries": 0.10383634972841668,
       "ndcg10_high_overlap_queries": 0.21104020401949314,
-      "seconds": 0.9
+      "seconds": 0.6
     },
     {
       "name": "chunk-semantic95",
@@ -129,7 +129,7 @@
       ],
       "ndcg10_low_overlap_queries": 0.11574650276539966,
       "ndcg10_high_overlap_queries": 0.2347055998402112,
-      "seconds": 0.6
+      "seconds": 0.5
     },
     {
       "name": "tables-row-sentences",
@@ -164,7 +164,7 @@
       ],
       "ndcg10_low_overlap_queries": 0.12528236921768846,
       "ndcg10_high_overlap_queries": 0.20389622397857682,
-      "seconds": 0.6
+      "seconds": 0.5
     },
     {
       "name": "retrieval-dense-bge",
@@ -176,19 +176,30 @@
       "candidate_k": 100,
       "table_rendering": "markdown",
       "notes": "dense only",
-      "measured": false,
-      "skipped_reason": "passage vectors for bge-m3 are present but queryvectors-bge-m3.npz is not. A dense index needs both sides embedded by the same model; embedding queries with a different model would compare vectors from two spaces and return confident nonsense. Re-run the GPU notebook to produce them.",
+      "measured": true,
+      "skipped_reason": null,
       "n_chunks": 42215,
-      "metrics_all": {},
-      "metrics_common_subset": {},
-      "n_scored_all": 0,
-      "n_scored_common": 0,
-      "fraction_reachable": null,
+      "metrics_all": {
+        "ndcg@10": 0.10694475043081186,
+        "recall@50": 0.32558139534883723,
+        "mrr": 0.09751192803108692
+      },
+      "metrics_common_subset": {
+        "ndcg@10": 0.14092461648532062,
+        "recall@50": 0.34545454545454546,
+        "mrr": 0.12273058549194912
+      },
+      "n_scored_all": 172,
+      "n_scored_common": 110,
+      "fraction_reachable": 1.0,
       "first_stage_recall_ceiling": null,
-      "ndcg10_ci95": null,
-      "ndcg10_low_overlap_queries": null,
-      "ndcg10_high_overlap_queries": null,
-      "seconds": 0.0
+      "ndcg10_ci95": [
+        0.08847816052271797,
+        0.19903876418164368
+      ],
+      "ndcg10_low_overlap_queries": 0.22124367494938338,
+      "ndcg10_high_overlap_queries": 0.12197292853312602,
+      "seconds": 1.2
     },
     {
       "name": "retrieval-hybrid-rrf",
@@ -200,19 +211,30 @@
       "candidate_k": 100,
       "table_rendering": "markdown",
       "notes": "BM25 + dense fused with RRF",
-      "measured": false,
-      "skipped_reason": "passage vectors for bge-m3 are present but queryvectors-bge-m3.npz is not. A dense index needs both sides embedded by the same model; embedding queries with a different model would compare vectors from two spaces and return confident nonsense. Re-run the GPU notebook to produce them.",
+      "measured": true,
+      "skipped_reason": null,
       "n_chunks": 42215,
-      "metrics_all": {},
-      "metrics_common_subset": {},
-      "n_scored_all": 0,
-      "n_scored_common": 0,
-      "fraction_reachable": null,
+      "metrics_all": {
+        "ndcg@10": 0.21270281571382596,
+        "recall@50": 0.5465116279069767,
+        "mrr": 0.18915887486486718
+      },
+      "metrics_common_subset": {
+        "ndcg@10": 0.22987759402996447,
+        "recall@50": 0.5636363636363636,
+        "mrr": 0.20014366290678426
+      },
+      "n_scored_all": 172,
+      "n_scored_common": 110,
+      "fraction_reachable": 1.0,
       "first_stage_recall_ceiling": null,
-      "ndcg10_ci95": null,
-      "ndcg10_low_overlap_queries": null,
-      "ndcg10_high_overlap_queries": null,
-      "seconds": 0.0
+      "ndcg10_ci95": [
+        0.1669560576380555,
+        0.29771796719191995
+      ],
+      "ndcg10_low_overlap_queries": 0.20928284023705637,
+      "ndcg10_high_overlap_queries": 0.23473703031817872,
+      "seconds": 1.9
     },
     {
       "name": "retrieval-bm25-struct",
@@ -247,7 +269,7 @@
       ],
       "ndcg10_low_overlap_queries": 0.11574650276539966,
       "ndcg10_high_overlap_queries": 0.2347055998402112,
-      "seconds": 0.7
+      "seconds": 0.6
     },
     {
       "name": "embed-e5-base",
@@ -259,19 +281,30 @@
       "candidate_k": 100,
       "table_rendering": "markdown",
       "notes": "embedding axis: e5-base vs bge-m3",
-      "measured": false,
-      "skipped_reason": "passage vectors for e5-base are present but queryvectors-e5-base.npz is not. A dense index needs both sides embedded by the same model; embedding queries with a different model would compare vectors from two spaces and return confident nonsense. Re-run the GPU notebook to produce them.",
+      "measured": true,
+      "skipped_reason": null,
       "n_chunks": 42215,
-      "metrics_all": {},
-      "metrics_common_subset": {},
-      "n_scored_all": 0,
-      "n_scored_common": 0,
-      "fraction_reachable": null,
+      "metrics_all": {
+        "ndcg@10": 0.051829338154039006,
+        "recall@50": 0.22674418604651161,
+        "mrr": 0.04466586794215185
+      },
+      "metrics_common_subset": {
+        "ndcg@10": 0.03776185097587406,
+        "recall@50": 0.2,
+        "mrr": 0.032540194971238744
+      },
+      "n_scored_all": 172,
+      "n_scored_common": 110,
+      "fraction_reachable": 1.0,
       "first_stage_recall_ceiling": null,
-      "ndcg10_ci95": null,
-      "ndcg10_low_overlap_queries": null,
-      "ndcg10_high_overlap_queries": null,
-      "seconds": 0.0
+      "ndcg10_ci95": [
+        0.013844307761588081,
+        0.06717356213942617
+      ],
+      "ndcg10_low_overlap_queries": 0.06179030572562495,
+      "ndcg10_high_overlap_queries": 0.0320922155854834,
+      "seconds": 1.1
     },
     {
       "name": "embed-finance-e5",
@@ -330,7 +363,7 @@
       ],
       "ndcg10_low_overlap_queries": 0.3461838309116644,
       "ndcg10_high_overlap_queries": 0.20769862636931072,
-      "seconds": 0.7
+      "seconds": 0.4
     },
     {
       "name": "rerank-candidates-25",
@@ -365,7 +398,7 @@
       ],
       "ndcg10_low_overlap_queries": 0.2505647384353769,
       "ndcg10_high_overlap_queries": 0.2335669626294736,
-      "seconds": 0.6
+      "seconds": 0.5
     },
     {
       "name": "rerank-candidates-50",
@@ -400,7 +433,7 @@
       ],
       "ndcg10_low_overlap_queries": 0.2806090124149701,
       "ndcg10_high_overlap_queries": 0.23730699608895944,
-      "seconds": 0.7
+      "seconds": 0.4
     },
     {
       "name": "rerank-candidates-200",
@@ -435,7 +468,7 @@
       ],
       "ndcg10_low_overlap_queries": 0.31000311573924966,
       "ndcg10_high_overlap_queries": 0.18395319713181243,
-      "seconds": 0.7
+      "seconds": 0.6
     },
     {
       "name": "hybrid-plus-rerank",
@@ -447,19 +480,30 @@
       "candidate_k": 100,
       "table_rendering": "markdown",
       "notes": "the production configuration: hybrid retrieval then cross-encoder",
-      "measured": false,
-      "skipped_reason": "passage vectors for bge-m3 are present but queryvectors-bge-m3.npz is not. A dense index needs both sides embedded by the same model; embedding queries with a different model would compare vectors from two spaces and return confident nonsense. Re-run the GPU notebook to produce them.",
+      "measured": true,
+      "skipped_reason": null,
       "n_chunks": 42215,
-      "metrics_all": {},
-      "metrics_common_subset": {},
-      "n_scored_all": 0,
-      "n_scored_common": 0,
-      "fraction_reachable": null,
-      "first_stage_recall_ceiling": null,
-      "ndcg10_ci95": null,
-      "ndcg10_low_overlap_queries": null,
-      "ndcg10_high_overlap_queries": null,
-      "seconds": 0.0
+      "metrics_all": {
+        "ndcg@10": 0.21679853717228706,
+        "recall@50": 0.5930232558139535,
+        "mrr": 0.18249474509208488
+      },
+      "metrics_common_subset": {
+        "ndcg@10": 0.22735198403768714,
+        "recall@50": 0.6,
+        "mrr": 0.19664150426396287
+      },
+      "n_scored_all": 172,
+      "n_scored_common": 110,
+      "fraction_reachable": 1.0,
+      "first_stage_recall_ceiling": 0.6453488372093024,
+      "ndcg10_ci95": [
+        0.16663492301433894,
+        0.29294041275410265
+      ],
+      "ndcg10_low_overlap_queries": 0.33994908074159497,
+      "ndcg10_high_overlap_queries": 0.20078412975923693,
+      "seconds": 1.9
     }
   ],
   "significance_vs_baseline": {
@@ -490,6 +534,24 @@
       "significant_at_05": false,
       "n_pairs": 110
     },
+    "retrieval-dense-bge": {
+      "baseline_ndcg10": 0.22016560893946932,
+      "config_ndcg10": 0.1409246164853206,
+      "delta": -0.0792409924541487,
+      "p_raw": 0.036196380361963806,
+      "p_holm": 0.39816018398160186,
+      "significant_at_05": false,
+      "n_pairs": 110
+    },
+    "retrieval-hybrid-rrf": {
+      "baseline_ndcg10": 0.22016560893946932,
+      "config_ndcg10": 0.2298775940299645,
+      "delta": 0.009711985090495137,
+      "p_raw": 0.8041195880411959,
+      "p_holm": 1.0,
+      "significant_at_05": false,
+      "n_pairs": 110
+    },
     "retrieval-bm25-struct": {
       "baseline_ndcg10": 0.22016560893946932,
       "config_ndcg10": 0.21199522676229265,
@@ -497,6 +559,15 @@
       "p_raw": 0.7756224377562244,
       "p_holm": 1.0,
       "significant_at_05": false,
+      "n_pairs": 110
+    },
+    "embed-e5-base": {
+      "baseline_ndcg10": 0.22016560893946932,
+      "config_ndcg10": 0.03776185097587406,
+      "delta": -0.18240375796359526,
+      "p_raw": 9.999000099990002e-05,
+      "p_holm": 0.0011998800119988001,
+      "significant_at_05": true,
       "n_pairs": 110
     },
     "rerank-bm25-100": {
@@ -531,6 +602,15 @@
       "config_ndcg10": 0.20801727250232319,
       "delta": -0.012148336437146138,
       "p_raw": 0.7464253574642535,
+      "p_holm": 1.0,
+      "significant_at_05": false,
+      "n_pairs": 110
+    },
+    "hybrid-plus-rerank": {
+      "baseline_ndcg10": 0.22016560893946932,
+      "config_ndcg10": 0.22735198403768708,
+      "delta": 0.007186375098217785,
+      "p_raw": 0.8493150684931506,
       "p_holm": 1.0,
       "significant_at_05": false,
       "n_pairs": 110

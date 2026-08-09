@@ -50,7 +50,15 @@ results/queryvectors-*.npz
 # directory with it, including a full clone of this repository (8.5 GB, with its
 # own .git and a second copy of the corpus). Harmless to leave on disk, disastrous
 # to commit.
-results/retrieval-ablation/
+#
+# Ignore every DIRECTORY under results/ rather than naming them one at a time.
+# results/ holds published metric files and nothing else, so any directory
+# appearing there is a dropped download. Naming them individually failed the
+# second time it mattered: the rule below said results/retrieval-ablation/, the
+# next download unpacked to results/results/, and 8.6 GB sat unignored waiting
+# for a `git add -A`. Artifacts that should be committed are copied up into
+# results/ explicitly, which is the intended workflow anyway.
+results/*/
 
 # Page rasters written by scripts/render_pdf.py so the rendering can be checked
 # by eye. They are a verification step, not an output: regenerated on every run,

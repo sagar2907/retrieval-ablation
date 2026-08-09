@@ -1,5 +1,5 @@
 {
-  "_note": "Exact Hugging Face commits of the models used by the GPU run that produced results/vectors-*.npz and the cross-encoder scores. Emitted by the Kaggle session. Kept because a model id alone does not identify weights: a repo can be updated in place, and vectors from two commits of the same model id are not interchangeable.",
+  "_note": "Exact Hugging Face commits of the models used by the GPU run that produced results/vectors-*.npz, results/queryvectors-*.npz and the cross-encoder scores. Emitted by the Kaggle session. Kept because a model id alone does not identify weights: a repo can be updated in place, and vectors from two commits of the same model id are not interchangeable.",
   "models": [
     {
       "repo": "BAAI/bge-m3",
