@@ -578,6 +578,28 @@ Defences that make a whole class of error *structurally visible* outrank
 defences that test for it, because the test is only as good as the last person's
 attention and the structure holds regardless.
 
+**Query vectors reused across a rewrite of the query.** Paraphrasing keeps
+`query_id` deliberately — that is what makes the two eval sets comparable. The
+artifact loader keyed vectors by id and then filed each row under whatever text
+the caller currently held, so the paraphrased run scored every dense arm with
+vectors embedded from the *original* wording. No exception, complete coverage,
+entirely ordinary-looking metrics. The only symptom was nDCG@10 matching the
+original run at four decimal places, which is the sole reason it was caught.
+
+The artifacts now record the text each vector was built from, rows whose text has
+changed are dropped, and an artifact that cannot say what it embedded is refused
+outright. An unmeasured arm costs a re-run; an arm silently scored against stale
+vectors costs the credibility of every number printed beside it.
+
+Worth naming the pattern, because this project produced it five separate times: a
+mechanism that appears to validate something and does not. A manifest check that
+verified a run against its own output. A snapshot read but never compared. A reuse
+shortcut that skipped the write it was guarding. A `.gitignore` rule naming one
+directory when the next download used another. And this. None raised an error;
+all five reported success. The common shape is that the check and the thing being
+checked were allowed to come from the same source, so agreement was guaranteed
+rather than earned.
+
 **An undefined metric rendered as a real zero.** The long-context arm showed
 citation precision `0.000` beside retrieval's `0.567`, reading as "long context
 cites badly". It *cannot* cite a gold chunk — its context is one whole-document
@@ -606,6 +628,47 @@ Full corpus, 42,215 chunks, 143 queries judgeable by every configuration.
 | `tables-row-sentences` | 0.1688 | [0.122, 0.222] | 0.4935 | −0.0265 | 1.000 |
 | `retrieval-dense-bge` | 0.1196 | [0.077, 0.167] | 0.3077 | −0.0757 | 0.130 |
 | `embed-e5-base` | 0.0413 | [0.019, 0.068] | 0.2168 | −0.1540 | **0.001** |
+
+### Finding 0 — the benchmark was hiding the effect it existed to measure
+
+This is the most important result in the project, and it was invisible until the
+last thing on the list got done.
+
+Every query in this benchmark was generated from a table row and reused that row's
+label word for word. Paraphrasing rewrites the questions the way a person would
+ask them, touching nothing else — same corpus, same gold spans, same query ids,
+same 143 shared queries. Then the grid runs again.
+
+| configuration | original | paraphrased | Δ vs base | p (Holm) |
+|---|---|---|---|---|
+| `rerank-bm25-100` | 0.2057 | 0.1377 | **+0.0902** | **0.0016** ✓ |
+| `rerank-candidates-200` | 0.1854 | 0.1342 | **+0.0867** | **0.0028** ✓ |
+| `rerank-candidates-50` | 0.2145 | 0.1058 | **+0.0584** | **0.0036** ✓ |
+| `rerank-candidates-25` | 0.2103 | 0.0919 | **+0.0444** | **0.0350** ✓ |
+| `baseline-bm25-fixed512` | 0.1953 | 0.0475 | — | — |
+
+On the original queries, nothing favouring any configuration was significant. On
+the paraphrased queries, **every reranking configuration is significant**.
+
+No retriever changed. The benchmark was giving BM25 an exact string match on 73%
+of its queries, and a first stage that already has the answer at rank 1 gives a
+reranker nothing to improve. Removing that advantage did not make reranking
+better; it made it measurable.
+
+Notice also that the candidate-depth finding **inverts**. Depth 200 was the worst
+configuration on the original queries and is second best here — consistent with a
+reranker that is now doing real work, for which a deeper shortlist is an
+opportunity rather than more chances to err.
+
+The lesson generalises past retrieval. Every piece of statistical machinery in
+this project was correct: the paired test, the bootstrap intervals, the
+Holm correction. All of it was applied conscientiously to numbers produced by a
+benchmark that favoured one arm, and none of it could have noticed, because
+none of it was wrong. Significance testing protects against reading noise as
+signal. It offers no protection whatsoever against a well-measured answer to the
+wrong question. The only thing that caught this was recording lexical overlap per
+query — deciding, before any of the results existed, to measure the confound
+rather than argue about it.
 
 ### Finding 1 — nothing was shown to help; one thing was shown to hurt
 

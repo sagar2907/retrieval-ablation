@@ -296,6 +296,13 @@ def main() -> None:  # noqa: PLR0912,PLR0915 - a linear script; splitting it wou
                 qout,
                 vectors=query_vectors,
                 query_ids=np.array([q.query_id for q in queries], dtype=object),
+                # The text each vector was actually built from. Ids alone are not
+                # enough: they survive a rewrite of the query text, which is what
+                # makes the paraphrased eval set comparable to the original, and
+                # therefore also what let the local side serve original-wording
+                # vectors for paraphrased queries without noticing. The loader
+                # refuses any artifact lacking this field.
+                query_texts=np.array([q.text for q in queries], dtype=object),
                 embedder=model_key,
             )
             manifest["artifacts"].append(

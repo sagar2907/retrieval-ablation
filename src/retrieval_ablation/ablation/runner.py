@@ -41,6 +41,7 @@ from ..corpus.ingest import load_corpus
 from ..corpus.models import Document, GoldPassage
 from ..embed.base import Embedder
 from ..evalset.build import QUERIES_PATH
+from ..evalset.paraphrase import PARAPHRASED_PATH
 from ..evalset.relevance import (
     Chunk,
     build_qrels,
@@ -419,11 +420,19 @@ def _build_retriever(  # noqa: PLR0911 - each return is a distinct, named unavai
 
 #: Reported verbatim in the results table when a dense arm cannot run. Stated as
 #: a missing artifact rather than a code failure, because that is what it is.
+#:
+#: Deliberately does not claim the file is absent. It may well be present and
+#: still unusable: the loader refuses vectors whose recorded text differs from the
+#: query being scored, which is exactly what happens on the paraphrased eval set.
+#: An earlier version of this message said the file "is not" there, which would
+#: send a reader looking for something that is sitting in results/.
 _NO_QUERY_VECTORS = (
-    "passage vectors for {model} are present but queryvectors-{model}.npz is not. "
-    "A dense index needs both sides embedded by the same model; embedding queries "
-    "with a different model would compare vectors from two spaces and return "
-    "confident nonsense. Re-run the GPU notebook to produce them."
+    "no usable query vectors for {model}: queryvectors-{model}.npz is absent, or "
+    "records different query text than the set being scored (check the loader "
+    "warning above). A dense index needs both sides embedded by the same model on "
+    "the same wording; reusing vectors from other text compares two things that "
+    "were never asked and returns confident nonsense. Re-run the GPU notebook "
+    "against this eval set to produce them."
 )
 
 #: Queries whose content words overlap the gold passage below this fraction are'
@@ -722,6 +731,14 @@ def main() -> None:
         action="store_true",
         help="drop labels a checker rejected, and write to results/ablation-accepted.*",
     )
+    parser.add_argument(
+        "--paraphrased",
+        action="store_true",
+        help=(
+            "score the paraphrased queries, and write to results/ablation-paraphrased.*. "
+            "Same query ids and same gold spans, so the two runs are directly comparable"
+        ),
+    )
     args = parser.parse_args()
 
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
@@ -729,7 +746,17 @@ def main() -> None:
     docs = load_corpus()
     if args.max_docs:
         docs = docs[: args.max_docs]
-    queries = read_eval_set(QUERIES_PATH)
+
+    # The paraphrased set rewrites question text only; gold spans, ids and grades
+    # are carried over untouched, which is what makes a difference between the two
+    # runs attributable to the wording rather than to a different benchmark.
+    queries_path = PARAPHRASED_PATH if args.paraphrased else QUERIES_PATH
+    if args.paraphrased and not queries_path.exists():
+        raise SystemExit(
+            f"{queries_path} does not exist. Run "
+            f"`python -m retrieval_ablation.evalset.paraphrase` first."
+        )
+    queries = read_eval_set(queries_path)
     if args.exclude_rejected:
         # Robustness check, not the headline. Roughly one label in five was
         # rejected by the checker, so the question is whether the ordering of the
@@ -747,7 +774,11 @@ def main() -> None:
     log.info("running %d configurations over %d documents", len(grid), len(docs))
     results = run_ablation(docs, queries, grid, top_k=args.top_k)
     tests = significance(results)
-    suffix = "-accepted" if args.exclude_rejected else ""
+    suffix = ""
+    if args.paraphrased:
+        suffix += "-paraphrased"
+    if args.exclude_rejected:
+        suffix += "-accepted"
     write_results(results, tests, suffix)
 
     print(f"\nwrote {RESULTS_PATH}")

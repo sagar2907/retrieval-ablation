@@ -45,6 +45,9 @@ models/
 # because they are what the reranking rows in the published table rest on.
 results/vectors-*.npz
 results/queryvectors-*.npz
+# Pre-backfill copies written by scripts/backfill_query_texts.py. Derived,
+# large, and regenerable; kept on disk only so a bad backfill can be undone.
+results/*.npz.bak
 
 # Copying a Kaggle output folder wholesale brings the notebook''s entire working
 # directory with it, including a full clone of this repository (8.5 GB, with its

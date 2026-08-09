@@ -22,7 +22,7 @@ import numpy as np
 
 from retrieval_ablation.corpus.models import Span
 from retrieval_ablation.evalset.relevance import Chunk
-from retrieval_ablation.index.artifacts import load_vectors
+from retrieval_ablation.index.artifacts import load_query_vectors, load_vectors
 
 
 def chunk(chunk_id: str, text: str) -> Chunk:
@@ -101,3 +101,73 @@ class TestLoadVectors:
         assert loaded.coverage == 0.0
         assert loaded.n_missing_locally == 1
         assert loaded.n_unmatched_remotely == 2
+
+
+def write_query_vectors(path, ids: list[str], texts: list[str] | None, dim: int = 4) -> None:
+    """Write an .npz shaped like the GPU worker's query output.
+
+    `texts=None` reproduces the older artifacts, which recorded ids but not the
+    text each vector was built from.
+    """
+    matrix = np.array([[float(i)] * dim for i in range(len(ids))], dtype=np.float32)
+    payload = {
+        "vectors": matrix,
+        "query_ids": np.array(ids, dtype=object),
+        "embedder": "fake",
+    }
+    if texts is not None:
+        payload["query_texts"] = np.array(texts, dtype=object)
+    np.savez(path, **payload)
+
+
+class TestLoadQueryVectors:
+    """Query ids survive a rewrite of the query text. Vectors must not."""
+
+    def test_vectors_load_when_the_text_still_matches(self, tmp_path):
+        write_query_vectors(tmp_path / "queryvectors-fake.npz", ["q1", "q2"], ["ask a", "ask b"])
+
+        got = load_query_vectors("fake", {"q1": "ask a", "q2": "ask b"}, directory=tmp_path)
+
+        assert got is not None
+        assert set(got) == {"ask a", "ask b"}
+
+    def test_a_rewritten_query_does_not_get_the_old_wordings_vector(self, tmp_path):
+        """Regression: the paraphrased eval set was scored with original vectors.
+
+        Paraphrasing rewrites `text` and deliberately keeps `query_id`, which is
+        what makes the two eval sets comparable. The loader used to look up the id
+        and file the row under whatever text the caller currently held, so every
+        dense arm received the vector of the wording it was no longer being asked
+        about. Nothing raised, coverage was total, and the metrics looked ordinary
+        -- the only visible symptom was nDCG@10 matching the original run to four
+        decimal places.
+        """
+        write_query_vectors(tmp_path / "queryvectors-fake.npz", ["q1"], ["what was revenue"])
+
+        got = load_query_vectors("fake", {"q1": "how much money came in"}, directory=tmp_path)
+
+        assert got is None
+
+    def test_partially_rewritten_sets_keep_only_the_untouched_queries(self, tmp_path):
+        """Dropping the stale ones beats serving them or failing the whole arm."""
+        write_query_vectors(tmp_path / "queryvectors-fake.npz", ["q1", "q2"], ["ask a", "ask b"])
+
+        got = load_query_vectors("fake", {"q1": "ask a", "q2": "rewritten"}, directory=tmp_path)
+
+        assert got is not None
+        assert set(got) == {"ask a"}
+
+    def test_an_artifact_without_query_texts_is_refused(self, tmp_path):
+        """Unprovable is treated as unusable.
+
+        An artifact predating the field is not necessarily wrong, but it cannot
+        show which text it embedded. A dense arm reported unmeasured costs a
+        re-run; one silently scored against stale vectors costs the credibility of
+        every number printed beside it.
+        """
+        write_query_vectors(tmp_path / "queryvectors-fake.npz", ["q1"], None)
+
+        assert load_query_vectors("fake", {"q1": "ask a"}, directory=tmp_path) is None
+
+    def test_a_missing_file_is_not_an_error(self, tmp_path):
+        assert load_query_vectors("absent", {"q1": "ask a"}, directory=tmp_path) is None

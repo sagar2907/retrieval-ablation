@@ -154,6 +154,24 @@ def load_query_vectors(
     when the file is absent, which is a normal state rather than an error: a GPU
     run that produced only passage vectors leaves the dense arm unrunnable, and
     the caller reports that as a skip.
+
+    THE TEXT MUST BE CHECKED, NOT ASSUMED
+
+    Query ids are stable across a rewrite of the query text -- that is exactly
+    what makes the paraphrased and original eval sets comparable. It also means an
+    id is not evidence that a vector belongs to the text now filed under it. The
+    first version of this function looked the id up and stored the row under
+    whatever text the caller currently held, so running the paraphrased eval set
+    served every dense arm the vector of the *original* wording. The failure was
+    invisible in every way that matters: no exception, full coverage, plausible
+    metrics -- and nDCG@10 identical to the original run at four decimal places,
+    which is the only reason it was caught.
+
+    So the artifact records the text it embedded, and a row whose text no longer
+    matches is dropped rather than served. An artifact written before that field
+    existed cannot be checked, and is refused outright: a dense arm reported as
+    unmeasured costs a re-run, while one silently scored against stale vectors
+    costs the credibility of every number beside it.
     """
     root = directory or RESULTS_DIR
     path = root / f"queryvectors-{embedder_name}.npz"
@@ -161,14 +179,38 @@ def load_query_vectors(
         return None
 
     payload = np.load(path, allow_pickle=True)
+    if "query_texts" not in payload:
+        log.warning(
+            "%s carries no query_texts, so the vectors cannot be shown to match the "
+            "queries being scored. Refusing to use it; re-run the GPU notebook.",
+            path.name,
+        )
+        return None
+
     ids = [str(q) for q in payload["query_ids"]]
+    embedded = [str(t) for t in payload["query_texts"]]
     vectors = np.asarray(payload["vectors"], dtype=np.float32)
+
     by_text: dict[str, np.ndarray] = {}
-    for query_id, row in zip(ids, vectors, strict=True):
-        text = query_text_by_id.get(query_id)
-        if text is not None:
-            by_text[text] = row
-    return by_text
+    stale = 0
+    for query_id, embedded_text, row in zip(ids, embedded, vectors, strict=True):
+        current = query_text_by_id.get(query_id)
+        if current is None:
+            continue
+        if current != embedded_text:
+            stale += 1
+            continue
+        by_text[current] = row
+
+    if stale:
+        log.warning(
+            "%s: %d of %d query vectors were embedded from different text and were "
+            "dropped. The query set has been rewritten since the GPU run.",
+            path.name,
+            stale,
+            len(ids),
+        )
+    return by_text or None
 
 
 def dense_index_from_artifact(

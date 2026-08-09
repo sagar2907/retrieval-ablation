@@ -1,0 +1,114 @@
+{
+  "model": "gemini-3.5-flash-lite",
+  "_note": "Paraphrases rewrite EvalQuery.text only. Gold spans, grades and verification status are carried over untouched, so this file indexes the same passages as queries.jsonl and the two runs are comparable. Queries whose rewrite was refused keep their original text rather than being dropped, so both files contain the same query ids.",
+  "n_queries_total": 216,
+  "n_attempted": 216,
+  "n_kept": 216,
+  "n_refused": 0,
+  "mean_overlap_before": 0.4613,
+  "mean_overlap_after": 0.1684,
+  "refusal_reasons": [],
+  "stopped_early": null,
+  "usage": {
+    "live_calls": 216,
+    "cached_calls": 5,
+    "prompt_tokens": 45069,
+    "output_tokens": 5422,
+    "thought_tokens": 0,
+    "rate_limited_responses": 16,
+    "seconds_spent_waiting": 687.0,
+    "p95_latency_seconds": 1.75
+  },
+  "examples": [
+    {
+      "query_id": "q-009f233c4392",
+      "before": "In 2022, what amount did Chevron Corp record as united states?",
+      "after": "In 2022, how much revenue did Chevron Corp generate within the United States?",
+      "overlap": [
+        0.3333333333333333,
+        0.25
+      ]
+    },
+    {
+      "query_id": "q-0290c746cb59",
+      "before": "Report Nike, Inc.'s dividend yield figure for the 2026 fiscal year.",
+      "after": "How much did Nike, Inc. pay out in dividends relative to its share price for the 2026 fiscal year?",
+      "overlap": [
+        0.2857142857142857,
+        0.0
+      ]
+    },
+    {
+      "query_id": "q-02fd7823d110",
+      "before": "Unitedhealth Group Inc expected life in years 2025",
+      "after": "What was UnitedHealth Group Inc's expected duration in years for 2025?",
+      "overlap": [
+        0.42857142857142855,
+        0.2857142857142857
+      ]
+    },
+    {
+      "query_id": "q-043530333f46",
+      "before": "General Electric Co remeasurement 2022",
+      "after": "How much did General Electric Co record in foreign currency translation adjustments during 2022?",
+      "overlap": [
+        0.25,
+        0.0
+      ]
+    },
+    {
+      "query_id": "q-04baba74542c",
+      "before": "What was Caterpillar Inc's rate of compensation increase for 2022?",
+      "after": "By what percentage did Caterpillar Inc increase its employee pay in 2022?",
+      "overlap": [
+        0.5,
+        0.14285714285714285
+      ]
+    },
+    {
+      "query_id": "q-0627a4664c4a",
+      "before": "In 2024, what amount did Boeing Co record as weighted average remaining lease term (years)?",
+      "after": "In 2024, how many years was the average remaining length of Boeing Co's leases?",
+      "overlap": [
+        0.6666666666666666,
+        0.375
+      ]
+    },
+    {
+      "query_id": "q-08753a56250e",
+      "before": "How much did Duke Energy Corp report for duke energy carolinas in 2022?",
+      "after": "How much revenue did the Duke Energy Carolinas segment bring in for Duke Energy Corp in 2022?",
+      "overlap": [
+        0.6,
+        0.375
+      ]
+    },
+    {
+      "query_id": "q-0949e40aebaa",
+      "before": "Report Duke Energy Corp's all fuels (cost based on weighted average)(a) figure for the 2022 fiscal year.",
+      "after": "How much did Duke Energy Corp spend on fuel, based on the weighted average cost, during the 2022 fiscal year?",
+      "overlap": [
+        0.5,
+        0.3333333333333333
+      ]
+    },
+    {
+      "query_id": "q-0b93ebcaaa7e",
+      "before": "Amgen Inc acquired in-process research and development 2021",
+      "after": "How much did Amgen Inc spend on acquiring in-process research and development in 2021?",
+      "overlap": [
+        0.5714285714285714,
+        0.375
+      ]
+    },
+    {
+      "query_id": "q-1162074b5351",
+      "before": "Costco Wholesale Corp /New receivables, net 2024",
+      "after": "How much money was owed to Costco Wholesale Corp /New by its customers that had not yet been collected at the end of 2024?",
+      "overlap": [
+        0.2857142857142857,
+        0.0
+      ]
+    }
+  ]
+}

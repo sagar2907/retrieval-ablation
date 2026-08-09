@@ -59,7 +59,45 @@ on a Kaggle T4; reproduce with `python -m retrieval_ablation.ablation.runner`.
 Full table with reachability and the overlap split:
 [`results/ablation.md`](results/ablation.md).
 
-### The headline: the only significant result is a configuration doing worse
+### The headline: the benchmark was hiding the effect it was built to measure
+
+Rewriting the questions so they stop quoting the filing's own row labels changes
+the conclusion of the entire study. Same corpus, same gold spans, same query ids,
+same 143 shared queries — only the wording of the questions differs.
+
+| configuration | original queries | paraphrased | Δ vs baseline | p (Holm) |
+|---|---|---|---|---|
+| `rerank-bm25-100` | 0.2057 | 0.1377 | **+0.0902** | **0.0016** ✓ |
+| `rerank-candidates-200` | 0.1854 | 0.1342 | **+0.0867** | **0.0028** ✓ |
+| `rerank-candidates-50` | 0.2145 | 0.1058 | **+0.0584** | **0.0036** ✓ |
+| `rerank-candidates-25` | 0.2103 | 0.0919 | **+0.0444** | **0.0350** ✓ |
+| `chunk-struct512` | 0.1874 | 0.0482 | +0.0008 | 1.000 |
+| `baseline-bm25-fixed512` | 0.1953 | 0.0475 | — | — |
+| `chunk-fixed256o32` | 0.1699 | 0.0311 | −0.0164 | 1.000 |
+
+On the original queries **not one comparison favouring any configuration was
+significant**. On the paraphrased queries **all four reranking configurations are
+significant after Holm correction**, at +0.044 to +0.090.
+
+Nothing about the retrievers changed. The benchmark was handing BM25 an exact
+string match on 73% of its queries, and a first stage that already has the answer
+at rank 1 leaves a reranker nothing to do. Removing that advantage does not make
+reranking better — it makes it *visible*.
+
+Two further things fall out of the same table. Absolute scores collapse for every
+configuration, and hardest for the purely lexical ones: the baseline drops 76%
+(0.1953 → 0.0475) while `rerank-bm25-100` drops 33%. And the candidate-depth
+result **inverts** — depth 200 was the worst configuration on the original queries
+and is the second best here, which is what you would expect once the reranker is
+doing real work and a deeper shortlist is an opportunity rather than a liability.
+
+The lesson is not about reranking. A benchmark that systematically advantages one
+arm will report that arm winning, with tight confidence intervals and a
+correction for multiple comparisons applied conscientiously to the wrong numbers.
+None of the statistical machinery in this project detected the problem, because
+none of it was wrong. Measuring the confound is what found it.
+
+### On the original queries, the only significant result was a configuration doing worse
 
 Reranking takes the top four slots, and the brief predicted a "large jump" from
 the cross-encoder. **No improvement over the baseline is statistically
@@ -316,7 +354,7 @@ Nothing below is called verified unless it was run and its output inspected.
 |---|---|---|
 | `chunk-semantic95` | needs live embeddings — the sentences it embeds do not exist until it has already run, so there is no precomputed substitute; the GPU worker does not currently emit them | extend `notebooks/kaggle_gpu_arms.py` to run the semantic chunker on the GPU and ship its chunk boundaries |
 | `embed-finance-e5` | the GPU run embedded BGE-M3 and E5-base only | add `finance-e5` to `EMBEDDING_JOBS` and re-run the notebook |
-| **Query paraphrasing** — the most important gap | the benchmark's queries reuse the filing's own row labels, which systematically favours BM25 over the dense arms; the overlap split measures the confound but does not remove it | free-tier quota |
+| Dense / hybrid arms **on the paraphrased queries** | the GPU run embedded the original wording. Query vectors are only valid for the text they were built from, and the loader now refuses to reuse them across a rewrite | one Kaggle session against `data/eval/queries-paraphrased.jsonl`; the notebook records `query_texts` so a mismatch can never pass silently again |
 | Faithfulness judging | run was cut short by the daily quota before the judge pass | free-tier quota, or re-run tomorrow |
 | Generation + long-context at full sample | 12 of 216 queries measured; quota-bound | free-tier quota, or re-run tomorrow |
 | Human verification of eval labels | requires a person; the model-assisted pass is labelled `MODEL_CHECKED`, never `HUMAN_VERIFIED` | fill in `data/eval/verification_sample.md` |
