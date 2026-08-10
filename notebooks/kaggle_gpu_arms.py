@@ -371,7 +371,16 @@ def main() -> None:  # noqa: PLR0912,PLR0915 - a linear script; splitting it wou
     from retrieval_ablation.index.rerank import CrossEncoderReranker
 
     reranker = None
-    for candidate_file in RERANK_CANDIDATE_FILES:
+    for base_file in RERANK_CANDIDATE_FILES:
+        # The shortlist belongs to a wording: it is what the first stage returned
+        # for those questions. Reranking paraphrased queries against shortlists
+        # retrieved for the original ones would score a pipeline whose two stages
+        # are answering different questions.
+        candidate_file = (
+            base_file
+            if QUERY_SET == "original"
+            else base_file.replace(".json.gz", f"-{QUERY_SET}.json.gz")
+        )
         path = REPO_DIR / "results" / candidate_file
         if not path.exists():
             print(f"\nskipping {candidate_file}: not committed by the local side", flush=True)
@@ -427,7 +436,16 @@ def main() -> None:  # noqa: PLR0912,PLR0915 - a linear script; splitting it wou
 
         stem = candidate_file.removesuffix(".json.gz")
         out = WORK / f"rerank-scores-{stem}.json"
-        out.write_text(json.dumps(scores), encoding="utf-8")
+        # Wrapped with the text each score was computed against. A cross-encoder
+        # score is a function of the query wording as much as the passage, and
+        # query ids survive a rewrite of that wording, so ids alone let scores
+        # from one eval set be served for another -- which is exactly what
+        # happened, and produced four significant improvements that were not real.
+        payload_out = {
+            "scores": scores,
+            "query_texts": {qid: payload[qid]["query"] for qid in scores},
+        }
+        out.write_text(json.dumps(payload_out), encoding="utf-8")
         pairs = sum(len(v) for v in scores.values())
         manifest["artifacts"].append(
             {

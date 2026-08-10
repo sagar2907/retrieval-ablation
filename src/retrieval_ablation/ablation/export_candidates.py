@@ -28,6 +28,7 @@ Run: python -m retrieval_ablation.ablation.export_candidates
 
 from __future__ import annotations
 
+import argparse
 import gzip
 import json
 import logging
@@ -35,6 +36,7 @@ import logging
 from ..config import RESULTS_DIR, ensure_dirs
 from ..corpus.ingest import load_corpus
 from ..evalset.build import QUERIES_PATH
+from ..evalset.paraphrase import PARAPHRASED_PATH
 from ..evalset.schema import read_eval_set
 from ..index.bm25 import BM25Index
 from .configs import build_grid
@@ -49,12 +51,36 @@ MAX_CANDIDATES = 200
 
 
 def main() -> None:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--paraphrased",
+        action="store_true",
+        help=(
+            "build shortlists from data/eval/queries-paraphrased.jsonl and write to "
+            "candidates-<config>-paraphrased.json.gz"
+        ),
+    )
+    args = parser.parse_args()
+
     logging.basicConfig(level=logging.INFO, format="%(levelname)s %(message)s")
     ensure_dirs()
 
+    # The shortlist is produced by running the first stage over the queries, so it
+    # belongs to a wording as much as the cross-encoder scores computed from it do.
+    # Reranking the paraphrased queries against shortlists BM25 retrieved for the
+    # original ones would measure a pipeline nobody would ever build: a first stage
+    # answering one question and a second stage re-ranking it for another.
+    queries_path = PARAPHRASED_PATH if args.paraphrased else QUERIES_PATH
+    if not queries_path.exists():
+        raise SystemExit(
+            f"{queries_path} does not exist. Run "
+            f"`python -m retrieval_ablation.evalset.paraphrase` first."
+        )
+    suffix = "-paraphrased" if args.paraphrased else ""
+
     docs = load_corpus()
-    queries = read_eval_set(QUERIES_PATH)
-    log.info("loaded %d documents, %d queries", len(docs), len(queries))
+    queries = read_eval_set(queries_path)
+    log.info("loaded %d documents, %d queries from %s", len(docs), len(queries), queries_path.name)
 
     reranking_configs = [c for c in build_grid() if c.reranker is not None]
     # Group by what actually determines the candidate list: the chunker and the
@@ -95,7 +121,7 @@ def main() -> None:
                 "first_stage_scores": [round(h.score, 4) for h in hits],
             }
 
-        out = RESULTS_DIR / f"candidates-{config.name}.json.gz"
+        out = RESULTS_DIR / f"candidates-{config.name}{suffix}.json.gz"
         with gzip.open(out, "wt", encoding="utf-8") as handle:
             json.dump(payload, handle)
 
