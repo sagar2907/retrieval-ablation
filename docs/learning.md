@@ -639,17 +639,33 @@ label word for word. Paraphrasing rewrites the questions the way a person would
 ask them, touching nothing else — same corpus, same gold spans, same query ids,
 same 143 shared queries. Then the grid runs again.
 
-| configuration | original | paraphrased | change |
-|---|---|---|---|
-| `chunk-struct512` | 0.1874 | 0.0482 | −74% |
-| `baseline-bm25-fixed512` | 0.1953 | 0.0475 | **−76%** |
-| `tables-row-sentences` | 0.1688 | 0.0475 | −72% |
-| `chunk-fixed256o32` | 0.1699 | 0.0311 | −82% |
+| configuration | original | paraphrased | change | p (Holm) |
+|---|---|---|---|---|
+| `retrieval-hybrid-rrf` | 0.1991 | **0.1088** | −45% | **0.0021** ✓ |
+| `retrieval-dense-bge` | 0.1196 | **0.0991** | **−17%** | **0.0444** ✓ |
+| `baseline-bm25-fixed512` | 0.1953 | 0.0475 | **−76%** | — |
+| `chunk-struct512` | 0.1874 | 0.0482 | −74% | 1.000 |
+| `chunk-fixed256o32` | 0.1699 | 0.0311 | −82% | 1.000 |
+| `embed-e5-base` | 0.0413 | 0.0223 | −46% | 0.449 |
 
-Roughly three quarters of what BM25 was scoring came from questions that quoted
-their own answer. Mean overlap falls 0.4613 → 0.1684; the high-overlap bucket goes
-from 158 queries to 17. The chunking and table-rendering axes stay null on both
-wordings, so those genuinely are non-findings rather than confounded ones.
+**The ranking of the two retrieval families reverses.** On the original wording
+BM25 beats dense by 63%, not significantly. On the paraphrased wording dense beats
+BM25 by 109% and hybrid fusion by 129%, and both survive Holm correction — the
+only two significant improvements in the entire study.
+
+The middle column is the mechanism. BM25 loses 76% of its score once the questions
+stop quoting their answers; dense loses 17%. Dense was never using the overlap, so
+it had almost nothing to lose. About three quarters of what BM25 was scoring was
+the benchmark handing it back its own words.
+
+Two earlier conclusions dissolve here, and both had been written up as findings.
+`embed-e5-base` was the single significant result on the original wording, at
+p = 0.001 *below* baseline; on paraphrased queries it is not significant at all
+(p = 0.449). Meanwhile the chunking and table-rendering axes stay null on both
+wordings — which matters, because it shows the confound was specific rather than a
+haze that moved every number. A benchmark can be badly wrong about one comparison
+and perfectly fine about another, which is exactly what makes this kind of flaw
+hard to notice: most of the table looks stable.
 
 **This section first reported that all four reranking configurations became
 significant on the paraphrased queries. That was wrong, and retracting it is more

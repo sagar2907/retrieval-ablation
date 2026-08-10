@@ -1,6 +1,6 @@
 {
   "n_configurations": 15,
-  "n_measured": 5,
+  "n_measured": 8,
   "results": [
     {
       "name": "baseline-bm25-fixed512",
@@ -35,7 +35,7 @@
       ],
       "ndcg10_low_overlap_queries": 0.04058059394713698,
       "ndcg10_high_overlap_queries": 0.1300615052793994,
-      "seconds": 0.8
+      "seconds": 1.0
     },
     {
       "name": "chunk-fixed256o32",
@@ -70,7 +70,7 @@
       ],
       "ndcg10_low_overlap_queries": 0.020989891801909726,
       "ndcg10_high_overlap_queries": 0.1519701876267046,
-      "seconds": 1.4
+      "seconds": 1.9
     },
     {
       "name": "chunk-semantic95",
@@ -129,7 +129,7 @@
       ],
       "ndcg10_low_overlap_queries": 0.038138412015192136,
       "ndcg10_high_overlap_queries": 0.16921391964970783,
-      "seconds": 0.8
+      "seconds": 1.0
     },
     {
       "name": "tables-row-sentences",
@@ -164,7 +164,7 @@
       ],
       "ndcg10_low_overlap_queries": 0.03825520514314767,
       "ndcg10_high_overlap_queries": 0.1583921620771883,
-      "seconds": 0.8
+      "seconds": 1.0
     },
     {
       "name": "retrieval-dense-bge",
@@ -176,19 +176,30 @@
       "candidate_k": 100,
       "table_rendering": "markdown",
       "notes": "dense only",
-      "measured": false,
-      "skipped_reason": "no usable query vectors for bge-m3: queryvectors-bge-m3.npz is absent, or records different query text than the set being scored (check the loader warning above). A dense index needs both sides embedded by the same model on the same wording; reusing vectors from other text compares two things that were never asked and returns confident nonsense. Re-run the GPU notebook against this eval set to produce them.",
+      "measured": true,
+      "skipped_reason": null,
       "n_chunks": 42215,
-      "metrics_all": {},
-      "metrics_common_subset": {},
-      "n_scored_all": 0,
-      "n_scored_common": 0,
-      "fraction_reachable": null,
+      "metrics_all": {
+        "ndcg@10": 0.08958221981796187,
+        "recall@50": 0.26851851851851855,
+        "mrr": 0.07744204616799841
+      },
+      "metrics_common_subset": {
+        "ndcg@10": 0.09907144557730518,
+        "recall@50": 0.27972027972027974,
+        "mrr": 0.08861434293533356
+      },
+      "n_scored_all": 216,
+      "n_scored_common": 143,
+      "fraction_reachable": 1.0,
       "first_stage_recall_ceiling": null,
-      "ndcg10_ci95": null,
-      "ndcg10_low_overlap_queries": null,
-      "ndcg10_high_overlap_queries": null,
-      "seconds": 0.0
+      "ndcg10_ci95": [
+        0.05920380035344536,
+        0.14408606692029247
+      ],
+      "ndcg10_low_overlap_queries": 0.09648894060213066,
+      "ndcg10_high_overlap_queries": 0.1300615052793994,
+      "seconds": 3.1
     },
     {
       "name": "retrieval-hybrid-rrf",
@@ -200,19 +211,30 @@
       "candidate_k": 100,
       "table_rendering": "markdown",
       "notes": "BM25 + dense fused with RRF",
-      "measured": false,
-      "skipped_reason": "no usable query vectors for bge-m3: queryvectors-bge-m3.npz is absent, or records different query text than the set being scored (check the loader warning above). A dense index needs both sides embedded by the same model on the same wording; reusing vectors from other text compares two things that were never asked and returns confident nonsense. Re-run the GPU notebook against this eval set to produce them.",
+      "measured": true,
+      "skipped_reason": null,
       "n_chunks": 42215,
-      "metrics_all": {},
-      "metrics_common_subset": {},
-      "n_scored_all": 0,
-      "n_scored_common": 0,
-      "fraction_reachable": null,
+      "metrics_all": {
+        "ndcg@10": 0.1144038814091304,
+        "recall@50": 0.2962962962962963,
+        "mrr": 0.09519889165716801
+      },
+      "metrics_common_subset": {
+        "ndcg@10": 0.10875726467123956,
+        "recall@50": 0.3076923076923077,
+        "mrr": 0.08866404667351413
+      },
+      "n_scored_all": 216,
+      "n_scored_common": 143,
+      "fraction_reachable": 1.0,
       "first_stage_recall_ceiling": null,
-      "ndcg10_ci95": null,
-      "ndcg10_low_overlap_queries": null,
-      "ndcg10_high_overlap_queries": null,
-      "seconds": 0.0
+      "ndcg10_ci95": [
+        0.07026932752999467,
+        0.15181246056905556
+      ],
+      "ndcg10_low_overlap_queries": 0.08930579433577376,
+      "ndcg10_high_overlap_queries": 0.34217490869682915,
+      "seconds": 4.4
     },
     {
       "name": "retrieval-bm25-struct",
@@ -247,7 +269,7 @@
       ],
       "ndcg10_low_overlap_queries": 0.038138412015192136,
       "ndcg10_high_overlap_queries": 0.16921391964970783,
-      "seconds": 0.8
+      "seconds": 1.0
     },
     {
       "name": "embed-e5-base",
@@ -259,19 +281,30 @@
       "candidate_k": 100,
       "table_rendering": "markdown",
       "notes": "embedding axis: e5-base vs bge-m3",
-      "measured": false,
-      "skipped_reason": "no usable query vectors for e5-base: queryvectors-e5-base.npz is absent, or records different query text than the set being scored (check the loader warning above). A dense index needs both sides embedded by the same model on the same wording; reusing vectors from other text compares two things that were never asked and returns confident nonsense. Re-run the GPU notebook against this eval set to produce them.",
+      "measured": true,
+      "skipped_reason": null,
       "n_chunks": 42215,
-      "metrics_all": {},
-      "metrics_common_subset": {},
-      "n_scored_all": 0,
-      "n_scored_common": 0,
-      "fraction_reachable": null,
+      "metrics_all": {
+        "ndcg@10": 0.025944440051784336,
+        "recall@50": 0.09259259259259259,
+        "mrr": 0.022357943485660874
+      },
+      "metrics_common_subset": {
+        "ndcg@10": 0.022265765533538963,
+        "recall@50": 0.09090909090909091,
+        "mrr": 0.019115261955030882
+      },
+      "n_scored_all": 216,
+      "n_scored_common": 143,
+      "fraction_reachable": 1.0,
       "first_stage_recall_ceiling": null,
-      "ndcg10_ci95": null,
-      "ndcg10_low_overlap_queries": null,
-      "ndcg10_high_overlap_queries": null,
-      "seconds": 0.0
+      "ndcg10_ci95": [
+        0.005517935848376838,
+        0.04378927533260586
+      ],
+      "ndcg10_low_overlap_queries": 0.016545488418909633,
+      "ndcg10_high_overlap_queries": 0.09090909090909091,
+      "seconds": 2.2
     },
     {
       "name": "embed-finance-e5",
@@ -404,7 +437,7 @@
       "table_rendering": "markdown",
       "notes": "the production configuration: hybrid retrieval then cross-encoder",
       "measured": false,
-      "skipped_reason": "no usable query vectors for bge-m3: queryvectors-bge-m3.npz is absent, or records different query text than the set being scored (check the loader warning above). A dense index needs both sides embedded by the same model on the same wording; reusing vectors from other text compares two things that were never asked and returns confident nonsense. Re-run the GPU notebook against this eval set to produce them.",
+      "skipped_reason": "rerank-scores-candidates-rerank-bm25-100.json.gz holds no cross-encoder scores for the wording being scored: it either predates query-text provenance or was computed against a different eval set. Reusing it would rerank these queries with scores derived from other questions. Re-run the GPU notebook against this eval set.",
       "n_chunks": 42215,
       "metrics_all": {},
       "metrics_common_subset": {},
@@ -446,12 +479,39 @@
       "significant_at_05": false,
       "n_pairs": 143
     },
+    "retrieval-dense-bge": {
+      "baseline_ndcg10": 0.047463740972695616,
+      "config_ndcg10": 0.09907144557730518,
+      "delta": 0.051607704604609554,
+      "p_raw": 0.007399260073992601,
+      "p_holm": 0.0443955604439556,
+      "significant_at_05": true,
+      "n_pairs": 143
+    },
+    "retrieval-hybrid-rrf": {
+      "baseline_ndcg10": 0.047463740972695616,
+      "config_ndcg10": 0.10875726467123954,
+      "delta": 0.061293523698543934,
+      "p_raw": 0.00029997000299970003,
+      "p_holm": 0.0020997900209979003,
+      "significant_at_05": true,
+      "n_pairs": 143
+    },
     "retrieval-bm25-struct": {
       "baseline_ndcg10": 0.047463740972695616,
       "config_ndcg10": 0.04822114337169334,
       "delta": 0.0007574023989977217,
       "p_raw": 0.9238076192380762,
       "p_holm": 1.0,
+      "significant_at_05": false,
+      "n_pairs": 143
+    },
+    "embed-e5-base": {
+      "baseline_ndcg10": 0.047463740972695616,
+      "config_ndcg10": 0.02226576553353896,
+      "delta": -0.02519797543915666,
+      "p_raw": 0.08969103089691031,
+      "p_holm": 0.4484551544845516,
       "significant_at_05": false,
       "n_pairs": 143
     }
