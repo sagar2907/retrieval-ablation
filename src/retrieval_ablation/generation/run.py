@@ -34,6 +34,7 @@ import json
 import logging
 import random
 from collections.abc import Sequence
+from pathlib import Path
 
 from ..ablation.runner import make_chunker
 from ..chunking import approx_token_count
@@ -250,11 +251,48 @@ def main() -> None:  # noqa: PLR0915 - a linear pipeline; splitting it would hid
         "answers": [a.to_json() for a in answers],
         "scores": [s.to_json() for s in scores],
     }
-    RESULTS_PATH.write_text(json.dumps(payload, indent=2), encoding="utf-8")
-    TABLE_PATH.write_text(render(payload), encoding="utf-8")
+    if not publish(payload, RESULTS_PATH, TABLE_PATH):
+        return
 
     print(f"\nwrote {RESULTS_PATH}\nwrote {TABLE_PATH}\n")
     print(json.dumps({"by_arm": by_arm, "comparison": comparison, "usage": usage}, indent=2))
+
+
+def publish(payload: dict, results_path: Path, table_path: Path) -> bool:
+    """Write the results, unless doing so would lose a more complete run.
+
+    This arm is quota-bound, and how far it gets is decided by whatever is left of
+    a daily free-tier allowance rather than by anything about the code. A re-run
+    asking for 30 queries exhausted its retries after a single answer and
+    overwrote a finished 12-query result with a 1-query one -- destroying real
+    measurements, in a committed file, with no error and no prompt. Every partial
+    run looks exactly like a complete one, which is what made it invisible.
+
+    Compared on answers *scored*, not queries requested: the request is an
+    intention, and the scores are what the quota actually bought.
+
+    Returns whether it wrote.
+    """
+    previous = 0
+    if results_path.exists():
+        try:
+            previous = len(json.loads(results_path.read_text(encoding="utf-8")).get("scores", []))
+        except (OSError, ValueError):
+            # An unreadable file is not evidence of anything worth protecting.
+            previous = 0
+
+    if len(payload.get("scores", [])) < previous:
+        print(
+            f"\nREFUSING TO OVERWRITE {results_path.name}: it holds {previous} scored "
+            f"answers and this run produced {len(payload.get('scores', []))}. "
+            f"{payload.get('incomplete_reason') or 'This run stopped early.'}\n"
+            f"Re-run when quota allows, or delete the file to replace it deliberately."
+        )
+        return False
+
+    results_path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+    table_path.write_text(render(payload), encoding="utf-8")
+    return True
 
 
 def render(payload: dict) -> str:
