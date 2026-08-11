@@ -1,0 +1,77 @@
+{
+  "gpu": {
+    "torch": "2.10.0+cu128",
+    "cuda_available": true,
+    "device": "Tesla T4",
+    "vram_mib": 14911
+  },
+  "n_documents": 120,
+  "n_queries": 216,
+  "artifacts": [
+    {
+      "file": "vectors-bge-m3-struct512.npz",
+      "embedder": "bge-m3",
+      "chunker": "struct512",
+      "n_chunks": 42215,
+      "dimension": 1024,
+      "seconds": 950.9,
+      "chunks_per_sec": 44.4
+    },
+    {
+      "file": "queryvectors-bge-m3-paraphrased.npz",
+      "embedder": "bge-m3",
+      "n_queries": 216,
+      "dimension": 1024
+    },
+    {
+      "file": "vectors-e5-base-struct512.npz",
+      "embedder": "e5-base",
+      "chunker": "struct512",
+      "n_chunks": 42215,
+      "dimension": 768,
+      "seconds": 326.0,
+      "chunks_per_sec": 129.5
+    },
+    {
+      "file": "queryvectors-e5-base-paraphrased.npz",
+      "embedder": "e5-base",
+      "n_queries": 216,
+      "dimension": 768
+    },
+    {
+      "file": "vectors-e5-base-v2-struct512.npz",
+      "embedder": "e5-base-v2",
+      "chunker": "struct512",
+      "n_chunks": 42215,
+      "dimension": 768,
+      "seconds": 320.3,
+      "chunks_per_sec": 131.8
+    },
+    {
+      "file": "queryvectors-e5-base-v2-paraphrased.npz",
+      "embedder": "e5-base-v2",
+      "n_queries": 216,
+      "dimension": 768
+    },
+    {
+      "file": "chunks-semantic95.json.gz",
+      "chunker": "semantic95",
+      "embedder": "bge-m3",
+      "n_chunks": 29556,
+      "corpus_digest": "6b7f9d044f13a335dbd2e2390f3d711507939038674576b39cdc554968245798",
+      "seconds": 1240.1
+    },
+    {
+      "file": "rerank-scores-candidates-rerank-bm25-100-paraphrased.json",
+      "reranker": "BAAI/bge-reranker-v2-m3",
+      "n_queries": 216,
+      "n_pairs": 43200,
+      "seconds": 1040.8,
+      "pairs_per_sec": 41.5
+    },
+    {
+      "file": "candidates-hybrid-plus-rerank-paraphrased.json.gz",
+      "skipped": "candidate list not present in repo"
+    }
+  ]
+}

@@ -1,6 +1,6 @@
 # Retrieval ablation
 
-13 of 15 configurations measured.
+14 of 15 configurations measured.
 
 `nDCG@10` and the confidence interval are computed on the **shared subset**
 of queries every configuration can judge. Comparing configurations on their
@@ -16,6 +16,7 @@ baseline. Uncorrected, comparing 14 configurations at alpha=0.05 carries a
 | `rerank-candidates-50` | candidates | 0.2145 | [0.160, 0.273] | 0.5245 | 0.1859 | +0.0192 | 1.0000 | no | 143 |
 | `rerank-candidates-25` | candidates | 0.2103 | [0.157, 0.268] | 0.5245 | 0.1799 | +0.0150 | 1.0000 | no | 143 |
 | `rerank-bm25-100` | reranking | 0.2057 | [0.153, 0.263] | 0.5385 | 0.1798 | +0.0104 | 1.0000 | no | 143 |
+| `chunk-semantic95` | chunking | 0.2039 | [0.154, 0.258] | 0.6573 | 0.1697 | +0.0086 | 1.0000 | no | 143 |
 | `hybrid-plus-rerank` | interaction | 0.2003 | [0.148, 0.256] | 0.5455 | 0.1729 | +0.0050 | 1.0000 | no | 143 |
 | `retrieval-hybrid-rrf` | retrieval | 0.1991 | [0.146, 0.254] | 0.4965 | 0.1736 | +0.0039 | 1.0000 | no | 143 |
 | `baseline-bm25-fixed512` | baseline | 0.1953 | [0.143, 0.251] | 0.5070 | 0.1741 | (baseline) | - | - | 143 |
@@ -24,8 +25,8 @@ baseline. Uncorrected, comparing 14 configurations at alpha=0.05 carries a
 | `rerank-candidates-200` | candidates | 0.1854 | [0.134, 0.240] | 0.5035 | 0.1640 | -0.0099 | 1.0000 | no | 143 |
 | `chunk-fixed256o32` | chunking | 0.1699 | [0.119, 0.226] | 0.4126 | 0.1604 | -0.0254 | 1.0000 | no | 143 |
 | `tables-row-sentences` | table_rendering | 0.1688 | [0.122, 0.222] | 0.4935 | 0.1610 | -0.0265 | 1.0000 | no | 143 |
-| `retrieval-dense-bge` | retrieval | 0.1196 | [0.077, 0.167] | 0.3077 | 0.1036 | -0.0757 | 0.1298 | no | 143 |
-| `embed-e5-base` | embedding | 0.0413 | [0.019, 0.068] | 0.2168 | 0.0337 | -0.1540 | 0.0012 | yes | 143 |
+| `retrieval-dense-bge` | retrieval | 0.1196 | [0.077, 0.167] | 0.3077 | 0.1036 | -0.0757 | 0.1416 | no | 143 |
+| `embed-e5-base` | embedding | 0.0413 | [0.019, 0.068] | 0.2168 | 0.0337 | -0.1540 | 0.0013 | yes | 143 |
 
 ## Chunking reachability and reranking ceiling
 
@@ -42,9 +43,10 @@ reranker from one that never saw the answer.
 |---|---|---|---|---|---|---|
 | `baseline-bm25-fixed512` | 37,498 | 100.0% | - | 0.1091 | 0.2254 | 0 |
 | `chunk-fixed256o32` | 75,084 | 100.0% | - | 0.1030 | 0.1932 | 1 |
+| `chunk-semantic95` | 29,556 | 100.0% | - | 0.1254 | 0.2312 | 0 |
 | `chunk-struct512` | 42,215 | 100.0% | - | 0.0837 | 0.2236 | 0 |
 | `tables-row-sentences` | 40,155 | 95.4% | - | 0.1014 | 0.1924 | 0 |
-| `retrieval-dense-bge` | 42,215 | 100.0% | - | 0.1346 | 0.1143 | 1 |
+| `retrieval-dense-bge` | 42,215 | 100.0% | - | 0.1346 | 0.1143 | 2 |
 | `retrieval-hybrid-rrf` | 42,215 | 100.0% | - | 0.1374 | 0.2207 | 2 |
 | `retrieval-bm25-struct` | 42,215 | 100.0% | - | 0.0837 | 0.2236 | 0 |
 | `embed-e5-base` | 42,215 | 100.0% | - | 0.0467 | 0.0394 | 1 |
@@ -68,5 +70,4 @@ These configurations did not run. No number is reported for them.
 
 | configuration | reason |
 |---|---|
-| `chunk-semantic95` | bge-m3 unavailable: ModuleNotFoundError: No module named 'sentence_transformers' |
-| `embed-e5-base-v2` | e5-base-v2 unavailable: ModuleNotFoundError: No module named 'sentence_transformers' |
+| `embed-e5-base-v2` | no usable query vectors for e5-base-v2: queryvectors-e5-base-v2.npz is absent, or records different query text than the set being scored (check the loader warning above). A dense index needs both sides embedded by the same model on the same wording; reusing vectors from other text compares two things that were never asked and returns confident nonsense. Re-run the GPU notebook against this eval set to produce them. |

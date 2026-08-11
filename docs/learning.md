@@ -651,9 +651,33 @@ same 143 shared queries. Then the grid runs again.
 | `embed-e5-base` | 0.0413 | 0.0223 | −46% | −0.0252 | 0.449 |
 
 **On the original wording nothing was a significant improvement. On the
-paraphrased wording seven configurations are** — every reranking arm, both hybrid
-arms, and dense retrieval. The study's entire conclusion was a property of how its
+paraphrased wording five configurations are** — every reranking arm above depth
+25, plus both hybrid arms. The study's entire conclusion was a property of how its
 questions happened to be phrased.
+
+Five, and not the seven an earlier version of this document reported. Completing
+the grid is what changed it, and the way it changed is worth more than the number:
+
+| configuration | Δ | p (raw) | Holm over 12 | Holm over 14 |
+|---|---|---|---|---|
+| `retrieval-dense-bge` | +0.0516 | 0.0074 | 0.044 ✓ | **0.059** ✗ |
+| `rerank-candidates-25` | +0.0488 | 0.0056 | 0.039 ✓ | **0.050** ✗ |
+
+Neither was re-run. Neither result moved by a thousandth. They stopped being
+significant because two *unrelated* configurations — semantic chunking and a
+second E5 model — were measured, enlarging the family the correction is applied
+over. "Significant" turned out not to be a property of `retrieval-dense-bge` at
+all; it was a property of `retrieval-dense-bge` *and the contents of the grid*,
+and the grid's contents are a decision somebody made in `configs.py`.
+
+This is the correction doing its job, not failing. Testing more hypotheses against
+the same 143 queries really does make it likelier that one of your successes is
+noise, and Holm charges for that honestly. But it exposes something the
+significance-testing framing tends to hide: the threshold is a property of the
+experiment as a whole, so a result can be lost by measuring something else
+entirely. The defensible reading is that both sit on the boundary — 0.050 and
+0.059 are not meaningfully different from 0.05, and calling one a finding and the
+other nothing would be reading the third decimal place as if it meant something.
 
 The `change` column is the mechanism. BM25 loses 76% of its score once questions
 stop quoting their answers; dense loses 17%, because it was never using the

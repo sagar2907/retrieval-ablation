@@ -1,6 +1,6 @@
 {
   "n_configurations": 15,
-  "n_measured": 13,
+  "n_measured": 14,
   "results": [
     {
       "name": "baseline-bm25-fixed512",
@@ -70,7 +70,7 @@
       ],
       "ndcg10_low_overlap_queries": 0.10301332696941103,
       "ndcg10_high_overlap_queries": 0.19318229092812148,
-      "seconds": 0.7
+      "seconds": 0.6
     },
     {
       "name": "chunk-semantic95",
@@ -82,19 +82,30 @@
       "candidate_k": 100,
       "table_rendering": "markdown",
       "notes": "chunking axis: semantic95 vs baseline fixed512o64",
-      "measured": false,
-      "skipped_reason": "bge-m3 unavailable: ModuleNotFoundError: No module named 'sentence_transformers'",
-      "n_chunks": 0,
-      "metrics_all": {},
-      "metrics_common_subset": {},
-      "n_scored_all": 0,
-      "n_scored_common": 0,
-      "fraction_reachable": null,
+      "measured": true,
+      "skipped_reason": null,
+      "n_chunks": 29556,
+      "metrics_all": {
+        "ndcg@10": 0.19790469785096776,
+        "recall@50": 0.6481481481481481,
+        "mrr": 0.16346840689314415
+      },
+      "metrics_common_subset": {
+        "ndcg@10": 0.20385789209769584,
+        "recall@50": 0.6573426573426573,
+        "mrr": 0.16969245255408055
+      },
+      "n_scored_all": 216,
+      "n_scored_common": 143,
+      "fraction_reachable": 1.0,
       "first_stage_recall_ceiling": null,
-      "ndcg10_ci95": null,
-      "ndcg10_low_overlap_queries": null,
-      "ndcg10_high_overlap_queries": null,
-      "seconds": 0.0
+      "ndcg10_ci95": [
+        0.15406981973496162,
+        0.2576007773976644
+      ],
+      "ndcg10_low_overlap_queries": 0.1254308256223142,
+      "ndcg10_high_overlap_queries": 0.2312333775655177,
+      "seconds": 0.3
     },
     {
       "name": "chunk-struct512",
@@ -199,7 +210,7 @@
       ],
       "ndcg10_low_overlap_queries": 0.1345797434397401,
       "ndcg10_high_overlap_queries": 0.11431556742067106,
-      "seconds": 1.4
+      "seconds": 1.7
     },
     {
       "name": "retrieval-hybrid-rrf",
@@ -234,7 +245,7 @@
       ],
       "ndcg10_low_overlap_queries": 0.13741838284917673,
       "ndcg10_high_overlap_queries": 0.22067543111620666,
-      "seconds": 1.9
+      "seconds": 2.2
     },
     {
       "name": "retrieval-bm25-struct",
@@ -304,7 +315,7 @@
       ],
       "ndcg10_low_overlap_queries": 0.04671008049490587,
       "ndcg10_high_overlap_queries": 0.03938697871300002,
-      "seconds": 1.1
+      "seconds": 1.2
     },
     {
       "name": "embed-e5-base-v2",
@@ -317,7 +328,7 @@
       "table_rendering": "markdown",
       "notes": "embedding axis: e5-base-v2 vs bge-m3",
       "measured": false,
-      "skipped_reason": "e5-base-v2 unavailable: ModuleNotFoundError: No module named 'sentence_transformers'",
+      "skipped_reason": "no usable query vectors for e5-base-v2: queryvectors-e5-base-v2.npz is absent, or records different query text than the set being scored (check the loader warning above). A dense index needs both sides embedded by the same model on the same wording; reusing vectors from other text compares two things that were never asked and returns confident nonsense. Re-run the GPU notebook against this eval set to produce them.",
       "n_chunks": 42215,
       "metrics_all": {},
       "metrics_common_subset": {},
@@ -363,7 +374,7 @@
       ],
       "ndcg10_low_overlap_queries": 0.23090719090848744,
       "ndcg10_high_overlap_queries": 0.19690594862361505,
-      "seconds": 0.4
+      "seconds": 0.5
     },
     {
       "name": "rerank-candidates-25",
@@ -503,7 +514,7 @@
       ],
       "ndcg10_low_overlap_queries": 0.22736854892006966,
       "ndcg10_high_overlap_queries": 0.1908112710913218,
-      "seconds": 2.0
+      "seconds": 2.2
     }
   ],
   "significance_vs_baseline": {
@@ -512,6 +523,15 @@
       "config_ndcg10": 0.1698518596940495,
       "delta": -0.025428527078065064,
       "p_raw": 0.2880711928807119,
+      "p_holm": 1.0,
+      "significant_at_05": false,
+      "n_pairs": 143
+    },
+    "chunk-semantic95": {
+      "baseline_ndcg10": 0.1952803867721146,
+      "config_ndcg10": 0.20385789209769586,
+      "delta": 0.008577505325581238,
+      "p_raw": 0.6697330266973303,
       "p_holm": 1.0,
       "significant_at_05": false,
       "n_pairs": 143
@@ -539,7 +559,7 @@
       "config_ndcg10": 0.11955874583119942,
       "delta": -0.07572164094091517,
       "p_raw": 0.0117988201179882,
-      "p_holm": 0.1297870212978702,
+      "p_holm": 0.1415858414158584,
       "significant_at_05": false,
       "n_pairs": 143
     },
@@ -566,7 +586,7 @@
       "config_ndcg10": 0.04128176728594069,
       "delta": -0.15399861948617388,
       "p_raw": 9.999000099990002e-05,
-      "p_holm": 0.0011998800119988001,
+      "p_holm": 0.0012998700129987003,
       "significant_at_05": true,
       "n_pairs": 143
     },

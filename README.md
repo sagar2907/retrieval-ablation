@@ -37,27 +37,38 @@ exactly the table structure being tested.
 
 ## Measured results
 
-**13 of 15 configurations measured.** Full corpus, 42,215 chunks, 143 queries
-judgeable by every configuration. Dense vectors and cross-encoder scores produced
-on a Kaggle T4; reproduce with `python -m retrieval_ablation.ablation.runner`.
+**14 of 15 configurations measured** on the original wording, **15 of 15** on the
+paraphrased one. Full corpus, 143 queries judgeable by every configuration. Dense
+vectors, cross-encoder scores and the semantic chunk boundaries were produced on a
+Kaggle T4; reproduce with `python -m retrieval_ablation.ablation.runner`.
 
 | configuration | axis | nDCG@10 | 95% CI | Recall@50 | MRR | Δ vs base | p (Holm) |
 |---|---|---|---|---|---|---|---|
 | `rerank-candidates-50` | candidates | **0.2145** | [0.160, 0.273] | 0.5245 | 0.1859 | +0.0192 | 1.000 |
 | `rerank-candidates-25` | candidates | 0.2103 | [0.157, 0.268] | 0.5245 | 0.1799 | +0.0150 | 1.000 |
 | `rerank-bm25-100` | reranking | 0.2057 | [0.153, 0.263] | 0.5385 | 0.1798 | +0.0104 | 1.000 |
-| `hybrid-plus-rerank` | interaction | 0.2003 | [0.148, 0.256] | **0.5455** | 0.1729 | +0.0050 | 1.000 |
+| `chunk-semantic95` | chunking | 0.2039 | [0.154, 0.258] | **0.6573** | 0.1697 | +0.0086 | 1.000 |
+| `hybrid-plus-rerank` | interaction | 0.2003 | [0.148, 0.256] | 0.5455 | 0.1729 | +0.0050 | 1.000 |
 | `retrieval-hybrid-rrf` | retrieval | 0.1991 | [0.146, 0.254] | 0.4965 | 0.1736 | +0.0039 | 1.000 |
 | `baseline-bm25-fixed512` | baseline | 0.1953 | [0.143, 0.251] | 0.5070 | 0.1741 | — | — |
 | `chunk-struct512` | chunking | 0.1874 | [0.134, 0.245] | 0.5245 | 0.1722 | −0.0078 | 1.000 |
 | `rerank-candidates-200` | candidates | 0.1854 | [0.134, 0.240] | 0.5035 | 0.1640 | −0.0099 | 1.000 |
 | `chunk-fixed256o32` | chunking | 0.1699 | [0.119, 0.226] | 0.4126 | 0.1604 | −0.0254 | 1.000 |
 | `tables-row-sentences` | table rendering | 0.1688 | [0.122, 0.222] | 0.4935 | 0.1610 | −0.0265 | 1.000 |
-| `retrieval-dense-bge` | retrieval | 0.1196 | [0.077, 0.167] | 0.3077 | 0.1036 | −0.0757 | 0.130 |
+| `retrieval-dense-bge` | retrieval | 0.1196 | [0.077, 0.167] | 0.3077 | 0.1036 | −0.0757 | 0.142 |
 | `embed-e5-base` | embedding | 0.0413 | [0.019, 0.068] | 0.2168 | 0.0337 | −0.1540 | **0.001** |
 
 Full table with reachability and the overlap split:
 [`results/ablation.md`](results/ablation.md).
+
+**Semantic chunking has the best Recall@50 in the grid by a wide margin** — 0.6573
+against 0.5455 for the next best — while its nDCG@10 is ordinary (+0.0086,
+p = 1.000). It finds the answer far more often and does not put it near the top.
+That is a real distinction the headline metric hides: for a pipeline that feeds a
+reranker or a long-context model, recall is the constraint and ordering is
+somebody else's problem, and on that basis it is the strongest first stage here.
+It does it with 29,556 chunks rather than 42,215, so the gain is not from cutting
+the corpus into more pieces.
 
 ### The headline: which retriever wins depends entirely on how the questions are worded
 
@@ -65,25 +76,54 @@ Rewriting the questions so they stop quoting the filing's own row labels — sam
 corpus, same gold spans, same query ids, same 143 shared queries, only the wording
 different — reverses the ranking of the two retrieval families.
 
-Both wordings now measure **13 of 15 configurations**.
+The paraphrased grid measures **15 of 15**; the original measures 14, because
+`embed-e5-base-v2`'s query vectors were only ever built for the paraphrased
+wording and the loader will not substitute the other set.
 
 | configuration | original | paraphrased | change | Δ vs base | p (Holm) |
 |---|---|---|---|---|---|
-| `rerank-candidates-200` | 0.1854 | **0.1210** | −35% | +0.0735 | **0.0050** ✓ |
-| `hybrid-plus-rerank` | 0.2003 | **0.1210** | −40% | +0.0735 | **0.0044** ✓ |
-| `rerank-bm25-100` | 0.2057 | **0.1178** | −43% | +0.0703 | **0.0099** ✓ |
-| `retrieval-hybrid-rrf` | 0.1991 | **0.1088** | −45% | +0.0613 | **0.0036** ✓ |
-| `rerank-candidates-50` | 0.2145 | **0.1047** | −51% | +0.0572 | **0.0160** ✓ |
-| `retrieval-dense-bge` | 0.1196 | **0.0991** | **−17%** | +0.0516 | **0.0444** ✓ |
-| `rerank-candidates-25` | 0.2103 | **0.0963** | −54% | +0.0488 | **0.0392** ✓ |
+| `rerank-candidates-200` | 0.1854 | **0.1210** | −35% | +0.0735 | **0.0060** ✓ |
+| `hybrid-plus-rerank` | 0.2003 | **0.1210** | −40% | +0.0735 | **0.0052** ✓ |
+| `rerank-bm25-100` | 0.2057 | **0.1178** | −43% | +0.0703 | **0.0121** ✓ |
+| `retrieval-hybrid-rrf` | 0.1991 | **0.1088** | −45% | +0.0613 | **0.0042** ✓ |
+| `rerank-candidates-50` | 0.2145 | **0.1047** | −51% | +0.0572 | **0.0200** ✓ |
+| `retrieval-dense-bge` | 0.1196 | 0.0991 | **−17%** | +0.0516 | 0.059 |
+| `rerank-candidates-25` | 0.2103 | 0.0963 | −54% | +0.0488 | 0.050 |
+| `chunk-semantic95` | 0.2039 | 0.0579 | −72% | +0.0104 | 1.000 |
 | `chunk-struct512` | 0.1874 | 0.0482 | −74% | +0.0008 | 1.000 |
 | `baseline-bm25-fixed512` | 0.1953 | 0.0475 | **−76%** | — | — |
+| `embed-e5-base-v2` | not measured | 0.0361 | — | −0.0114 | 1.000 |
 | `chunk-fixed256o32` | 0.1699 | 0.0311 | −82% | −0.0164 | 1.000 |
 | `embed-e5-base` | 0.0413 | 0.0223 | −46% | −0.0252 | 0.449 |
 
 On the original wording **nothing was a significant improvement**. On the
-paraphrased wording **seven configurations are** — every reranking arm, both
-hybrid arms, and dense retrieval.
+paraphrased wording **five configurations are** — every reranking arm above depth
+25, plus both hybrid arms.
+
+### Completing the grid removed two findings
+
+The previous version of this table reported **seven** significant improvements
+from twelve comparisons. Adding the last two configurations made it fourteen
+comparisons, and Holm corrects against the size of the family:
+
+| configuration | Δ | p (raw) | p (Holm), 12 tests | p (Holm), 14 tests |
+|---|---|---|---|---|
+| `retrieval-dense-bge` | +0.0516 | 0.0074 | 0.044 ✓ | **0.059** ✗ |
+| `rerank-candidates-25` | +0.0488 | 0.0056 | 0.039 ✓ | **0.050** ✗ |
+
+Neither result changed. Neither configuration was re-run. The evidence for both is
+exactly what it was — and both stopped being significant because two *unrelated*
+arms were measured.
+
+That is not a flaw in the correction, it is the correction working. Testing more
+hypotheses against the same 143 queries genuinely does raise the chance that one
+of the successes is noise, and Holm charges for it. The uncomfortable implication
+is that "significant" was never a property of `retrieval-dense-bge` alone: it
+depended on what else happened to be in the grid, which is a decision made by
+whoever wrote `configs.py`. Both sit within a whisker of the threshold, which is
+the honest description — 0.050 and 0.059 are not meaningfully different from 0.05,
+and treating the first as a finding and the second as nothing would be reading
+noise in the third decimal place.
 
 The mechanism is the `change` column. BM25 loses 76% of its score once the
 questions stop quoting their answers. Dense loses 17%, because it was never using
@@ -378,17 +418,15 @@ Nothing below is called verified unless it was run and its output inspected.
 | Generation + long-context comparison | numbers above, from the API's own reported token counts |
 | FastAPI service, Docker, citation UI | live run: index 31.7 s, /search 1.9 ms, /answer 429 path verified |
 
-**429 tests pass, offline, with no API key and no model download.** `ruff` clean.
+**454 tests pass, offline, with no API key and no model download.** `ruff` clean.
 
 ### Not done
 
 | Missing | Why | What unblocks it |
 |---|---|---|
-| `chunk-semantic95` | places its breakpoints by embedding every sentence, so it needs a GPU. The worker now records its boundaries and the local side replays them, but no run has produced the file yet | one GPU run; `BOUNDARY_JOBS` in the notebook writes `chunks-semantic95.json.gz` |
-| `embed-e5-base-v2` | the GPU runs embedded BGE-M3 and multilingual E5 only | same run; `e5-base-v2` is now in `EMBEDDING_JOBS` |
-| Dense / hybrid arms **on the paraphrased queries** | the GPU run embedded the original wording. Query vectors are only valid for the text they were built from, and the loader now refuses to reuse them across a rewrite | one Kaggle session against `data/eval/queries-paraphrased.jsonl`; the notebook records `query_texts` so a mismatch can never pass silently again |
 | Faithfulness judging | run was cut short by the daily quota before the judge pass | free-tier quota, or re-run tomorrow |
 | Generation + long-context at full sample | 12 of 216 queries measured; quota-bound | free-tier quota, or re-run tomorrow |
+| `embed-e5-base-v2` on the **original** wording | its query vectors were only built for the paraphrased eval set, and the loader will not substitute another set's | one GPU run with `QUERY_SET = "original"` |
 | Human verification of eval labels | requires a person; the model-assisted pass is labelled `MODEL_CHECKED`, never `HUMAN_VERIFIED` | fill in `data/eval/verification_sample.md` |
 
 ### The parse was not reproducible across machines
