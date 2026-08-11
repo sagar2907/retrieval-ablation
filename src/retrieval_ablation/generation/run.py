@@ -33,7 +33,7 @@ import argparse
 import json
 import logging
 import random
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 from pathlib import Path
 
 from ..ablation.runner import make_chunker
@@ -97,6 +97,44 @@ def stuff_document(doc: Document, budget_chars: int = LONG_CONTEXT_CHARS) -> lis
     ]
 
 
+def resolve_context(
+    answer: GeneratedAnswer,
+    by_chunk: Mapping[str, Chunk],
+    by_doc: Mapping[str, Document],
+) -> list[str] | None:
+    """The exact text this answer was generated from, or None if it cannot be shown.
+
+    Faithfulness asks whether an answer is supported by its context, so the judge
+    has to be given that context and nothing else. The two arms store it
+    differently: retrieval cites real chunk ids, while long-context cites a single
+    `<doc_id>#fulldoc` pseudo-chunk that exists only inside this module.
+
+    The first version looked ids up in the chunk map and substituted the literal
+    string "(full document)" for anything missing -- which is every long-context
+    answer. The judge would have been asked whether a claim about revenue is
+    supported by the words "(full document)", returned a verdict, and that verdict
+    would have appeared in the faithfulness column as a measurement. It was never
+    caught because faithfulness has never finished running; it would have looked
+    like real data the first time it did.
+
+    So an id that cannot be resolved to the text it stands for returns None, and
+    the caller records "not measured" rather than judging against a placeholder.
+    """
+    passages: list[str] = []
+    for context_id in answer.context_ids:
+        chunk = by_chunk.get(context_id)
+        if chunk is not None:
+            passages.append(chunk.text)
+            continue
+        doc_id, _, marker = context_id.partition("#")
+        doc = by_doc.get(doc_id)
+        if marker == "fulldoc" and doc is not None:
+            passages.append(stuff_document(doc)[0].text)
+            continue
+        return None
+    return passages or None
+
+
 def sample_queries(
     queries: Sequence[EvalQuery], n: int, seed: int = GLOBAL_SEED
 ) -> list[EvalQuery]:
@@ -122,6 +160,18 @@ def main() -> None:  # noqa: PLR0915 - a linear pipeline; splitting it would hid
     parser.add_argument("--model", default=DEFAULT_MODEL)
     parser.add_argument("--top-k", type=int, default=RETRIEVAL_TOP_K)
     parser.add_argument("--skip-long-context", action="store_true")
+    parser.add_argument(
+        "--judge-long-context",
+        action="store_true",
+        help=(
+            "also judge faithfulness of long-context answers. Off by default "
+            "because their context is a whole filing (~130k tokens per judgement, "
+            "against ~7.5k for a retrieval answer), which exhausts a free-tier "
+            "allowance in a handful of calls. Off means that arm reports "
+            "faithfulness as not measured, which is true, rather than skipping it "
+            "silently."
+        ),
+    )
     args = parser.parse_args()
 
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
@@ -187,26 +237,46 @@ def main() -> None:  # noqa: PLR0915 - a linear pipeline; splitting it would hid
 
                 log.info("%d/%d queries done (%d answers)", i, len(chosen), len(answers))
 
-            # Faithfulness last: it is the only judged metric, so if quota runs
-            # out here the deterministic metrics above are already complete.
-            for score in scores[: args.n_faithfulness * 2]:
-                answer = next(
-                    a for a in answers if a.query_id == score.query_id and a.arm == score.arm
-                )
-                passages = [
-                    by_chunk[c].text if c in by_chunk else "(full document)"
-                    for c in answer.context_ids
-                ]
-                verdict = judge_faithfulness(client, answer, passages, model=JUDGE_MODEL)
-                if verdict is not None:
-                    object.__setattr__(score, "faithfulness", verdict)
-
         except QuotaExhaustedError as exc:
             # Not fatal. Everything already answered is cached and scored; the run
             # is reported as partial rather than discarded, and re-running later
             # resumes from the cache.
             incomplete = str(exc)
             log.warning("quota exhausted, reporting a partial run: %s", exc)
+
+        # Faithfulness gets its own attempt, deliberately outside the block above.
+        #
+        # It is the only judged metric and the only one still missing, and it runs
+        # on JUDGE_MODEL -- a different model from the one that answers, with its
+        # own allowance. While both shared a try block, a quota failure during
+        # answer generation skipped judging entirely, so the cheap measurement was
+        # lost to the expensive one running out. Three consecutive runs reported
+        # "not measured" for that reason and not for any reason to do with
+        # faithfulness. Answers already produced are cached, so this pass costs
+        # only the judge calls themselves.
+        judged = 0
+        try:
+            for score in scores[: args.n_faithfulness * 2]:
+                answer = next(
+                    a for a in answers if a.query_id == score.query_id and a.arm == score.arm
+                )
+                if not args.judge_long_context and answer.arm == "long_context":
+                    continue
+                passages = resolve_context(answer, by_chunk, by_id)
+                if passages is None:
+                    # Cannot show the judge what the model actually read, so there
+                    # is nothing to judge. Left as None and reported as "not
+                    # measured" for that arm.
+                    continue
+                verdict = judge_faithfulness(client, answer, passages, model=JUDGE_MODEL)
+                if verdict is not None:
+                    object.__setattr__(score, "faithfulness", verdict)
+                    judged += 1
+        except QuotaExhaustedError as exc:
+            note = f"faithfulness judging stopped after {judged} verdicts: {exc}"
+            incomplete = f"{incomplete} {note}" if incomplete else note
+            log.warning("%s", note)
+        log.info("faithfulness verdicts recorded: %d", judged)
 
         usage = client.usage.to_json()
 

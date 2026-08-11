@@ -8,40 +8,40 @@
   "incomplete_reason": "still rate-limited after 8 attempts on /models/gemini-3.6-flash:generateContent. The daily free-tier quota is likely spent; re-run later. Cached work is preserved, so the run resumes rather than restarts.",
   "by_arm": {
     "long_context": {
-      "n_answers": 9,
-      "n_answered": 9,
+      "n_answers": 10,
+      "n_answered": 10,
       "n_refused": 0,
       "refusal_rate": 0.0,
-      "value_accuracy_of_answered": 0.5555555555555556,
-      "n_value_scored": 9,
-      "value_accuracy_of_all": 0.5555555555555556,
+      "value_accuracy_of_answered": 0.6,
+      "n_value_scored": 10,
+      "value_accuracy_of_all": 0.6,
       "citation_precision": null,
       "citation_recall": null,
-      "hallucinated_citation_rate": 0.8888888888888888,
+      "hallucinated_citation_rate": 0.8,
       "faithfulness": null,
       "n_faithfulness_judged": 0
     },
     "retrieval": {
-      "n_answers": 10,
+      "n_answers": 11,
       "n_answered": 5,
-      "n_refused": 5,
-      "refusal_rate": 0.5,
+      "n_refused": 6,
+      "refusal_rate": 0.5454545454545454,
       "value_accuracy_of_answered": 0.6,
       "n_value_scored": 5,
-      "value_accuracy_of_all": 0.3,
+      "value_accuracy_of_all": 0.2727272727272727,
       "citation_precision": 0.5666666666666667,
       "citation_recall": 0.8,
       "hallucinated_citation_rate": 0.0,
-      "faithfulness": null,
-      "n_faithfulness_judged": 0
+      "faithfulness": 1.0,
+      "n_faithfulness_judged": 5
     }
   },
   "value_accuracy_ci95": {
     "long_context": {
-      "point": 0.5555555555555556,
-      "low": 0.2222222222222222,
-      "high": 0.8888888888888888,
-      "n": 9
+      "point": 0.6,
+      "low": 0.3,
+      "high": 0.9,
+      "n": 10
     },
     "retrieval": {
       "point": 0.6,
@@ -51,56 +51,56 @@
     }
   },
   "cost": {
-    "long_context": {
-      "n": 9,
-      "prompt_tokens": 1176309,
-      "output_tokens": 325,
-      "mean_prompt_tokens": 130701.0,
-      "total_cost_usd": 1.766901,
-      "cost_per_query_usd": 0.19632233
-    },
     "retrieval": {
+      "n": 11,
+      "prompt_tokens": 80765,
+      "output_tokens": 279,
+      "mean_prompt_tokens": 7342.3,
+      "total_cost_usd": 0.12324,
+      "cost_per_query_usd": 0.01120364
+    },
+    "long_context": {
       "n": 10,
-      "prompt_tokens": 73454,
-      "output_tokens": 275,
-      "mean_prompt_tokens": 7345.4,
-      "total_cost_usd": 0.112243,
-      "cost_per_query_usd": 0.01122435
+      "prompt_tokens": 1346967,
+      "output_tokens": 365,
+      "mean_prompt_tokens": 134696.7,
+      "total_cost_usd": 2.023188,
+      "cost_per_query_usd": 0.2023188
     }
   },
   "latency": {
-    "long_context": {
-      "n_live": 9,
-      "p50": 5.927,
-      "p95": 8.543,
-      "max": 8.543
-    },
     "retrieval": {
-      "n_live": 10,
+      "n_live": 11,
       "p50": 4.101,
       "p95": 4.542,
       "max": 4.542
+    },
+    "long_context": {
+      "n_live": 10,
+      "p50": 6.188,
+      "p95": 16.908,
+      "max": 16.908
     }
   },
   "comparison": {
     "measured": true,
-    "retrieval_cost_per_query_usd": 0.01122435,
-    "long_context_cost_per_query_usd": 0.19632233,
-    "cost_ratio_long_context_over_retrieval": 17.5,
-    "retrieval_mean_prompt_tokens": 7345.4,
-    "long_context_mean_prompt_tokens": 130701.0,
+    "retrieval_cost_per_query_usd": 0.01120364,
+    "long_context_cost_per_query_usd": 0.2023188,
+    "cost_ratio_long_context_over_retrieval": 18.1,
+    "retrieval_mean_prompt_tokens": 7342.3,
+    "long_context_mean_prompt_tokens": 134696.7,
     "retrieval_p95_latency_s": 4.542,
-    "long_context_p95_latency_s": 8.543,
-    "latency_ratio": 1.9
+    "long_context_p95_latency_s": 16.908,
+    "latency_ratio": 3.7
   },
   "api_usage": {
-    "live_calls": 19,
-    "cached_calls": 19,
-    "prompt_tokens": 1249763,
-    "output_tokens": 600,
-    "thought_tokens": 10846,
+    "live_calls": 26,
+    "cached_calls": 21,
+    "prompt_tokens": 1462044,
+    "output_tokens": 654,
+    "thought_tokens": 12556,
     "rate_limited_responses": 8,
-    "seconds_spent_waiting": 391.5,
+    "seconds_spent_waiting": 382.5,
     "p95_latency_seconds": 8.543
   },
   "answers": [
@@ -549,6 +549,49 @@
       "from_cache": false,
       "model": "gemini-3.6-flash",
       "arm": "retrieval"
+    },
+    {
+      "query_id": "q-6bfa3a36c975",
+      "question": "In 2025, what amount did Blackrock, Inc. record as january 31, 2028?",
+      "answer": "In 2025, BlackRock, Inc. granted 221,825 restricted stock units (RSUs) under the Award Plan that cliff vest 100%",
+      "context_ids": [
+        "blk-10-k-2025-12-31#fulldoc"
+      ],
+      "cited_ids": [],
+      "invalid_citations": [],
+      "refused": false,
+      "prompt_tokens": 170658,
+      "output_tokens": 40,
+      "latency_seconds": 16.90827280000667,
+      "from_cache": false,
+      "model": "gemini-3.6-flash",
+      "arm": "long_context"
+    },
+    {
+      "query_id": "q-17927a0dad02",
+      "question": "Nike, Inc. federal income tax rate 2024",
+      "answer": "NOT IN CONTEXT",
+      "context_ids": [
+        "nke-10-k-2024-05-31#00163852-00165771",
+        "nke-10-k-2025-05-31#00160550-00162470",
+        "nke-10-k-2026-05-31#00179710-00181307",
+        "nke-10-k-2026-05-31#00162195-00164192",
+        "nke-10-k-2023-05-31#00155947-00157929",
+        "ge-10-k-2024-12-31#00348770-00350628",
+        "nke-10-k-2024-05-31#00259905-00261654",
+        "pfe-10-k-2025-12-31#00472483-00474427",
+        "csco-10-k-2025-07-26#00391141-00392767",
+        "ge-10-k-2025-12-31#00330847-00332546"
+      ],
+      "cited_ids": [],
+      "invalid_citations": [],
+      "refused": true,
+      "prompt_tokens": 7311,
+      "output_tokens": 4,
+      "latency_seconds": 4.4366671000025235,
+      "from_cache": false,
+      "model": "gemini-3.6-flash",
+      "arm": "retrieval"
     }
   ],
   "scores": [
@@ -560,7 +603,7 @@
       "citation_precision": 1.0,
       "citation_recall": true,
       "cited_a_hallucinated_passage": false,
-      "faithfulness": null
+      "faithfulness": 1.0
     },
     {
       "query_id": "q-14bb7017d00d",
@@ -580,7 +623,7 @@
       "citation_precision": 0.3333333333333333,
       "citation_recall": true,
       "cited_a_hallucinated_passage": false,
-      "faithfulness": null
+      "faithfulness": 1.0
     },
     {
       "query_id": "q-0949e40aebaa",
@@ -600,7 +643,7 @@
       "citation_precision": 1.0,
       "citation_recall": true,
       "cited_a_hallucinated_passage": false,
-      "faithfulness": null
+      "faithfulness": 1.0
     },
     {
       "query_id": "q-7a80c9a9a77e",
@@ -640,7 +683,7 @@
       "citation_precision": 0.5,
       "citation_recall": true,
       "cited_a_hallucinated_passage": false,
-      "faithfulness": null
+      "faithfulness": 1.0
     },
     {
       "query_id": "q-d32467bcc363",
@@ -720,7 +763,7 @@
       "citation_precision": 0.0,
       "citation_recall": false,
       "cited_a_hallucinated_passage": false,
-      "faithfulness": null
+      "faithfulness": 1.0
     },
     {
       "query_id": "q-6fe790e6bdfc",
@@ -734,6 +777,26 @@
     },
     {
       "query_id": "q-6bfa3a36c975",
+      "arm": "retrieval",
+      "refused": true,
+      "value_correct": null,
+      "citation_precision": null,
+      "citation_recall": null,
+      "cited_a_hallucinated_passage": false,
+      "faithfulness": null
+    },
+    {
+      "query_id": "q-6bfa3a36c975",
+      "arm": "long_context",
+      "refused": false,
+      "value_correct": true,
+      "citation_precision": null,
+      "citation_recall": null,
+      "cited_a_hallucinated_passage": false,
+      "faithfulness": null
+    },
+    {
+      "query_id": "q-17927a0dad02",
       "arm": "retrieval",
       "refused": true,
       "value_correct": null,

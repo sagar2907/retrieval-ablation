@@ -69,3 +69,73 @@ class TestPublish:
         results.write_text("{ not json", encoding="utf-8")
 
         assert publish(payload(1), results, table) is True
+
+
+class TestResolveContext:
+    """The judge must see what the model read, or nothing at all."""
+
+    @staticmethod
+    def _answer(arm: str, context_ids: tuple[str, ...]):
+        from retrieval_ablation.generation.answer import GeneratedAnswer
+
+        return GeneratedAnswer(
+            query_id="q1",
+            question="What was revenue?",
+            answer="Revenue was 100.",
+            context_ids=context_ids,
+            cited_ids=(),
+            invalid_citations=(),
+            refused=False,
+            prompt_tokens=1,
+            output_tokens=1,
+            latency_seconds=0.1,
+            from_cache=False,
+            model="m",
+            arm=arm,
+        )
+
+    def test_retrieval_context_resolves_to_the_chunk_texts(self):
+        from retrieval_ablation.corpus.models import Span
+        from retrieval_ablation.evalset.relevance import Chunk
+        from retrieval_ablation.generation.run import resolve_context
+
+        chunks = {
+            "c1": Chunk(chunk_id="c1", doc_id="d1", span=Span(0, 5), text="alpha"),
+            "c2": Chunk(chunk_id="c2", doc_id="d1", span=Span(6, 10), text="beta"),
+        }
+
+        got = resolve_context(self._answer("retrieval", ("c1", "c2")), chunks, {})
+
+        assert got == ["alpha", "beta"]
+
+    def test_long_context_resolves_to_the_document_it_was_given(self):
+        """Regression: this returned the literal string "(full document)".
+
+        The long-context arm cites one `<doc_id>#fulldoc` pseudo-chunk that does
+        not exist in the chunk map, and the old lookup substituted a placeholder
+        for it. The judge would then have been asked whether a claim about revenue
+        is supported by the words "(full document)" -- and whatever it answered
+        would have been reported in the faithfulness column as a measurement.
+        Nobody saw it because faithfulness never finished running.
+        """
+        from tests.test_chunking_replay import document
+
+        from retrieval_ablation.generation.run import resolve_context
+
+        doc = document("d1")
+        got = resolve_context(self._answer("long_context", ("d1#fulldoc",)), {}, {"d1": doc})
+
+        assert got is not None
+        assert got[0].startswith("Sentence number 0")
+        assert "(full document)" not in got[0]
+
+    def test_an_unresolvable_id_yields_none_rather_than_a_placeholder(self):
+        """Unknown context is unmeasurable, not judgeable against a stand-in."""
+        from retrieval_ablation.generation.run import resolve_context
+
+        assert resolve_context(self._answer("retrieval", ("missing",)), {}, {}) is None
+
+    def test_an_answer_with_no_context_yields_none(self):
+        from retrieval_ablation.generation.run import resolve_context
+
+        assert resolve_context(self._answer("retrieval", ()), {}, {}) is None

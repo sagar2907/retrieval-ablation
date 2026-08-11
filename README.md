@@ -362,8 +362,8 @@ and [`data/eval/model_check.json`](data/eval/model_check.json).
 | mean prompt tokens | 7,345 | 130,701 | 17.8× |
 | cost per query | $0.011224 | $0.196322 | **17.5×** |
 | p95 latency | 4.54 s | 8.54 s | 1.9× |
-| value accuracy, answered | 0.600 | 0.556 | — |
-| value accuracy, all queries | 0.300 | **0.556** | — |
+| value accuracy, answered | 0.600 | 0.600 | — |
+| value accuracy, all queries | 0.273 | **0.600** | — |
 | refusal rate | **5 of 10** | 0 of 9 | — |
 | citation precision / recall | 0.567 / 0.800 | n/a by construction | — |
 
@@ -372,11 +372,20 @@ and [`data/eval/model_check.json`](data/eval/model_check.json).
 and zero output cost. The brief's own draft résumé bullet says 1/40th, which is far
 closer to what this measures.
 
-**On this corpus, long context currently wins on accuracy** — 0.556 against 0.300
+**On this corpus, long context currently wins on accuracy** — 0.600 against 0.273
 over all queries. The reason is visible in the refusal column: retrieval declined
-to answer half the questions, because with nDCG@10 at 0.195 the answer often was
-not in its top-10. When it *did* answer it was slightly more accurate (0.600 vs
-0.556) and it cited its sources, which the long-context arm structurally cannot.
+to answer 6 of 11 questions, because with nDCG@10 at 0.195 the answer often was
+not in its top-10. When it *did* answer it was equally accurate (0.600 each) and
+it cited its sources, which the long-context arm structurally cannot.
+
+**Faithfulness on the retrieval arm is 1.000 across 5 judged answers.** Every
+answer it gave was judged supported by the passages it was shown. Read that beside
+the 55% refusal rate rather than on its own: the arm is behaving conservatively,
+declining when its context lacks the answer and staying grounded when it does not,
+which is the failure mode you want. **Five verdicts is far too few to quote as a
+rate** — it is enough to show the judge pass works end to end and no more, and the
+table says so. The long-context arm is `not measured` rather than scored, because
+judging it means sending a whole filing per verdict.
 
 So the honest reading is: retrieval is 17.5× cheaper and 1.9× faster, and loses on
 accuracy today because its first stage is weak — exactly the gap the hybrid and
@@ -424,7 +433,8 @@ Nothing below is called verified unless it was run and its output inspected.
 
 | Missing | Why | What unblocks it |
 |---|---|---|
-| Faithfulness judging | run was cut short by the daily quota before the judge pass | free-tier quota, or re-run tomorrow |
+| Faithfulness at a usable sample size | measured, but on 5 judged answers — enough to show the pass works, far too few to quote as a rate | free-tier quota for more answers; the judging itself is cheap |
+| Faithfulness of the long-context arm | its context is a whole filing, ~130k tokens per judgement against ~7.5k for a retrieval answer | `--judge-long-context`, on a paid tier |
 | Generation + long-context at full sample | 12 of 216 queries measured; quota-bound | free-tier quota, or re-run tomorrow |
 | `embed-e5-base-v2` on the **original** wording | its query vectors were only built for the paraphrased eval set, and the loader will not substitute another set's | one GPU run with `QUERY_SET = "original"` |
 | Human verification of eval labels | requires a person; the model-assisted pass is labelled `MODEL_CHECKED`, never `HUMAN_VERIFIED` | fill in `data/eval/verification_sample.md` |

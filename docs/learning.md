@@ -860,7 +860,7 @@ token counts.
 | mean prompt tokens | 7,345 | 130,701 | 17.8× |
 | cost per query | $0.011224 | $0.196322 | **17.5×** |
 | p95 latency | 4.54 s | 8.54 s | 1.9× |
-| accuracy, all queries | 0.300 | **0.556** | — |
+| accuracy, all queries | 0.273 | **0.600** | — |
 | refusal rate | 5 of 10 | 0 of 9 | — |
 
 **The brief's "roughly 1,250× cheaper" is not reproducible — measured 17.5×.**
@@ -869,7 +869,7 @@ zero output cost.
 
 **Long context currently wins on accuracy**, and the refusal column says why:
 retrieval declined half the questions because the answer was not in its top-10.
-When it did answer it was slightly better (0.600 vs 0.556) and it cited sources,
+When it did answer it was equally accurate (0.600 each) and it cited sources,
 which the long-context arm structurally cannot. Retrieval is cheaper and faster
 and loses on accuracy *because its first stage is weak*.
 
