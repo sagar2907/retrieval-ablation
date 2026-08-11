@@ -25,7 +25,7 @@ import argparse
 import json
 import logging
 import time
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -172,16 +172,19 @@ def _artifact_vectors(embedding_key: str, chunker: str) -> Path | None:
     return candidate if candidate.exists() else None
 
 
-def _artifact_rerank_scores() -> Path | None:
-    """Path to GPU-produced cross-encoder scores, if present."""
-    for name in (
-        "rerank-scores-candidates-rerank-bm25-100.json",
-        "rerank-scores-candidates-rerank-bm25-100.json.gz",
-    ):
-        path = RESULTS_DIR / name
-        if path.exists():
-            return path
-    return None
+def _artifact_rerank_scores() -> list[Path]:
+    """Every GPU-produced cross-encoder score file, newest naming first.
+
+    Returns all of them rather than one, because which file applies depends on
+    the wording being scored and not on its name. The eval sets differ only in
+    query text, so an original run and a paraphrased run each have their own
+    scores, and the caller picks by asking `load_rerank_scores` which one was
+    computed against the queries in hand. Hard-coding a single filename here is
+    what left the paraphrased arms unmeasurable even after their scores existed.
+    """
+    return sorted(RESULTS_DIR.glob("rerank-scores-*.json")) + sorted(
+        RESULTS_DIR.glob("rerank-scores-*.json.gz")
+    )
 
 
 def _load_embedder(key: str):
@@ -369,6 +372,18 @@ def _prepare(
     return _Prepared(chunks, qrels, bm25, dense, skipped_reason=skip if embedding_key else None)
 
 
+def _best_rerank_scores(
+    paths: Sequence[Path], query_text_by_id: Mapping[str, str]
+) -> dict[str, dict[str, float]]:
+    """The score file covering the most of these queries, by recorded wording."""
+    best: dict[str, dict[str, float]] = {}
+    for path in paths:
+        scores = load_rerank_scores(path, query_text_by_id)
+        if len(scores) > len(best):
+            best = scores
+    return best
+
+
 def _build_retriever(  # noqa: PLR0911 - each return is a distinct, named unavailability
     config: Config, prepared: _Prepared, query_ids: dict[str, str] | None = None
 ):
@@ -395,18 +410,18 @@ def _build_retriever(  # noqa: PLR0911 - each return is a distinct, named unavai
     # the only option: torch cannot load under the enforced code-integrity policy.
     # Using them also keeps the reranking arms reproducible from a committed
     # artifact rather than from whatever model version happens to download.
-    scores_path = _artifact_rerank_scores()
-    if scores_path is not None and query_ids:
+    scores_paths = _artifact_rerank_scores()
+    if scores_paths and query_ids:
         # query_ids maps text -> id; the loader needs the inverse to check that
         # each score was computed against the wording being asked now.
         by_id = {query_id: text for text, query_id in query_ids.items()}
-        scores = load_rerank_scores(scores_path, by_id)
-        if not scores:
-            return None, _STALE_RERANK_SCORES.format(file=scores_path.name)
+        best = _best_rerank_scores(scores_paths, by_id)
+        if not best:
+            return None, _STALE_RERANK_SCORES.format(file=", ".join(p.name for p in scores_paths))
         return (
             PrecomputedReranker(
                 first,
-                scores,
+                best,
                 query_ids,
                 candidate_k=config.candidate_k,
                 name=config.name,

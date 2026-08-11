@@ -639,19 +639,36 @@ label word for word. Paraphrasing rewrites the questions the way a person would
 ask them, touching nothing else — same corpus, same gold spans, same query ids,
 same 143 shared queries. Then the grid runs again.
 
-| configuration | original | paraphrased | change | p (Holm) |
-|---|---|---|---|---|
-| `retrieval-hybrid-rrf` | 0.1991 | **0.1088** | −45% | **0.0021** ✓ |
-| `retrieval-dense-bge` | 0.1196 | **0.0991** | **−17%** | **0.0444** ✓ |
-| `baseline-bm25-fixed512` | 0.1953 | 0.0475 | **−76%** | — |
-| `chunk-struct512` | 0.1874 | 0.0482 | −74% | 1.000 |
-| `chunk-fixed256o32` | 0.1699 | 0.0311 | −82% | 1.000 |
-| `embed-e5-base` | 0.0413 | 0.0223 | −46% | 0.449 |
+| configuration | original | paraphrased | change | Δ vs base | p (Holm) |
+|---|---|---|---|---|---|
+| `rerank-candidates-200` | 0.1854 | **0.1210** | −35% | +0.0735 | **0.0050** ✓ |
+| `hybrid-plus-rerank` | 0.2003 | **0.1210** | −40% | +0.0735 | **0.0044** ✓ |
+| `rerank-bm25-100` | 0.2057 | **0.1178** | −43% | +0.0703 | **0.0099** ✓ |
+| `retrieval-hybrid-rrf` | 0.1991 | **0.1088** | −45% | +0.0613 | **0.0036** ✓ |
+| `retrieval-dense-bge` | 0.1196 | **0.0991** | **−17%** | +0.0516 | **0.0444** ✓ |
+| `baseline-bm25-fixed512` | 0.1953 | 0.0475 | **−76%** | — | — |
+| `chunk-fixed256o32` | 0.1699 | 0.0311 | −82% | −0.0164 | 1.000 |
+| `embed-e5-base` | 0.0413 | 0.0223 | −46% | −0.0252 | 0.449 |
 
-**The ranking of the two retrieval families reverses.** On the original wording
-BM25 beats dense by 63%, not significantly. On the paraphrased wording dense beats
-BM25 by 109% and hybrid fusion by 129%, and both survive Holm correction — the
-only two significant improvements in the entire study.
+**On the original wording nothing was a significant improvement. On the
+paraphrased wording seven configurations are** — every reranking arm, both hybrid
+arms, and dense retrieval. The study's entire conclusion was a property of how its
+questions happened to be phrased.
+
+The `change` column is the mechanism. BM25 loses 76% of its score once questions
+stop quoting their answers; dense loses 17%, because it was never using the
+overlap. About three quarters of the baseline's score was the benchmark handing it
+back its own words — and every semantic method was being compared against that.
+
+The candidate-depth ordering **inverts** too: depth 200 was the worst reranking
+configuration on the original wording and is the best here, which is what a
+reranker doing real work should do with a deeper shortlist. On the original
+queries a deeper shortlist was only more chances to demote a hit BM25 had already
+placed correctly.
+
+One thing does not move: chunking and table rendering stay null on both wordings.
+The confound was specific, not a haze over everything, and that is precisely why
+it survived so long. Most of the table looked stable.
 
 The middle column is the mechanism. BM25 loses 76% of its score once the questions
 stop quoting their answers; dense loses 17%. Dense was never using the overlap, so
@@ -667,9 +684,13 @@ haze that moved every number. A benchmark can be badly wrong about one compariso
 and perfectly fine about another, which is exactly what makes this kind of flaw
 hard to notice: most of the table looks stable.
 
-**This section first reported that all four reranking configurations became
-significant on the paraphrased queries. That was wrong, and retracting it is more
-instructive than the claim was.**
+**A first version of this section reported the reranking result before it could
+be measured, and retracting it is more instructive than the claim was.**
+
+The direction it claimed turned out to be right — every reranking arm is
+significant above. That is not a vindication, it is the uncomfortable part. The
+claim was unfounded when it was made, and being lucky about a conclusion is
+indistinguishable, at the moment of writing, from being right about it.
 
 The reranking and dense arms are served from precomputed GPU artifacts keyed by
 query id. Paraphrasing keeps query ids deliberately — that is what makes the two

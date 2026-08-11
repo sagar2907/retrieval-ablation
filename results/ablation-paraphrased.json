@@ -1,6 +1,6 @@
 {
   "n_configurations": 15,
-  "n_measured": 8,
+  "n_measured": 13,
   "results": [
     {
       "name": "baseline-bm25-fixed512",
@@ -35,7 +35,7 @@
       ],
       "ndcg10_low_overlap_queries": 0.04058059394713698,
       "ndcg10_high_overlap_queries": 0.1300615052793994,
-      "seconds": 1.0
+      "seconds": 0.6
     },
     {
       "name": "chunk-fixed256o32",
@@ -70,7 +70,7 @@
       ],
       "ndcg10_low_overlap_queries": 0.020989891801909726,
       "ndcg10_high_overlap_queries": 0.1519701876267046,
-      "seconds": 1.9
+      "seconds": 1.0
     },
     {
       "name": "chunk-semantic95",
@@ -129,7 +129,7 @@
       ],
       "ndcg10_low_overlap_queries": 0.038138412015192136,
       "ndcg10_high_overlap_queries": 0.16921391964970783,
-      "seconds": 1.0
+      "seconds": 0.6
     },
     {
       "name": "tables-row-sentences",
@@ -164,7 +164,7 @@
       ],
       "ndcg10_low_overlap_queries": 0.03825520514314767,
       "ndcg10_high_overlap_queries": 0.1583921620771883,
-      "seconds": 1.0
+      "seconds": 0.6
     },
     {
       "name": "retrieval-dense-bge",
@@ -199,7 +199,7 @@
       ],
       "ndcg10_low_overlap_queries": 0.09648894060213066,
       "ndcg10_high_overlap_queries": 0.1300615052793994,
-      "seconds": 3.1
+      "seconds": 1.7
     },
     {
       "name": "retrieval-hybrid-rrf",
@@ -234,7 +234,7 @@
       ],
       "ndcg10_low_overlap_queries": 0.08930579433577376,
       "ndcg10_high_overlap_queries": 0.34217490869682915,
-      "seconds": 4.4
+      "seconds": 2.4
     },
     {
       "name": "retrieval-bm25-struct",
@@ -269,7 +269,7 @@
       ],
       "ndcg10_low_overlap_queries": 0.038138412015192136,
       "ndcg10_high_overlap_queries": 0.16921391964970783,
-      "seconds": 1.0
+      "seconds": 0.6
     },
     {
       "name": "embed-e5-base",
@@ -304,7 +304,7 @@
       ],
       "ndcg10_low_overlap_queries": 0.016545488418909633,
       "ndcg10_high_overlap_queries": 0.09090909090909091,
-      "seconds": 2.2
+      "seconds": 1.4
     },
     {
       "name": "embed-finance-e5",
@@ -340,19 +340,30 @@
       "candidate_k": 100,
       "table_rendering": "markdown",
       "notes": "cross-encoder on a lexical first stage",
-      "measured": false,
-      "skipped_reason": "rerank-scores-candidates-rerank-bm25-100.json.gz holds no cross-encoder scores for the wording being scored: it either predates query-text provenance or was computed against a different eval set. Reusing it would rerank these queries with scores derived from other questions. Re-run the GPU notebook against this eval set.",
+      "measured": true,
+      "skipped_reason": null,
       "n_chunks": 42215,
-      "metrics_all": {},
-      "metrics_common_subset": {},
-      "n_scored_all": 0,
-      "n_scored_common": 0,
-      "fraction_reachable": null,
-      "first_stage_recall_ceiling": null,
-      "ndcg10_ci95": null,
-      "ndcg10_low_overlap_queries": null,
-      "ndcg10_high_overlap_queries": null,
-      "seconds": 0.0
+      "metrics_all": {
+        "ndcg@10": 0.128341937213711,
+        "recall@50": 0.2962962962962963,
+        "mrr": 0.11287391927448517
+      },
+      "metrics_common_subset": {
+        "ndcg@10": 0.1177904525208892,
+        "recall@50": 0.26573426573426573,
+        "mrr": 0.1013286897522458
+      },
+      "n_scored_all": 216,
+      "n_scored_common": 143,
+      "fraction_reachable": 1.0,
+      "first_stage_recall_ceiling": 0.35648148148148145,
+      "ndcg10_ci95": [
+        0.07442122196056794,
+        0.16580034676461775
+      ],
+      "ndcg10_low_overlap_queries": 0.1069115769450741,
+      "ndcg10_high_overlap_queries": 0.24833695943067038,
+      "seconds": 0.7
     },
     {
       "name": "rerank-candidates-25",
@@ -364,19 +375,30 @@
       "candidate_k": 25,
       "table_rendering": "markdown",
       "notes": "shortlist depth 25",
-      "measured": false,
-      "skipped_reason": "rerank-scores-candidates-rerank-bm25-100.json.gz holds no cross-encoder scores for the wording being scored: it either predates query-text provenance or was computed against a different eval set. Reusing it would rerank these queries with scores derived from other questions. Re-run the GPU notebook against this eval set.",
+      "measured": true,
+      "skipped_reason": null,
       "n_chunks": 42215,
-      "metrics_all": {},
-      "metrics_common_subset": {},
-      "n_scored_all": 0,
-      "n_scored_common": 0,
-      "fraction_reachable": null,
-      "first_stage_recall_ceiling": null,
-      "ndcg10_ci95": null,
-      "ndcg10_low_overlap_queries": null,
-      "ndcg10_high_overlap_queries": null,
-      "seconds": 0.0
+      "metrics_all": {
+        "ndcg@10": 0.09819940354289886,
+        "recall@50": 0.24537037037037038,
+        "mrr": 0.09348475486509757
+      },
+      "metrics_common_subset": {
+        "ndcg@10": 0.09625647926509767,
+        "recall@50": 0.21678321678321677,
+        "mrr": 0.08808639326579204
+      },
+      "n_scored_all": 216,
+      "n_scored_common": 143,
+      "fraction_reachable": 1.0,
+      "first_stage_recall_ceiling": 0.1712962962962963,
+      "ndcg10_ci95": [
+        0.05502243084048094,
+        0.1426277422164924
+      ],
+      "ndcg10_low_overlap_queries": 0.08863361096847167,
+      "ndcg10_high_overlap_queries": 0.18773089882460978,
+      "seconds": 0.6
     },
     {
       "name": "rerank-candidates-50",
@@ -388,19 +410,30 @@
       "candidate_k": 50,
       "table_rendering": "markdown",
       "notes": "shortlist depth 50",
-      "measured": false,
-      "skipped_reason": "rerank-scores-candidates-rerank-bm25-100.json.gz holds no cross-encoder scores for the wording being scored: it either predates query-text provenance or was computed against a different eval set. Reusing it would rerank these queries with scores derived from other questions. Re-run the GPU notebook against this eval set.",
+      "measured": true,
+      "skipped_reason": null,
       "n_chunks": 42215,
-      "metrics_all": {},
-      "metrics_common_subset": {},
-      "n_scored_all": 0,
-      "n_scored_common": 0,
-      "fraction_reachable": null,
-      "first_stage_recall_ceiling": null,
-      "ndcg10_ci95": null,
-      "ndcg10_low_overlap_queries": null,
-      "ndcg10_high_overlap_queries": null,
-      "seconds": 0.0
+      "metrics_all": {
+        "ndcg@10": 0.10916497674844987,
+        "recall@50": 0.24537037037037038,
+        "mrr": 0.09664045533708421
+      },
+      "metrics_common_subset": {
+        "ndcg@10": 0.1046866137977348,
+        "recall@50": 0.21678321678321677,
+        "mrr": 0.0896806523399477
+      },
+      "n_scored_all": 216,
+      "n_scored_common": 143,
+      "fraction_reachable": 1.0,
+      "first_stage_recall_ceiling": 0.24537037037037038,
+      "ndcg10_ci95": [
+        0.0637242698336317,
+        0.15100308925305864
+      ],
+      "ndcg10_low_overlap_queries": 0.09377666007040136,
+      "ndcg10_high_overlap_queries": 0.23560605852573602,
+      "seconds": 0.6
     },
     {
       "name": "rerank-candidates-200",
@@ -412,19 +445,30 @@
       "candidate_k": 200,
       "table_rendering": "markdown",
       "notes": "shortlist depth 200",
-      "measured": false,
-      "skipped_reason": "rerank-scores-candidates-rerank-bm25-100.json.gz holds no cross-encoder scores for the wording being scored: it either predates query-text provenance or was computed against a different eval set. Reusing it would rerank these queries with scores derived from other questions. Re-run the GPU notebook against this eval set.",
+      "measured": true,
+      "skipped_reason": null,
       "n_chunks": 42215,
-      "metrics_all": {},
-      "metrics_common_subset": {},
-      "n_scored_all": 0,
-      "n_scored_common": 0,
-      "fraction_reachable": null,
-      "first_stage_recall_ceiling": null,
-      "ndcg10_ci95": null,
-      "ndcg10_low_overlap_queries": null,
-      "ndcg10_high_overlap_queries": null,
-      "seconds": 0.0
+      "metrics_all": {
+        "ndcg@10": 0.12564596729489405,
+        "recall@50": 0.32407407407407407,
+        "mrr": 0.108584706421915
+      },
+      "metrics_common_subset": {
+        "ndcg@10": 0.12100106201645583,
+        "recall@50": 0.2867132867132867,
+        "mrr": 0.1049138408595463
+      },
+      "n_scored_all": 216,
+      "n_scored_common": 143,
+      "fraction_reachable": 1.0,
+      "first_stage_recall_ceiling": 0.4305555555555556,
+      "ndcg10_ci95": [
+        0.07690450231730556,
+        0.17016555547582157
+      ],
+      "ndcg10_low_overlap_queries": 0.11354308326945041,
+      "ndcg10_high_overlap_queries": 0.2104968069805208,
+      "seconds": 0.7
     },
     {
       "name": "hybrid-plus-rerank",
@@ -436,19 +480,30 @@
       "candidate_k": 100,
       "table_rendering": "markdown",
       "notes": "the production configuration: hybrid retrieval then cross-encoder",
-      "measured": false,
-      "skipped_reason": "rerank-scores-candidates-rerank-bm25-100.json.gz holds no cross-encoder scores for the wording being scored: it either predates query-text provenance or was computed against a different eval set. Reusing it would rerank these queries with scores derived from other questions. Re-run the GPU notebook against this eval set.",
+      "measured": true,
+      "skipped_reason": null,
       "n_chunks": 42215,
-      "metrics_all": {},
-      "metrics_common_subset": {},
-      "n_scored_all": 0,
-      "n_scored_common": 0,
-      "fraction_reachable": null,
-      "first_stage_recall_ceiling": null,
-      "ndcg10_ci95": null,
-      "ndcg10_low_overlap_queries": null,
-      "ndcg10_high_overlap_queries": null,
-      "seconds": 0.0
+      "metrics_all": {
+        "ndcg@10": 0.11988747341287463,
+        "recall@50": 0.2916666666666667,
+        "mrr": 0.10304765034521433
+      },
+      "metrics_common_subset": {
+        "ndcg@10": 0.12099902807587444,
+        "recall@50": 0.2727272727272727,
+        "mrr": 0.10158650359836978
+      },
+      "n_scored_all": 216,
+      "n_scored_common": 143,
+      "fraction_reachable": 1.0,
+      "first_stage_recall_ceiling": 0.37962962962962965,
+      "ndcg10_ci95": [
+        0.07793003118455515,
+        0.16887005972664831
+      ],
+      "ndcg10_low_overlap_queries": 0.10842029170084763,
+      "ndcg10_high_overlap_queries": 0.2719438645761962,
+      "seconds": 2.4
     }
   ],
   "significance_vs_baseline": {
@@ -493,7 +548,7 @@
       "config_ndcg10": 0.10875726467123954,
       "delta": 0.061293523698543934,
       "p_raw": 0.00029997000299970003,
-      "p_holm": 0.0020997900209979003,
+      "p_holm": 0.0035996400359964006,
       "significant_at_05": true,
       "n_pairs": 143
     },
@@ -513,6 +568,51 @@
       "p_raw": 0.08969103089691031,
       "p_holm": 0.4484551544845516,
       "significant_at_05": false,
+      "n_pairs": 143
+    },
+    "rerank-bm25-100": {
+      "baseline_ndcg10": 0.047463740972695616,
+      "config_ndcg10": 0.1177904525208892,
+      "delta": 0.07032671154819359,
+      "p_raw": 0.0010998900109989002,
+      "p_holm": 0.009899010098990102,
+      "significant_at_05": true,
+      "n_pairs": 143
+    },
+    "rerank-candidates-25": {
+      "baseline_ndcg10": 0.047463740972695616,
+      "config_ndcg10": 0.09625647926509767,
+      "delta": 0.04879273829240204,
+      "p_raw": 0.005599440055994401,
+      "p_holm": 0.039196080391960805,
+      "significant_at_05": true,
+      "n_pairs": 143
+    },
+    "rerank-candidates-50": {
+      "baseline_ndcg10": 0.047463740972695616,
+      "config_ndcg10": 0.10468661379773482,
+      "delta": 0.057222872825039184,
+      "p_raw": 0.001999800019998,
+      "p_holm": 0.015998400159984,
+      "significant_at_05": true,
+      "n_pairs": 143
+    },
+    "rerank-candidates-200": {
+      "baseline_ndcg10": 0.047463740972695616,
+      "config_ndcg10": 0.12100106201645583,
+      "delta": 0.07353732104376019,
+      "p_raw": 0.0004999500049995,
+      "p_holm": 0.004999500049995,
+      "significant_at_05": true,
+      "n_pairs": 143
+    },
+    "hybrid-plus-rerank": {
+      "baseline_ndcg10": 0.047463740972695616,
+      "config_ndcg10": 0.12099902807587444,
+      "delta": 0.07353528710317882,
+      "p_raw": 0.00039996000399960006,
+      "p_holm": 0.004399560043995601,
+      "significant_at_05": true,
       "n_pairs": 143
     }
   }

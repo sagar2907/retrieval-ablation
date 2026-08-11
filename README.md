@@ -65,43 +65,49 @@ Rewriting the questions so they stop quoting the filing's own row labels — sam
 corpus, same gold spans, same query ids, same 143 shared queries, only the wording
 different — reverses the ranking of the two retrieval families.
 
-| configuration | original queries | paraphrased | change | p (Holm), paraphrased |
-|---|---|---|---|---|
-| `retrieval-hybrid-rrf` | 0.1991 | **0.1088** | −45% | **0.0021** ✓ |
-| `retrieval-dense-bge` | 0.1196 | **0.0991** | **−17%** | **0.0444** ✓ |
-| `baseline-bm25-fixed512` | 0.1953 | 0.0475 | **−76%** | — |
-| `chunk-struct512` | 0.1874 | 0.0482 | −74% | 1.000 |
-| `tables-row-sentences` | 0.1688 | 0.0475 | −72% | 1.000 |
-| `chunk-fixed256o32` | 0.1699 | 0.0311 | −82% | 1.000 |
-| `embed-e5-base` | 0.0413 | 0.0223 | −46% | 0.449 |
+Both wordings now measure **13 of 15 configurations**.
 
-On the original wording BM25 beats dense retrieval by 63% and the difference is
-not significant. On the paraphrased wording **dense beats BM25 by 109% and hybrid
-fusion by 129%, and both survive Holm correction** — the only two significant
-improvements anywhere in this study.
+| configuration | original | paraphrased | change | Δ vs base | p (Holm) |
+|---|---|---|---|---|---|
+| `rerank-candidates-200` | 0.1854 | **0.1210** | −35% | +0.0735 | **0.0050** ✓ |
+| `hybrid-plus-rerank` | 0.2003 | **0.1210** | −40% | +0.0735 | **0.0044** ✓ |
+| `rerank-bm25-100` | 0.2057 | **0.1178** | −43% | +0.0703 | **0.0099** ✓ |
+| `retrieval-hybrid-rrf` | 0.1991 | **0.1088** | −45% | +0.0613 | **0.0036** ✓ |
+| `rerank-candidates-50` | 0.2145 | **0.1047** | −51% | +0.0572 | **0.0160** ✓ |
+| `retrieval-dense-bge` | 0.1196 | **0.0991** | **−17%** | +0.0516 | **0.0444** ✓ |
+| `rerank-candidates-25` | 0.2103 | **0.0963** | −54% | +0.0488 | **0.0392** ✓ |
+| `chunk-struct512` | 0.1874 | 0.0482 | −74% | +0.0008 | 1.000 |
+| `baseline-bm25-fixed512` | 0.1953 | 0.0475 | **−76%** | — | — |
+| `chunk-fixed256o32` | 0.1699 | 0.0311 | −82% | −0.0164 | 1.000 |
+| `embed-e5-base` | 0.0413 | 0.0223 | −46% | −0.0252 | 0.449 |
 
-The mechanism is visible in the middle column. BM25 loses 76% of its score when
-the questions stop quoting their answers; dense retrieval loses 17%. Dense was
-never relying on the overlap, so it had little to lose. Roughly three quarters of
-what BM25 was scoring was the benchmark handing it its own words back.
+On the original wording **nothing was a significant improvement**. On the
+paraphrased wording **seven configurations are** — every reranking arm, both
+hybrid arms, and dense retrieval.
 
-Two other conclusions dissolve under the same treatment, and both were previously
-reported here. `embed-e5-base` scoring significantly *below* baseline (p = 0.001)
-was the only significant result on the original wording; on paraphrased queries it
-is not significant (p = 0.449). And no chunking or table-rendering difference is
-significant on either wording — those axes are genuine null results, unaffected by
-the confound, which is worth stating because it means the confound was specific
-rather than something that moved every number.
+The mechanism is the `change` column. BM25 loses 76% of its score once the
+questions stop quoting their answers. Dense loses 17%, because it was never using
+the overlap. Roughly three quarters of what the baseline scored was the benchmark
+handing it back its own words, and every semantic method was being measured
+against that inflated number.
+
+Two conclusions from the original wording do not survive. `embed-e5-base` scoring
+significantly *below* baseline (p = 0.001) was the single significant result
+there; on paraphrased queries it is not significant (p = 0.449). And the
+candidate-depth ordering **inverts** — depth 200 was the worst reranking
+configuration on the original wording and is the best here, which is what a
+reranker doing real work should do with a deeper shortlist.
+
+What does *not* change is the chunking and table-rendering axes: null on both
+wordings. The confound was specific rather than a haze over everything, which is
+exactly why it survived so long — most of the table looked stable.
 
 Mean lexical overlap falls 0.4613 → 0.1684; the high-overlap bucket goes from 158
-queries to 17. Query vectors for this run were embedded from the paraphrased text
-and carry it, and the loader verified all 216 match before scoring — the earlier
-version of this comparison reused vectors from the original wording and has been
-retracted.
-
-**The reranking arms are still unmeasured on the paraphrased queries.** Their
-cross-encoder scores were computed against the original wording, and the candidate
-shortlists were retrieved with it too, so both need regenerating.
+queries to 17. Every artifact behind the paraphrased column records the query text
+it was computed against, and the loaders verified all 216 matched before scoring.
+An earlier version of this table reported reranking as significant while reusing
+scores computed from the original wording; that result was retracted, and these
+numbers come from a separate GPU run against the paraphrased shortlists.
 
 **The reranking and dense arms are not measured on the paraphrased queries**, and
 an earlier version of this section reported them as significant improvements. That
