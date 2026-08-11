@@ -56,7 +56,14 @@ REPO = "https://github.com/sagar2907/retrieval-ablation.git"
 EMBEDDING_JOBS = [
     ("bge-m3", "struct512"),
     ("e5-base", "struct512"),
+    ("e5-base-v2", "struct512"),
 ]
+
+#: Chunkings that cannot be recomputed locally and must be recorded here.
+#: Semantic chunking places its breakpoints by embedding every sentence, so it
+#: needs this GPU. The boundaries it produces are replayed locally, which is what
+#: makes chunk-semantic95 measurable instead of permanently "not measured".
+BOUNDARY_JOBS = [("semantic95", "bge-m3")]
 
 #: Reranking runs over candidate lists the local side commits as
 #: results/candidates-<config>.json.gz. Those files hold chunk *ids* only; the
@@ -366,6 +373,35 @@ def main() -> None:  # noqa: PLR0912,PLR0915 - a linear script; splitting it wou
         # exceeds a T4's memory once activations are counted.
         if embedder is not None:
             embedder.release()
+
+    # -- chunkings that only a GPU can produce -----------------------------
+    from retrieval_ablation.chunking import corpus_digest
+    from retrieval_ablation.chunking.replay import write_boundaries
+
+    digest = corpus_digest(docs)
+    for chunker_name, model_key in BOUNDARY_JOBS:
+        bout = WORK / f"chunks-{chunker_name}.json.gz"
+        if bout.exists():
+            print(f"  reusing {bout.name}", flush=True)
+            continue
+        boundary_embedder = SentenceTransformerEmbedder(model_key, batch_size=BATCH_EMBED)
+        started = time.monotonic()
+        chunks = make_chunker(chunker_name, boundary_embedder).chunk_corpus(docs)
+        elapsed = time.monotonic() - started
+        boundary_embedder.release()
+        write_boundaries(bout, chunker_name, model_key, digest, chunks)
+        manifest["artifacts"].append(
+            {
+                "file": bout.name,
+                "chunker": chunker_name,
+                "embedder": model_key,
+                "n_chunks": len(chunks),
+                "corpus_digest": digest,
+                "seconds": round(elapsed, 1),
+            }
+        )
+        mins = elapsed / 60
+        print(f"=== {chunker_name}: {len(chunks):,} chunks in {mins:.1f} min ===", flush=True)
 
     # -- reranking --------------------------------------------------------
     from retrieval_ablation.index.rerank import CrossEncoderReranker

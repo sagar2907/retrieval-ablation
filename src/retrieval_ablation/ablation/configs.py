@@ -163,7 +163,7 @@ def build_grid() -> list[Config]:
     )
 
     # -- Embedding model, dense-only so the model is the only difference. ------
-    for model in ("e5-base", "finance-e5"):
+    for model in ("e5-base", "e5-base-v2"):
         grid.append(
             Config(
                 name=f"embed-{model}",

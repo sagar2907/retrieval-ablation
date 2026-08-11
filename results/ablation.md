@@ -44,7 +44,7 @@ reranker from one that never saw the answer.
 | `chunk-fixed256o32` | 75,084 | 100.0% | - | 0.1030 | 0.1932 | 1 |
 | `chunk-struct512` | 42,215 | 100.0% | - | 0.0837 | 0.2236 | 0 |
 | `tables-row-sentences` | 40,155 | 95.4% | - | 0.1014 | 0.1924 | 0 |
-| `retrieval-dense-bge` | 42,215 | 100.0% | - | 0.1346 | 0.1143 | 2 |
+| `retrieval-dense-bge` | 42,215 | 100.0% | - | 0.1346 | 0.1143 | 1 |
 | `retrieval-hybrid-rrf` | 42,215 | 100.0% | - | 0.1374 | 0.2207 | 2 |
 | `retrieval-bm25-struct` | 42,215 | 100.0% | - | 0.0837 | 0.2236 | 0 |
 | `embed-e5-base` | 42,215 | 100.0% | - | 0.0467 | 0.0394 | 1 |
@@ -69,4 +69,4 @@ These configurations did not run. No number is reported for them.
 | configuration | reason |
 |---|---|
 | `chunk-semantic95` | bge-m3 unavailable: ModuleNotFoundError: No module named 'sentence_transformers' |
-| `embed-finance-e5` | finance-e5 unavailable: ModuleNotFoundError: No module named 'sentence_transformers' |
+| `embed-e5-base-v2` | e5-base-v2 unavailable: ModuleNotFoundError: No module named 'sentence_transformers' |

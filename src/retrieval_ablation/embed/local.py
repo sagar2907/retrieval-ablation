@@ -48,9 +48,17 @@ MODEL_SPECS: dict[str, dict[str, str]] = {
         "query_prefix": "query: ",
         "passage_prefix": "passage: ",
     },
-    # Domain-adapted option: trained on financial text rather than general web
-    # data, which is the third embedding arm the study calls for.
-    "finance-e5": {
+    # English-only E5 v2, paired with multilingual-e5-base above so the third
+    # embedding arm varies one thing: whether the model spends its capacity on
+    # other languages. Same family, same size, same prefixes, English-specialised.
+    #
+    # This entry was previously named "finance-e5" and commented as domain-adapted
+    # to financial text. That was simply false -- intfloat/e5-base-v2 is trained on
+    # general web data like the rest of the family, and no amount of naming makes
+    # it otherwise. The arm was never measured, so nothing rested on the claim, but
+    # a label asserting a property the weights do not have is the kind of thing a
+    # reader has no way to check.
+    "e5-base-v2": {
         "repo": "intfloat/e5-base-v2",
         "query_prefix": "query: ",
         "passage_prefix": "passage: ",

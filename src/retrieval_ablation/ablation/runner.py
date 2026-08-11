@@ -30,11 +30,13 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 from ..chunking import (
+    BoundaryMismatchError,
     Chunker,
     FixedSizeChunker,
     SemanticChunker,
     StructureAwareChunker,
     approx_token_count,
+    load_boundaries,
 )
 from ..config import RAW_DIR, RESULTS_DIR, ensure_dirs
 from ..corpus.ingest import load_corpus
@@ -288,6 +290,19 @@ def _corpus_for_rendering(
     return reparsed, gold
 
 
+def _chunker_for(
+    name: str, docs: Sequence[Document], embedder: Embedder | None
+) -> tuple[Chunker | None, str | None]:
+    """The chunker for this group, replaying recorded boundaries when they exist."""
+    recorded = RESULTS_DIR / f"chunks-{name}.json.gz"
+    if name.startswith("semantic") and recorded.exists():
+        try:
+            return load_boundaries(recorded, list(docs)), None
+        except BoundaryMismatchError as exc:
+            return None, str(exc)
+    return make_chunker(name, embedder), None
+
+
 def _prepare(
     key: str,
     configs: Sequence[Config],
@@ -310,13 +325,16 @@ def _prepare(
         if skip:
             log.warning("group %s: %s", key, skip)
     elif example.chunker.startswith("semantic"):
-        embedder, skip = _load_embedder("bge-m3")
-        if skip:
-            log.warning("group %s: %s", key, skip)
-            # Semantic chunking needs live embeddings for its breakpoints; there
-            # is no precomputed substitute, because the sentences it embeds do
-            # not exist until it has already run.
-            return _Prepared([], {}, BM25Index([]), None, skipped_reason=skip)
+        # Semantic chunking needs a GPU to place its breakpoints, so prefer
+        # boundaries the worker recorded. They are a complete substitute: a chunk
+        # is determined by its document and span, and the file is refused if the
+        # corpus it was computed against has moved.
+        recorded = RESULTS_DIR / f"chunks-{example.chunker}.json.gz"
+        if not recorded.exists():
+            embedder, skip = _load_embedder("bge-m3")
+            if skip:
+                log.warning("group %s: %s", key, skip)
+                return _Prepared([], {}, BM25Index([]), None, skipped_reason=skip)
 
     # Re-parse when this group uses a non-default table rendering, because the
     # rendering changes the canonical text and therefore every gold offset.
@@ -330,7 +348,10 @@ def _prepare(
             len(gold),
         )
 
-    chunker = make_chunker(example.chunker, embedder)
+    chunker, chunker_skip = _chunker_for(example.chunker, group_docs, embedder)
+    if chunker is None:
+        log.warning("group %s: %s", key, chunker_skip)
+        return _Prepared([], {}, BM25Index([]), None, skipped_reason=chunker_skip)
     log.info("group %s: chunking %d documents with %s", key, len(group_docs), chunker.name)
     chunks = chunker.chunk_corpus(group_docs)
     log.info("group %s: %d chunks", key, len(chunks))

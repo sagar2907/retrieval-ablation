@@ -384,8 +384,8 @@ Nothing below is called verified unless it was run and its output inspected.
 
 | Missing | Why | What unblocks it |
 |---|---|---|
-| `chunk-semantic95` | needs live embeddings — the sentences it embeds do not exist until it has already run, so there is no precomputed substitute; the GPU worker does not currently emit them | extend `notebooks/kaggle_gpu_arms.py` to run the semantic chunker on the GPU and ship its chunk boundaries |
-| `embed-finance-e5` | the GPU run embedded BGE-M3 and E5-base only | add `finance-e5` to `EMBEDDING_JOBS` and re-run the notebook |
+| `chunk-semantic95` | places its breakpoints by embedding every sentence, so it needs a GPU. The worker now records its boundaries and the local side replays them, but no run has produced the file yet | one GPU run; `BOUNDARY_JOBS` in the notebook writes `chunks-semantic95.json.gz` |
+| `embed-e5-base-v2` | the GPU runs embedded BGE-M3 and multilingual E5 only | same run; `e5-base-v2` is now in `EMBEDDING_JOBS` |
 | Dense / hybrid arms **on the paraphrased queries** | the GPU run embedded the original wording. Query vectors are only valid for the text they were built from, and the loader now refuses to reuse them across a rewrite | one Kaggle session against `data/eval/queries-paraphrased.jsonl`; the notebook records `query_texts` so a mismatch can never pass silently again |
 | Faithfulness judging | run was cut short by the daily quota before the judge pass | free-tier quota, or re-run tomorrow |
 | Generation + long-context at full sample | 12 of 216 queries measured; quota-bound | free-tier quota, or re-run tomorrow |
