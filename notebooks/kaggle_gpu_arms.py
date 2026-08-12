@@ -469,6 +469,40 @@ def main() -> None:  # noqa: PLR0912,PLR0915 - a linear script; splitting it wou
         with gzip.open(path, "rt", encoding="utf-8") as handle:
             payload = json.load(handle)
 
+        # Skip a shortlist whose scores already exist, whether from this session or
+        # from a previous run committed to the repository.
+        #
+        # Reranking is by far the most expensive step here: 117,200 pairs per file
+        # at roughly 47 pairs a second is about forty minutes each. The embedding,
+        # query-vector and boundary passes all skip completed work and this one did
+        # not, so a fresh session re-scored every shortlist -- including the BM25
+        # ones already committed and still valid, which is over an hour of GPU time
+        # spent reproducing files byte for byte.
+        #
+        # The check is on the query *text* rather than the file's existence, for the
+        # same reason everything else here is: a scores file is only valid for the
+        # wording it was computed against, and ids survive a rewrite.
+        stem = candidate_file.removesuffix(".json.gz")
+        out = WORK / f"rerank-scores-{stem}.json"
+        wanted = {qid: entry["query"] for qid, entry in payload.items()}
+        existing = None
+        for candidate in (out, REPO_DIR / "results" / f"rerank-scores-{stem}.json.gz"):
+            if not candidate.exists():
+                continue
+            opener = gzip.open if candidate.suffix == ".gz" else open
+            with opener(candidate, "rt", encoding="utf-8") as handle:
+                blob = json.load(handle)
+            texts = blob.get("query_texts") if isinstance(blob, dict) else None
+            if texts and all(texts.get(q) == t for q, t in wanted.items()):
+                existing = candidate
+                break
+        if existing is not None:
+            print(f"\nskipping {candidate_file}: {existing.name} already covers it", flush=True)
+            manifest["artifacts"].append(
+                {"file": out.name, "query_set": set_name, "reused": existing.name}
+            )
+            continue
+
         # Candidate texts are rebuilt here rather than shipped. Safe because the
         # corpus was compared against the SNAPSHOTTED committed digests above,
         # and chunking is a deterministic pure function of the document, so these
@@ -509,8 +543,8 @@ def main() -> None:  # noqa: PLR0912,PLR0915 - a linear script; splitting it wou
                 print(f"  {i}/{len(payload)}", flush=True)
         elapsed = time.monotonic() - started
 
-        stem = candidate_file.removesuffix(".json.gz")
-        out = WORK / f"rerank-scores-{stem}.json"
+        # `stem` and `out` were computed above, when checking whether this
+        # shortlist had already been scored.
         # Wrapped with the text each score was computed against. A cross-encoder
         # score is a function of the query wording as much as the passage, and
         # query ids survive a rewrite of that wording, so ids alone let scores
