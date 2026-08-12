@@ -34,9 +34,16 @@ Four artifacts, written to /kaggle/working and downloaded back into data/indexes
 HOW TO RUN
 ----------
 1. New Kaggle notebook, Settings -> Accelerator -> GPU T4 x2, Internet -> On.
-2. Paste this file into one cell and run it.
-3. When it finishes, download the files from the notebook's Output tab.
-4. Put them in data/indexes/ locally and re-run the ablation.
+2. Paste this file into one cell and run it. Nothing needs editing.
+3. When it finishes, download from /kaggle/working -- the .npz files, the
+   rerank-scores-*.json files, chunks-*.json.gz and MANIFEST.json. Ignore the
+   retrieval-ablation/ folder, which is this repository's own clone.
+4. Copy them into results/ locally and re-run the ablation.
+
+One session covers both wordings and every model. Everything it writes is keyed
+to the eval set committed in the repository at clone time, so the local side
+refuses any artifact that does not match the queries it is scoring rather than
+quietly using it.
 
 The corpus is rebuilt from EDGAR inside the notebook rather than uploaded, so the
 notebook is self-contained and no 60 MB dataset upload is needed. Rebuilding is
@@ -81,21 +88,23 @@ RERANKER = "BAAI/bge-reranker-v2-m3"
 BATCH_EMBED = 64
 BATCH_RERANK = 64
 
-#: Which eval set to embed the queries from.
+#: Which eval sets to embed queries from, and rerank against.
 #:
 #: "original"    -> data/eval/queries.jsonl
 #: "paraphrased" -> data/eval/queries-paraphrased.jsonl
 #:
-#: The two files hold the same query ids and the same gold spans and differ only
-#: in the wording of the questions, which is what makes the two ablation runs
-#: comparable. It is also why this switch has to exist: a query vector is only
-#: valid for the text it was built from, and the local loader now refuses to
-#: serve vectors whose recorded text does not match the queries being scored.
-#: Embedding the wrong file produces an artifact that is silently useless for the
-#: run it was meant to unblock.
+#: Both files hold the same query ids and the same gold spans and differ only in
+#: the wording of the questions, which is what makes the two ablation runs
+#: comparable -- and also why a query vector is only valid for the text it was
+#: built from. The local loader refuses vectors whose recorded text does not match
+#: the queries being scored, so embedding the wrong file yields an artifact that
+#: is silently useless for the run it was meant to unblock. Output filenames carry
+#: the choice so both sets live side by side.
 #:
-#: Output filenames carry the choice, so both sets can live side by side.
-QUERY_SET = "paraphrased"
+#: Both are produced in one session because the two expensive steps -- rebuilding
+#: the corpus from EDGAR and embedding 42,215 passages per model -- do not depend
+#: on the wording at all. Doing one set per session paid for them twice.
+QUERY_SETS = ["original", "paraphrased"]
 
 # ---------------------------------------------------------------------------
 import hashlib
@@ -231,21 +240,40 @@ def main() -> None:  # noqa: PLR0912,PLR0915 - a linear script; splitting it wou
         )
     print(f"corpus verified against committed digests: {len(docs)} documents", flush=True)
 
-    if QUERY_SET not in ("original", "paraphrased"):
-        raise SystemExit(f"QUERY_SET must be 'original' or 'paraphrased', not {QUERY_SET!r}")
-    queries_path = (
-        QUERIES_PATH
-        if QUERY_SET == "original"
-        else QUERIES_PATH.with_name("queries-paraphrased.jsonl")
-    )
-    if not queries_path.exists():
-        raise SystemExit(
-            f"{queries_path} is not in the repository. Run "
-            f"`python -m retrieval_ablation.evalset.paraphrase` locally and commit it first."
+    # Both wordings in one session. The corpus rebuild and the passage embedding
+    # passes are the expensive parts and neither depends on the query wording, so
+    # doing one set per session pays for them twice. The local grid needs both
+    # anyway: the original and paraphrased runs are only comparable when every arm
+    # is measured on each.
+    query_sets: dict[str, list] = {}
+    for name in QUERY_SETS:
+        if name not in ("original", "paraphrased"):
+            raise SystemExit(
+                f"QUERY_SETS entries must be 'original' or 'paraphrased', got {name!r}"
+            )
+        path = (
+            QUERIES_PATH
+            if name == "original"
+            else QUERIES_PATH.with_name("queries-paraphrased.jsonl")
         )
-    queries = read_eval_set(queries_path)
-    print(f"query set: {QUERY_SET} ({queries_path.name})", flush=True)
-    print(f"eval set: {len(queries)} queries", flush=True)
+        if not path.exists():
+            raise SystemExit(
+                f"{path} is not in the repository. Run "
+                f"`python -m retrieval_ablation.evalset.paraphrase` locally and commit it first."
+            )
+        query_sets[name] = read_eval_set(path)
+        print(f"query set {name}: {len(query_sets[name])} queries ({path.name})", flush=True)
+
+    # Every arm is scored on the shared subset, so the two files must describe the
+    # same benchmark. They differ only in wording, and a mismatch means one was
+    # regenerated without the other.
+    sizes = {name: len(qs) for name, qs in query_sets.items()}
+    if len(set(sizes.values())) > 1:
+        raise SystemExit(
+            f"query sets disagree on size {sizes}. They must hold the same query ids; "
+            f"re-run the paraphraser locally so both describe one benchmark."
+        )
+    queries = next(iter(query_sets.values()))
 
     from retrieval_ablation.ablation.runner import make_chunker
     from retrieval_ablation.embed.local import SentenceTransformerEmbedder
@@ -266,8 +294,10 @@ def main() -> None:  # noqa: PLR0912,PLR0915 - a linear script; splitting it wou
         # both to one name would mean a paraphrased run silently replacing the
         # original run's artifact, and the local loader would then refuse the
         # file for the original eval set -- trading one measured arm for another.
-        suffix = "" if QUERY_SET == "original" else f"-{QUERY_SET}"
-        qout = WORK / f"queryvectors-{model_key}{suffix}.npz"
+        qouts = {
+            name: WORK / f"queryvectors-{model_key}{'' if name == 'original' else '-' + name}.npz"
+            for name in query_sets
+        }
         embedder = None
 
         # Skip work already on disk. A Kaggle session survives a failed cell, and
@@ -338,36 +368,40 @@ def main() -> None:  # noqa: PLR0912,PLR0915 - a linear script; splitting it wou
         # version of this notebook shipped only passage vectors and the dense arm
         # could not run at all.
         #
-        # Cheap: 216 queries, so this adds seconds -- which is why it is worth
-        # loading the model for even when the passage vectors were reused.
-        if qout.exists():
-            print(f"\n  reusing {qout.name}", flush=True)
-        else:
+        # Cheap: a few hundred queries, so this adds seconds per wording -- which
+        # is why it is worth loading the model for even when the passage vectors
+        # were reused, and why both wordings are done while it is loaded.
+        for set_name, set_queries in query_sets.items():
+            qout = qouts[set_name]
+            if qout.exists():
+                print(f"  reusing {qout.name}", flush=True)
+                continue
             if embedder is None:
                 embedder = SentenceTransformerEmbedder(model_key, batch_size=BATCH_EMBED)
-            query_vectors = embedder.encode_queries([q.text for q in queries])
+            query_vectors = embedder.encode_queries([q.text for q in set_queries])
             np.savez_compressed(
                 qout,
                 vectors=query_vectors,
-                query_ids=np.array([q.query_id for q in queries], dtype=object),
+                query_ids=np.array([q.query_id for q in set_queries], dtype=object),
                 # The text each vector was actually built from. Ids alone are not
                 # enough: they survive a rewrite of the query text, which is what
                 # makes the paraphrased eval set comparable to the original, and
                 # therefore also what let the local side serve original-wording
                 # vectors for paraphrased queries without noticing. The loader
                 # refuses any artifact lacking this field.
-                query_texts=np.array([q.text for q in queries], dtype=object),
+                query_texts=np.array([q.text for q in set_queries], dtype=object),
                 embedder=model_key,
             )
             manifest["artifacts"].append(
                 {
                     "file": qout.name,
                     "embedder": model_key,
-                    "n_queries": len(queries),
+                    "query_set": set_name,
+                    "n_queries": len(set_queries),
                     "dimension": int(query_vectors.shape[1]),
                 }
             )
-            print(f"  wrote {qout.name} ({len(queries)} query vectors)", flush=True)
+            print(f"  wrote {qout.name} ({len(set_queries)} query vectors)", flush=True)
 
         # Released before the next model loads. Two of these resident at once
         # exceeds a T4's memory once activations are counted.
@@ -407,16 +441,21 @@ def main() -> None:  # noqa: PLR0912,PLR0915 - a linear script; splitting it wou
     from retrieval_ablation.index.rerank import CrossEncoderReranker
 
     reranker = None
-    for base_file in RERANK_CANDIDATE_FILES:
-        # The shortlist belongs to a wording: it is what the first stage returned
-        # for those questions. Reranking paraphrased queries against shortlists
-        # retrieved for the original ones would score a pipeline whose two stages
-        # are answering different questions.
-        candidate_file = (
+    # The shortlist belongs to a wording: it is what the first stage returned for
+    # those questions. Reranking paraphrased queries against shortlists retrieved
+    # for the original ones would score a pipeline whose two stages are answering
+    # different questions.
+    rerank_jobs = [
+        (
+            set_name,
             base_file
-            if QUERY_SET == "original"
-            else base_file.replace(".json.gz", f"-{QUERY_SET}.json.gz")
+            if set_name == "original"
+            else base_file.replace(".json.gz", f"-{set_name}.json.gz"),
         )
+        for set_name in query_sets
+        for base_file in RERANK_CANDIDATE_FILES
+    ]
+    for set_name, candidate_file in rerank_jobs:
         path = REPO_DIR / "results" / candidate_file
         if not path.exists():
             print(f"\nskipping {candidate_file}: not committed by the local side", flush=True)
@@ -487,6 +526,7 @@ def main() -> None:  # noqa: PLR0912,PLR0915 - a linear script; splitting it wou
             {
                 "file": out.name,
                 "reranker": RERANKER,
+                "query_set": set_name,
                 "n_queries": len(scores),
                 "n_pairs": pairs,
                 "seconds": round(elapsed, 1),

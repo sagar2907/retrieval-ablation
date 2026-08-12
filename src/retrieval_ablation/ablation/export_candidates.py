@@ -119,13 +119,22 @@ def main() -> None:
                 if config.embedding
                 else None
             )
-            if not vectors.exists() or not query_vectors:
+            # Coverage, not mere presence. PrecomputedEmbedder raises KeyError for a
+            # query it has no vector for, and that aborts the export -- the same
+            # crash the runner hit when the eval set grew from 216 to 586, in a
+            # second place that made the same "are there vectors?" check instead of
+            # "are these queries covered?". Partial coverage would also produce a
+            # shortlist for a subset while the filename claims the whole set.
+            covered = len(query_vectors or {})
+            if not vectors.exists() or covered < len(queries):
                 log.warning(
-                    "skipping %s: a %s first stage needs vectors for %s against this "
-                    "eval set, and they are not present",
+                    "skipping %s: a %s first stage needs vectors for %s covering all "
+                    "%d queries; %d are covered",
                     config.name,
                     config.retrieval,
                     config.embedding,
+                    len(queries),
+                    covered,
                 )
                 continue
             dense = dense_index_from_artifact(vectors, chunks, query_vectors)
