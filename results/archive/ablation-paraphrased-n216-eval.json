@@ -1,0 +1,639 @@
+{
+  "n_configurations": 15,
+  "n_measured": 14,
+  "results": [
+    {
+      "name": "baseline-bm25-fixed512",
+      "axis": "baseline",
+      "chunker": "fixed512o64",
+      "retrieval": "bm25",
+      "embedding": null,
+      "reranker": null,
+      "candidate_k": 100,
+      "table_rendering": "markdown",
+      "notes": "naive chunk-and-retrieve control",
+      "measured": true,
+      "skipped_reason": null,
+      "n_chunks": 37498,
+      "metrics_all": {
+        "ndcg@10": 0.059343868752841686,
+        "recall@50": 0.2152777777777778,
+        "mrr": 0.05310985520680017
+      },
+      "metrics_common_subset": {
+        "ndcg@10": 0.047463740972695616,
+        "recall@50": 0.21328671328671328,
+        "mrr": 0.04027546360191149
+      },
+      "n_scored_all": 216,
+      "n_scored_common": 143,
+      "fraction_reachable": 1.0,
+      "first_stage_recall_ceiling": null,
+      "ndcg10_ci95": [
+        0.022617482119392438,
+        0.07660104341836303
+      ],
+      "ndcg10_low_overlap_queries": 0.04058059394713698,
+      "ndcg10_high_overlap_queries": 0.1300615052793994,
+      "seconds": 0.7
+    },
+    {
+      "name": "chunk-fixed256o32",
+      "axis": "chunking",
+      "chunker": "fixed256o32",
+      "retrieval": "bm25",
+      "embedding": null,
+      "reranker": null,
+      "candidate_k": 100,
+      "table_rendering": "markdown",
+      "notes": "chunking axis: fixed256o32 vs baseline fixed512o64",
+      "measured": true,
+      "skipped_reason": null,
+      "n_chunks": 75084,
+      "metrics_all": {
+        "ndcg@10": 0.039705991799975304,
+        "recall@50": 0.1712962962962963,
+        "mrr": 0.0355841795309852
+      },
+      "metrics_common_subset": {
+        "ndcg@10": 0.031065299173047792,
+        "recall@50": 0.16433566433566432,
+        "mrr": 0.02440452794434777
+      },
+      "n_scored_all": 216,
+      "n_scored_common": 143,
+      "fraction_reachable": 1.0,
+      "first_stage_recall_ceiling": null,
+      "ndcg10_ci95": [
+        0.012496804369040828,
+        0.05441824373419349
+      ],
+      "ndcg10_low_overlap_queries": 0.020989891801909726,
+      "ndcg10_high_overlap_queries": 0.1519701876267046,
+      "seconds": 1.2
+    },
+    {
+      "name": "chunk-semantic95",
+      "axis": "chunking",
+      "chunker": "semantic95",
+      "retrieval": "bm25",
+      "embedding": null,
+      "reranker": null,
+      "candidate_k": 100,
+      "table_rendering": "markdown",
+      "notes": "chunking axis: semantic95 vs baseline fixed512o64",
+      "measured": true,
+      "skipped_reason": null,
+      "n_chunks": 29556,
+      "metrics_all": {
+        "ndcg@10": 0.07135768848253503,
+        "recall@50": 0.3333333333333333,
+        "mrr": 0.06278575942382483
+      },
+      "metrics_common_subset": {
+        "ndcg@10": 0.057889373145300474,
+        "recall@50": 0.32167832167832167,
+        "mrr": 0.05446690173601987
+      },
+      "n_scored_all": 216,
+      "n_scored_common": 143,
+      "fraction_reachable": 1.0,
+      "first_stage_recall_ceiling": null,
+      "ndcg10_ci95": [
+        0.029658505192612213,
+        0.09038964121987637
+      ],
+      "ndcg10_low_overlap_queries": 0.056400356260944196,
+      "ndcg10_high_overlap_queries": 0.07575757575757575,
+      "seconds": 0.5
+    },
+    {
+      "name": "chunk-struct512",
+      "axis": "chunking",
+      "chunker": "struct512",
+      "retrieval": "bm25",
+      "embedding": null,
+      "reranker": null,
+      "candidate_k": 100,
+      "table_rendering": "markdown",
+      "notes": "chunking axis: struct512 vs baseline fixed512o64",
+      "measured": true,
+      "skipped_reason": null,
+      "n_chunks": 42215,
+      "metrics_all": {
+        "ndcg@10": 0.060765881097535515,
+        "recall@50": 0.24537037037037038,
+        "mrr": 0.051197693124776456
+      },
+      "metrics_common_subset": {
+        "ndcg@10": 0.048221143371693344,
+        "recall@50": 0.21678321678321677,
+        "mrr": 0.03870760649606803
+      },
+      "n_scored_all": 216,
+      "n_scored_common": 143,
+      "fraction_reachable": 1.0,
+      "first_stage_recall_ceiling": null,
+      "ndcg10_ci95": [
+        0.023766082130408706,
+        0.07740702631774635
+      ],
+      "ndcg10_low_overlap_queries": 0.038138412015192136,
+      "ndcg10_high_overlap_queries": 0.16921391964970783,
+      "seconds": 0.7
+    },
+    {
+      "name": "tables-row-sentences",
+      "axis": "table_rendering",
+      "chunker": "struct512",
+      "retrieval": "bm25",
+      "embedding": null,
+      "reranker": null,
+      "candidate_k": 100,
+      "table_rendering": "row_sentences",
+      "notes": "repeat column headers beside every value instead of a pipe table",
+      "measured": true,
+      "skipped_reason": null,
+      "n_chunks": 40155,
+      "metrics_all": {
+        "ndcg@10": 0.04749650952268925,
+        "recall@50": 0.22244422244422246,
+        "mrr": 0.043863561845400786
+      },
+      "metrics_common_subset": {
+        "ndcg@10": 0.04749650952268925,
+        "recall@50": 0.22244422244422246,
+        "mrr": 0.043863561845400786
+      },
+      "n_scored_all": 143,
+      "n_scored_common": 143,
+      "fraction_reachable": 0.9537037037037037,
+      "first_stage_recall_ceiling": null,
+      "ndcg10_ci95": [
+        0.026046920800739337,
+        0.07319076730501559
+      ],
+      "ndcg10_low_overlap_queries": 0.03825520514314767,
+      "ndcg10_high_overlap_queries": 0.1583921620771883,
+      "seconds": 0.7
+    },
+    {
+      "name": "retrieval-dense-bge",
+      "axis": "retrieval",
+      "chunker": "struct512",
+      "retrieval": "dense",
+      "embedding": "bge-m3",
+      "reranker": null,
+      "candidate_k": 100,
+      "table_rendering": "markdown",
+      "notes": "dense only",
+      "measured": true,
+      "skipped_reason": null,
+      "n_chunks": 42215,
+      "metrics_all": {
+        "ndcg@10": 0.08958221981796187,
+        "recall@50": 0.26851851851851855,
+        "mrr": 0.07744204616799841
+      },
+      "metrics_common_subset": {
+        "ndcg@10": 0.09907144557730518,
+        "recall@50": 0.27972027972027974,
+        "mrr": 0.08861434293533356
+      },
+      "n_scored_all": 216,
+      "n_scored_common": 143,
+      "fraction_reachable": 1.0,
+      "first_stage_recall_ceiling": null,
+      "ndcg10_ci95": [
+        0.05920380035344536,
+        0.14408606692029247
+      ],
+      "ndcg10_low_overlap_queries": 0.09648894060213066,
+      "ndcg10_high_overlap_queries": 0.1300615052793994,
+      "seconds": 2.1
+    },
+    {
+      "name": "retrieval-hybrid-rrf",
+      "axis": "retrieval",
+      "chunker": "struct512",
+      "retrieval": "hybrid",
+      "embedding": "bge-m3",
+      "reranker": null,
+      "candidate_k": 100,
+      "table_rendering": "markdown",
+      "notes": "BM25 + dense fused with RRF",
+      "measured": true,
+      "skipped_reason": null,
+      "n_chunks": 42215,
+      "metrics_all": {
+        "ndcg@10": 0.1144038814091304,
+        "recall@50": 0.2962962962962963,
+        "mrr": 0.09519889165716801
+      },
+      "metrics_common_subset": {
+        "ndcg@10": 0.10875726467123956,
+        "recall@50": 0.3076923076923077,
+        "mrr": 0.08866404667351413
+      },
+      "n_scored_all": 216,
+      "n_scored_common": 143,
+      "fraction_reachable": 1.0,
+      "first_stage_recall_ceiling": null,
+      "ndcg10_ci95": [
+        0.07026932752999467,
+        0.15181246056905556
+      ],
+      "ndcg10_low_overlap_queries": 0.08930579433577376,
+      "ndcg10_high_overlap_queries": 0.34217490869682915,
+      "seconds": 2.9
+    },
+    {
+      "name": "retrieval-bm25-struct",
+      "axis": "retrieval",
+      "chunker": "struct512",
+      "retrieval": "bm25",
+      "embedding": null,
+      "reranker": null,
+      "candidate_k": 100,
+      "table_rendering": "markdown",
+      "notes": "lexical control at the same chunking as the dense arms",
+      "measured": true,
+      "skipped_reason": null,
+      "n_chunks": 42215,
+      "metrics_all": {
+        "ndcg@10": 0.060765881097535515,
+        "recall@50": 0.24537037037037038,
+        "mrr": 0.051197693124776456
+      },
+      "metrics_common_subset": {
+        "ndcg@10": 0.048221143371693344,
+        "recall@50": 0.21678321678321677,
+        "mrr": 0.03870760649606803
+      },
+      "n_scored_all": 216,
+      "n_scored_common": 143,
+      "fraction_reachable": 1.0,
+      "first_stage_recall_ceiling": null,
+      "ndcg10_ci95": [
+        0.023766082130408706,
+        0.07740702631774635
+      ],
+      "ndcg10_low_overlap_queries": 0.038138412015192136,
+      "ndcg10_high_overlap_queries": 0.16921391964970783,
+      "seconds": 0.7
+    },
+    {
+      "name": "embed-e5-base",
+      "axis": "embedding",
+      "chunker": "struct512",
+      "retrieval": "dense",
+      "embedding": "e5-base",
+      "reranker": null,
+      "candidate_k": 100,
+      "table_rendering": "markdown",
+      "notes": "embedding axis: e5-base vs bge-m3",
+      "measured": true,
+      "skipped_reason": null,
+      "n_chunks": 42215,
+      "metrics_all": {
+        "ndcg@10": 0.025944440051784336,
+        "recall@50": 0.09259259259259259,
+        "mrr": 0.022357943485660874
+      },
+      "metrics_common_subset": {
+        "ndcg@10": 0.022265765533538963,
+        "recall@50": 0.09090909090909091,
+        "mrr": 0.019115261955030882
+      },
+      "n_scored_all": 216,
+      "n_scored_common": 143,
+      "fraction_reachable": 1.0,
+      "first_stage_recall_ceiling": null,
+      "ndcg10_ci95": [
+        0.005517935848376838,
+        0.04378927533260586
+      ],
+      "ndcg10_low_overlap_queries": 0.016545488418909633,
+      "ndcg10_high_overlap_queries": 0.09090909090909091,
+      "seconds": 1.0
+    },
+    {
+      "name": "embed-e5-base-v2",
+      "axis": "embedding",
+      "chunker": "struct512",
+      "retrieval": "dense",
+      "embedding": "e5-base-v2",
+      "reranker": null,
+      "candidate_k": 100,
+      "table_rendering": "markdown",
+      "notes": "embedding axis: e5-base-v2 vs bge-m3",
+      "measured": true,
+      "skipped_reason": null,
+      "n_chunks": 42215,
+      "metrics_all": {
+        "ndcg@10": 0.068007210416692,
+        "recall@50": 0.25462962962962965,
+        "mrr": 0.058070643591731926
+      },
+      "metrics_common_subset": {
+        "ndcg@10": 0.036069673295546986,
+        "recall@50": 0.24475524475524477,
+        "mrr": 0.031244750786036245
+      },
+      "n_scored_all": 216,
+      "n_scored_common": 143,
+      "fraction_reachable": 1.0,
+      "first_stage_recall_ceiling": null,
+      "ndcg10_ci95": [
+        0.01565013077883828,
+        0.06035668653304885
+      ],
+      "ndcg10_low_overlap_queries": 0.027711843039872876,
+      "ndcg10_high_overlap_queries": 0.13636363636363635,
+      "seconds": 0.9
+    },
+    {
+      "name": "rerank-bm25-100",
+      "axis": "reranking",
+      "chunker": "struct512",
+      "retrieval": "bm25",
+      "embedding": null,
+      "reranker": "bge-reranker-v2-m3",
+      "candidate_k": 100,
+      "table_rendering": "markdown",
+      "notes": "cross-encoder on a lexical first stage",
+      "measured": true,
+      "skipped_reason": null,
+      "n_chunks": 42215,
+      "metrics_all": {
+        "ndcg@10": 0.128341937213711,
+        "recall@50": 0.2962962962962963,
+        "mrr": 0.11287391927448517
+      },
+      "metrics_common_subset": {
+        "ndcg@10": 0.1177904525208892,
+        "recall@50": 0.26573426573426573,
+        "mrr": 0.1013286897522458
+      },
+      "n_scored_all": 216,
+      "n_scored_common": 143,
+      "fraction_reachable": 1.0,
+      "first_stage_recall_ceiling": 0.35648148148148145,
+      "ndcg10_ci95": [
+        0.07442122196056794,
+        0.16580034676461775
+      ],
+      "ndcg10_low_overlap_queries": 0.1069115769450741,
+      "ndcg10_high_overlap_queries": 0.24833695943067038,
+      "seconds": 0.8
+    },
+    {
+      "name": "rerank-candidates-25",
+      "axis": "candidates",
+      "chunker": "struct512",
+      "retrieval": "bm25",
+      "embedding": null,
+      "reranker": "bge-reranker-v2-m3",
+      "candidate_k": 25,
+      "table_rendering": "markdown",
+      "notes": "shortlist depth 25",
+      "measured": true,
+      "skipped_reason": null,
+      "n_chunks": 42215,
+      "metrics_all": {
+        "ndcg@10": 0.09819940354289886,
+        "recall@50": 0.24537037037037038,
+        "mrr": 0.09348475486509757
+      },
+      "metrics_common_subset": {
+        "ndcg@10": 0.09625647926509767,
+        "recall@50": 0.21678321678321677,
+        "mrr": 0.08808639326579204
+      },
+      "n_scored_all": 216,
+      "n_scored_common": 143,
+      "fraction_reachable": 1.0,
+      "first_stage_recall_ceiling": 0.1712962962962963,
+      "ndcg10_ci95": [
+        0.05502243084048094,
+        0.1426277422164924
+      ],
+      "ndcg10_low_overlap_queries": 0.08863361096847167,
+      "ndcg10_high_overlap_queries": 0.18773089882460978,
+      "seconds": 0.7
+    },
+    {
+      "name": "rerank-candidates-50",
+      "axis": "candidates",
+      "chunker": "struct512",
+      "retrieval": "bm25",
+      "embedding": null,
+      "reranker": "bge-reranker-v2-m3",
+      "candidate_k": 50,
+      "table_rendering": "markdown",
+      "notes": "shortlist depth 50",
+      "measured": true,
+      "skipped_reason": null,
+      "n_chunks": 42215,
+      "metrics_all": {
+        "ndcg@10": 0.10916497674844987,
+        "recall@50": 0.24537037037037038,
+        "mrr": 0.09664045533708421
+      },
+      "metrics_common_subset": {
+        "ndcg@10": 0.1046866137977348,
+        "recall@50": 0.21678321678321677,
+        "mrr": 0.0896806523399477
+      },
+      "n_scored_all": 216,
+      "n_scored_common": 143,
+      "fraction_reachable": 1.0,
+      "first_stage_recall_ceiling": 0.24537037037037038,
+      "ndcg10_ci95": [
+        0.0637242698336317,
+        0.15100308925305864
+      ],
+      "ndcg10_low_overlap_queries": 0.09377666007040136,
+      "ndcg10_high_overlap_queries": 0.23560605852573602,
+      "seconds": 0.7
+    },
+    {
+      "name": "rerank-candidates-200",
+      "axis": "candidates",
+      "chunker": "struct512",
+      "retrieval": "bm25",
+      "embedding": null,
+      "reranker": "bge-reranker-v2-m3",
+      "candidate_k": 200,
+      "table_rendering": "markdown",
+      "notes": "shortlist depth 200",
+      "measured": true,
+      "skipped_reason": null,
+      "n_chunks": 42215,
+      "metrics_all": {
+        "ndcg@10": 0.12564596729489405,
+        "recall@50": 0.32407407407407407,
+        "mrr": 0.108584706421915
+      },
+      "metrics_common_subset": {
+        "ndcg@10": 0.12100106201645583,
+        "recall@50": 0.2867132867132867,
+        "mrr": 0.1049138408595463
+      },
+      "n_scored_all": 216,
+      "n_scored_common": 143,
+      "fraction_reachable": 1.0,
+      "first_stage_recall_ceiling": 0.4305555555555556,
+      "ndcg10_ci95": [
+        0.07690450231730556,
+        0.17016555547582157
+      ],
+      "ndcg10_low_overlap_queries": 0.11354308326945041,
+      "ndcg10_high_overlap_queries": 0.2104968069805208,
+      "seconds": 0.8
+    },
+    {
+      "name": "hybrid-plus-rerank",
+      "axis": "interaction",
+      "chunker": "struct512",
+      "retrieval": "hybrid",
+      "embedding": "bge-m3",
+      "reranker": "bge-reranker-v2-m3",
+      "candidate_k": 100,
+      "table_rendering": "markdown",
+      "notes": "the production configuration: hybrid retrieval then cross-encoder",
+      "measured": false,
+      "skipped_reason": "no cross-encoder scores for candidates-hybrid-plus-rerank: the GPU run has not scored this configuration's shortlist. Falling back to a live reranker also failed (ModuleNotFoundError).",
+      "n_chunks": 42215,
+      "metrics_all": {},
+      "metrics_common_subset": {},
+      "n_scored_all": 0,
+      "n_scored_common": 0,
+      "fraction_reachable": null,
+      "first_stage_recall_ceiling": null,
+      "ndcg10_ci95": null,
+      "ndcg10_low_overlap_queries": null,
+      "ndcg10_high_overlap_queries": null,
+      "seconds": 0.0
+    }
+  ],
+  "significance_vs_baseline": {
+    "chunk-fixed256o32": {
+      "baseline_ndcg10": 0.047463740972695616,
+      "config_ndcg10": 0.031065299173047792,
+      "delta": -0.01639844179964783,
+      "p_raw": 0.29247075292470753,
+      "p_holm": 1.0,
+      "significant_at_05": false,
+      "n_pairs": 143
+    },
+    "chunk-semantic95": {
+      "baseline_ndcg10": 0.047463740972695616,
+      "config_ndcg10": 0.057889373145300474,
+      "delta": 0.010425632172604853,
+      "p_raw": 0.37196280371962803,
+      "p_holm": 1.0,
+      "significant_at_05": false,
+      "n_pairs": 143
+    },
+    "chunk-struct512": {
+      "baseline_ndcg10": 0.047463740972695616,
+      "config_ndcg10": 0.04822114337169334,
+      "delta": 0.0007574023989977217,
+      "p_raw": 0.9238076192380762,
+      "p_holm": 1.0,
+      "significant_at_05": false,
+      "n_pairs": 143
+    },
+    "tables-row-sentences": {
+      "baseline_ndcg10": 0.047463740972695616,
+      "config_ndcg10": 0.04749650952268925,
+      "delta": 3.276854999363032e-05,
+      "p_raw": 0.9979002099790021,
+      "p_holm": 1.0,
+      "significant_at_05": false,
+      "n_pairs": 143
+    },
+    "retrieval-dense-bge": {
+      "baseline_ndcg10": 0.047463740972695616,
+      "config_ndcg10": 0.09907144557730518,
+      "delta": 0.051607704604609554,
+      "p_raw": 0.007399260073992601,
+      "p_holm": 0.059194080591940805,
+      "significant_at_05": false,
+      "n_pairs": 143
+    },
+    "retrieval-hybrid-rrf": {
+      "baseline_ndcg10": 0.047463740972695616,
+      "config_ndcg10": 0.10875726467123954,
+      "delta": 0.061293523698543934,
+      "p_raw": 0.00029997000299970003,
+      "p_holm": 0.0038996100389961006,
+      "significant_at_05": true,
+      "n_pairs": 143
+    },
+    "retrieval-bm25-struct": {
+      "baseline_ndcg10": 0.047463740972695616,
+      "config_ndcg10": 0.04822114337169334,
+      "delta": 0.0007574023989977217,
+      "p_raw": 0.9238076192380762,
+      "p_holm": 1.0,
+      "significant_at_05": false,
+      "n_pairs": 143
+    },
+    "embed-e5-base": {
+      "baseline_ndcg10": 0.047463740972695616,
+      "config_ndcg10": 0.02226576553353896,
+      "delta": -0.02519797543915666,
+      "p_raw": 0.08969103089691031,
+      "p_holm": 0.6278372162783722,
+      "significant_at_05": false,
+      "n_pairs": 143
+    },
+    "embed-e5-base-v2": {
+      "baseline_ndcg10": 0.047463740972695616,
+      "config_ndcg10": 0.036069673295546986,
+      "delta": -0.011394067677148633,
+      "p_raw": 0.45395460453954606,
+      "p_holm": 1.0,
+      "significant_at_05": false,
+      "n_pairs": 143
+    },
+    "rerank-bm25-100": {
+      "baseline_ndcg10": 0.047463740972695616,
+      "config_ndcg10": 0.1177904525208892,
+      "delta": 0.07032671154819359,
+      "p_raw": 0.0010998900109989002,
+      "p_holm": 0.012098790120987902,
+      "significant_at_05": true,
+      "n_pairs": 143
+    },
+    "rerank-candidates-25": {
+      "baseline_ndcg10": 0.047463740972695616,
+      "config_ndcg10": 0.09625647926509767,
+      "delta": 0.04879273829240204,
+      "p_raw": 0.005599440055994401,
+      "p_holm": 0.05039496050394961,
+      "significant_at_05": false,
+      "n_pairs": 143
+    },
+    "rerank-candidates-50": {
+      "baseline_ndcg10": 0.047463740972695616,
+      "config_ndcg10": 0.10468661379773482,
+      "delta": 0.057222872825039184,
+      "p_raw": 0.001999800019998,
+      "p_holm": 0.01999800019998,
+      "significant_at_05": true,
+      "n_pairs": 143
+    },
+    "rerank-candidates-200": {
+      "baseline_ndcg10": 0.047463740972695616,
+      "config_ndcg10": 0.12100106201645583,
+      "delta": 0.07353732104376019,
+      "p_raw": 0.0004999500049995,
+      "p_holm": 0.0059994000599940004,
+      "significant_at_05": true,
+      "n_pairs": 143
+    }
+  }
+}

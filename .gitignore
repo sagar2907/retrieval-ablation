@@ -62,6 +62,10 @@ results/*.npz.bak
 # for a `git add -A`. Artifacts that should be committed are copied up into
 # results/ explicitly, which is the intended workflow anyway.
 results/*/
+# ...except the archive, which holds completed runs against an earlier eval
+# set. It is small, it is committed deliberately, and it is the only record of
+# a measurement the current artifacts can no longer reproduce.
+!results/archive/
 
 # Page rasters written by scripts/render_pdf.py so the rendering can be checked
 # by eye. They are a verification step, not an output: regenerated on every run,

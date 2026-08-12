@@ -1,0 +1,619 @@
+{
+  "n_configurations": 15,
+  "n_measured": 13,
+  "results": [
+    {
+      "name": "baseline-bm25-fixed512",
+      "axis": "baseline",
+      "chunker": "fixed512o64",
+      "retrieval": "bm25",
+      "embedding": null,
+      "reranker": null,
+      "candidate_k": 100,
+      "table_rendering": "markdown",
+      "notes": "naive chunk-and-retrieve control",
+      "measured": true,
+      "skipped_reason": null,
+      "n_chunks": 37498,
+      "metrics_all": {
+        "ndcg@10": 0.2113557739166821,
+        "recall@50": 0.5552325581395349,
+        "mrr": 0.1898355567009612
+      },
+      "metrics_common_subset": {
+        "ndcg@10": 0.22016560893946932,
+        "recall@50": 0.5772727272727273,
+        "mrr": 0.197922822725431
+      },
+      "n_scored_all": 172,
+      "n_scored_common": 110,
+      "fraction_reachable": 1.0,
+      "first_stage_recall_ceiling": null,
+      "ndcg10_ci95": [
+        0.15869337793699195,
+        0.28669443766917085
+      ],
+      "ndcg10_low_overlap_queries": 0.12757830128713346,
+      "ndcg10_high_overlap_queries": 0.24201205231811038,
+      "seconds": 0.5
+    },
+    {
+      "name": "chunk-fixed256o32",
+      "axis": "chunking",
+      "chunker": "fixed256o32",
+      "retrieval": "bm25",
+      "embedding": null,
+      "reranker": null,
+      "candidate_k": 100,
+      "table_rendering": "markdown",
+      "notes": "chunking axis: fixed256o32 vs baseline fixed512o64",
+      "measured": true,
+      "skipped_reason": null,
+      "n_chunks": 75084,
+      "metrics_all": {
+        "ndcg@10": 0.20439074532985996,
+        "recall@50": 0.48255813953488375,
+        "mrr": 0.18991055057285794
+      },
+      "metrics_common_subset": {
+        "ndcg@10": 0.1905740136548331,
+        "recall@50": 0.4681818181818182,
+        "mrr": 0.1805485254547739
+      },
+      "n_scored_all": 172,
+      "n_scored_common": 110,
+      "fraction_reachable": 1.0,
+      "first_stage_recall_ceiling": null,
+      "ndcg10_ci95": [
+        0.12947289719086644,
+        0.25554537997793003
+      ],
+      "ndcg10_low_overlap_queries": 0.10383634972841668,
+      "ndcg10_high_overlap_queries": 0.21104020401949314,
+      "seconds": 0.6
+    },
+    {
+      "name": "chunk-semantic95",
+      "axis": "chunking",
+      "chunker": "semantic95",
+      "retrieval": "bm25",
+      "embedding": null,
+      "reranker": null,
+      "candidate_k": 100,
+      "table_rendering": "markdown",
+      "notes": "chunking axis: semantic95 vs baseline fixed512o64",
+      "measured": false,
+      "skipped_reason": "bge-m3 unavailable: ModuleNotFoundError: No module named 'sentence_transformers'",
+      "n_chunks": 0,
+      "metrics_all": {},
+      "metrics_common_subset": {},
+      "n_scored_all": 0,
+      "n_scored_common": 0,
+      "fraction_reachable": null,
+      "first_stage_recall_ceiling": null,
+      "ndcg10_ci95": null,
+      "ndcg10_low_overlap_queries": null,
+      "ndcg10_high_overlap_queries": null,
+      "seconds": 0.0
+    },
+    {
+      "name": "chunk-struct512",
+      "axis": "chunking",
+      "chunker": "struct512",
+      "retrieval": "bm25",
+      "embedding": null,
+      "reranker": null,
+      "candidate_k": 100,
+      "table_rendering": "markdown",
+      "notes": "chunking axis: struct512 vs baseline fixed512o64",
+      "measured": true,
+      "skipped_reason": null,
+      "n_chunks": 42215,
+      "metrics_all": {
+        "ndcg@10": 0.21103126655354665,
+        "recall@50": 0.5755813953488372,
+        "mrr": 0.19320731820742967
+      },
+      "metrics_common_subset": {
+        "ndcg@10": 0.21199522676229263,
+        "recall@50": 0.5727272727272728,
+        "mrr": 0.19657220556386046
+      },
+      "n_scored_all": 172,
+      "n_scored_common": 110,
+      "fraction_reachable": 1.0,
+      "first_stage_recall_ceiling": null,
+      "ndcg10_ci95": [
+        0.1488748966779406,
+        0.2796100212966584
+      ],
+      "ndcg10_low_overlap_queries": 0.11574650276539966,
+      "ndcg10_high_overlap_queries": 0.2347055998402112,
+      "seconds": 0.5
+    },
+    {
+      "name": "tables-row-sentences",
+      "axis": "table_rendering",
+      "chunker": "struct512",
+      "retrieval": "bm25",
+      "embedding": null,
+      "reranker": null,
+      "candidate_k": 100,
+      "table_rendering": "row_sentences",
+      "notes": "repeat column headers beside every value instead of a pipe table",
+      "measured": true,
+      "skipped_reason": null,
+      "n_chunks": 40155,
+      "metrics_all": {
+        "ndcg@10": 0.18888812443331632,
+        "recall@50": 0.503030303030303,
+        "mrr": 0.18287451030212465
+      },
+      "metrics_common_subset": {
+        "ndcg@10": 0.18888812443331632,
+        "recall@50": 0.503030303030303,
+        "mrr": 0.18287451030212465
+      },
+      "n_scored_all": 110,
+      "n_scored_common": 110,
+      "fraction_reachable": 0.9418604651162791,
+      "first_stage_recall_ceiling": null,
+      "ndcg10_ci95": [
+        0.1318135169600802,
+        0.2525166836208091
+      ],
+      "ndcg10_low_overlap_queries": 0.12528236921768846,
+      "ndcg10_high_overlap_queries": 0.20389622397857682,
+      "seconds": 0.5
+    },
+    {
+      "name": "retrieval-dense-bge",
+      "axis": "retrieval",
+      "chunker": "struct512",
+      "retrieval": "dense",
+      "embedding": "bge-m3",
+      "reranker": null,
+      "candidate_k": 100,
+      "table_rendering": "markdown",
+      "notes": "dense only",
+      "measured": true,
+      "skipped_reason": null,
+      "n_chunks": 42215,
+      "metrics_all": {
+        "ndcg@10": 0.10694475043081186,
+        "recall@50": 0.32558139534883723,
+        "mrr": 0.09751192803108692
+      },
+      "metrics_common_subset": {
+        "ndcg@10": 0.14092461648532062,
+        "recall@50": 0.34545454545454546,
+        "mrr": 0.12273058549194912
+      },
+      "n_scored_all": 172,
+      "n_scored_common": 110,
+      "fraction_reachable": 1.0,
+      "first_stage_recall_ceiling": null,
+      "ndcg10_ci95": [
+        0.08847816052271797,
+        0.19903876418164368
+      ],
+      "ndcg10_low_overlap_queries": 0.22124367494938338,
+      "ndcg10_high_overlap_queries": 0.12197292853312602,
+      "seconds": 1.2
+    },
+    {
+      "name": "retrieval-hybrid-rrf",
+      "axis": "retrieval",
+      "chunker": "struct512",
+      "retrieval": "hybrid",
+      "embedding": "bge-m3",
+      "reranker": null,
+      "candidate_k": 100,
+      "table_rendering": "markdown",
+      "notes": "BM25 + dense fused with RRF",
+      "measured": true,
+      "skipped_reason": null,
+      "n_chunks": 42215,
+      "metrics_all": {
+        "ndcg@10": 0.21270281571382596,
+        "recall@50": 0.5465116279069767,
+        "mrr": 0.18915887486486718
+      },
+      "metrics_common_subset": {
+        "ndcg@10": 0.22987759402996447,
+        "recall@50": 0.5636363636363636,
+        "mrr": 0.20014366290678426
+      },
+      "n_scored_all": 172,
+      "n_scored_common": 110,
+      "fraction_reachable": 1.0,
+      "first_stage_recall_ceiling": null,
+      "ndcg10_ci95": [
+        0.1669560576380555,
+        0.29771796719191995
+      ],
+      "ndcg10_low_overlap_queries": 0.20928284023705637,
+      "ndcg10_high_overlap_queries": 0.23473703031817872,
+      "seconds": 1.9
+    },
+    {
+      "name": "retrieval-bm25-struct",
+      "axis": "retrieval",
+      "chunker": "struct512",
+      "retrieval": "bm25",
+      "embedding": null,
+      "reranker": null,
+      "candidate_k": 100,
+      "table_rendering": "markdown",
+      "notes": "lexical control at the same chunking as the dense arms",
+      "measured": true,
+      "skipped_reason": null,
+      "n_chunks": 42215,
+      "metrics_all": {
+        "ndcg@10": 0.21103126655354665,
+        "recall@50": 0.5755813953488372,
+        "mrr": 0.19320731820742967
+      },
+      "metrics_common_subset": {
+        "ndcg@10": 0.21199522676229263,
+        "recall@50": 0.5727272727272728,
+        "mrr": 0.19657220556386046
+      },
+      "n_scored_all": 172,
+      "n_scored_common": 110,
+      "fraction_reachable": 1.0,
+      "first_stage_recall_ceiling": null,
+      "ndcg10_ci95": [
+        0.1488748966779406,
+        0.2796100212966584
+      ],
+      "ndcg10_low_overlap_queries": 0.11574650276539966,
+      "ndcg10_high_overlap_queries": 0.2347055998402112,
+      "seconds": 0.6
+    },
+    {
+      "name": "embed-e5-base",
+      "axis": "embedding",
+      "chunker": "struct512",
+      "retrieval": "dense",
+      "embedding": "e5-base",
+      "reranker": null,
+      "candidate_k": 100,
+      "table_rendering": "markdown",
+      "notes": "embedding axis: e5-base vs bge-m3",
+      "measured": true,
+      "skipped_reason": null,
+      "n_chunks": 42215,
+      "metrics_all": {
+        "ndcg@10": 0.051829338154039006,
+        "recall@50": 0.22674418604651161,
+        "mrr": 0.04466586794215185
+      },
+      "metrics_common_subset": {
+        "ndcg@10": 0.03776185097587406,
+        "recall@50": 0.2,
+        "mrr": 0.032540194971238744
+      },
+      "n_scored_all": 172,
+      "n_scored_common": 110,
+      "fraction_reachable": 1.0,
+      "first_stage_recall_ceiling": null,
+      "ndcg10_ci95": [
+        0.013844307761588081,
+        0.06717356213942617
+      ],
+      "ndcg10_low_overlap_queries": 0.06179030572562495,
+      "ndcg10_high_overlap_queries": 0.0320922155854834,
+      "seconds": 1.1
+    },
+    {
+      "name": "embed-finance-e5",
+      "axis": "embedding",
+      "chunker": "struct512",
+      "retrieval": "dense",
+      "embedding": "finance-e5",
+      "reranker": null,
+      "candidate_k": 100,
+      "table_rendering": "markdown",
+      "notes": "embedding axis: finance-e5 vs bge-m3",
+      "measured": false,
+      "skipped_reason": "finance-e5 unavailable: ModuleNotFoundError: No module named 'sentence_transformers'",
+      "n_chunks": 42215,
+      "metrics_all": {},
+      "metrics_common_subset": {},
+      "n_scored_all": 0,
+      "n_scored_common": 0,
+      "fraction_reachable": null,
+      "first_stage_recall_ceiling": null,
+      "ndcg10_ci95": null,
+      "ndcg10_low_overlap_queries": null,
+      "ndcg10_high_overlap_queries": null,
+      "seconds": 0.0
+    },
+    {
+      "name": "rerank-bm25-100",
+      "axis": "reranking",
+      "chunker": "struct512",
+      "retrieval": "bm25",
+      "embedding": null,
+      "reranker": "bge-reranker-v2-m3",
+      "candidate_k": 100,
+      "table_rendering": "markdown",
+      "notes": "cross-encoder on a lexical first stage",
+      "measured": true,
+      "skipped_reason": null,
+      "n_chunks": 42215,
+      "metrics_all": {
+        "ndcg@10": 0.2158279970220873,
+        "recall@50": 0.5930232558139535,
+        "mrr": 0.18341404501666095
+      },
+      "metrics_common_subset": {
+        "ndcg@10": 0.23413671087285096,
+        "recall@50": 0.5909090909090909,
+        "mrr": 0.20542530540474044
+      },
+      "n_scored_all": 172,
+      "n_scored_common": 110,
+      "fraction_reachable": 1.0,
+      "first_stage_recall_ceiling": 0.6569767441860465,
+      "ndcg10_ci95": [
+        0.17200447073245836,
+        0.30152714058816815
+      ],
+      "ndcg10_low_overlap_queries": 0.3461838309116644,
+      "ndcg10_high_overlap_queries": 0.20769862636931072,
+      "seconds": 0.4
+    },
+    {
+      "name": "rerank-candidates-25",
+      "axis": "candidates",
+      "chunker": "struct512",
+      "retrieval": "bm25",
+      "embedding": null,
+      "reranker": "bge-reranker-v2-m3",
+      "candidate_k": 25,
+      "table_rendering": "markdown",
+      "notes": "shortlist depth 25",
+      "measured": true,
+      "skipped_reason": null,
+      "n_chunks": 42215,
+      "metrics_all": {
+        "ndcg@10": 0.23802079681541774,
+        "recall@50": 0.5755813953488372,
+        "mrr": 0.19552933905814032
+      },
+      "metrics_common_subset": {
+        "ndcg@10": 0.23681199255605512,
+        "recall@50": 0.5727272727272728,
+        "mrr": 0.20382068023802563
+      },
+      "n_scored_all": 172,
+      "n_scored_common": 110,
+      "fraction_reachable": 1.0,
+      "first_stage_recall_ceiling": 0.4883720930232558,
+      "ndcg10_ci95": [
+        0.1733372321108361,
+        0.303127310259695
+      ],
+      "ndcg10_low_overlap_queries": 0.2505647384353769,
+      "ndcg10_high_overlap_queries": 0.2335669626294736,
+      "seconds": 0.5
+    },
+    {
+      "name": "rerank-candidates-50",
+      "axis": "candidates",
+      "chunker": "struct512",
+      "retrieval": "bm25",
+      "embedding": null,
+      "reranker": "bge-reranker-v2-m3",
+      "candidate_k": 50,
+      "table_rendering": "markdown",
+      "notes": "shortlist depth 50",
+      "measured": true,
+      "skipped_reason": null,
+      "n_chunks": 42215,
+      "metrics_all": {
+        "ndcg@10": 0.23066812958370425,
+        "recall@50": 0.5755813953488372,
+        "mrr": 0.19154179658681397
+      },
+      "metrics_common_subset": {
+        "ndcg@10": 0.24557374466028878,
+        "recall@50": 0.5727272727272728,
+        "mrr": 0.21283742709515133
+      },
+      "n_scored_all": 172,
+      "n_scored_common": 110,
+      "fraction_reachable": 1.0,
+      "first_stage_recall_ceiling": 0.5755813953488372,
+      "ndcg10_ci95": [
+        0.18123810402113705,
+        0.31368190823501646
+      ],
+      "ndcg10_low_overlap_queries": 0.2806090124149701,
+      "ndcg10_high_overlap_queries": 0.23730699608895944,
+      "seconds": 0.4
+    },
+    {
+      "name": "rerank-candidates-200",
+      "axis": "candidates",
+      "chunker": "struct512",
+      "retrieval": "bm25",
+      "embedding": null,
+      "reranker": "bge-reranker-v2-m3",
+      "candidate_k": 200,
+      "table_rendering": "markdown",
+      "notes": "shortlist depth 200",
+      "measured": true,
+      "skipped_reason": null,
+      "n_chunks": 42215,
+      "metrics_all": {
+        "ndcg@10": 0.2045742620082656,
+        "recall@50": 0.5930232558139535,
+        "mrr": 0.17614490974364033
+      },
+      "metrics_common_subset": {
+        "ndcg@10": 0.20801727250232319,
+        "recall@50": 0.5727272727272728,
+        "mrr": 0.18612270923429783
+      },
+      "n_scored_all": 172,
+      "n_scored_common": 110,
+      "fraction_reachable": 1.0,
+      "first_stage_recall_ceiling": 0.7848837209302325,
+      "ndcg10_ci95": [
+        0.14748866775612146,
+        0.2728036796720418
+      ],
+      "ndcg10_low_overlap_queries": 0.31000311573924966,
+      "ndcg10_high_overlap_queries": 0.18395319713181243,
+      "seconds": 0.6
+    },
+    {
+      "name": "hybrid-plus-rerank",
+      "axis": "interaction",
+      "chunker": "struct512",
+      "retrieval": "hybrid",
+      "embedding": "bge-m3",
+      "reranker": "bge-reranker-v2-m3",
+      "candidate_k": 100,
+      "table_rendering": "markdown",
+      "notes": "the production configuration: hybrid retrieval then cross-encoder",
+      "measured": true,
+      "skipped_reason": null,
+      "n_chunks": 42215,
+      "metrics_all": {
+        "ndcg@10": 0.21679853717228706,
+        "recall@50": 0.5930232558139535,
+        "mrr": 0.18249474509208488
+      },
+      "metrics_common_subset": {
+        "ndcg@10": 0.22735198403768714,
+        "recall@50": 0.6,
+        "mrr": 0.19664150426396287
+      },
+      "n_scored_all": 172,
+      "n_scored_common": 110,
+      "fraction_reachable": 1.0,
+      "first_stage_recall_ceiling": 0.6453488372093024,
+      "ndcg10_ci95": [
+        0.16663492301433894,
+        0.29294041275410265
+      ],
+      "ndcg10_low_overlap_queries": 0.33994908074159497,
+      "ndcg10_high_overlap_queries": 0.20078412975923693,
+      "seconds": 1.9
+    }
+  ],
+  "significance_vs_baseline": {
+    "chunk-fixed256o32": {
+      "baseline_ndcg10": 0.22016560893946932,
+      "config_ndcg10": 0.1905740136548331,
+      "delta": -0.029591595284636226,
+      "p_raw": 0.29487051294870514,
+      "p_holm": 1.0,
+      "significant_at_05": false,
+      "n_pairs": 110
+    },
+    "chunk-struct512": {
+      "baseline_ndcg10": 0.22016560893946932,
+      "config_ndcg10": 0.21199522676229265,
+      "delta": -0.008170382177176694,
+      "p_raw": 0.7756224377562244,
+      "p_holm": 1.0,
+      "significant_at_05": false,
+      "n_pairs": 110
+    },
+    "tables-row-sentences": {
+      "baseline_ndcg10": 0.22016560893946932,
+      "config_ndcg10": 0.18888812443331632,
+      "delta": -0.03127748450615302,
+      "p_raw": 0.2810718928107189,
+      "p_holm": 1.0,
+      "significant_at_05": false,
+      "n_pairs": 110
+    },
+    "retrieval-dense-bge": {
+      "baseline_ndcg10": 0.22016560893946932,
+      "config_ndcg10": 0.1409246164853206,
+      "delta": -0.0792409924541487,
+      "p_raw": 0.036196380361963806,
+      "p_holm": 0.39816018398160186,
+      "significant_at_05": false,
+      "n_pairs": 110
+    },
+    "retrieval-hybrid-rrf": {
+      "baseline_ndcg10": 0.22016560893946932,
+      "config_ndcg10": 0.2298775940299645,
+      "delta": 0.009711985090495137,
+      "p_raw": 0.8041195880411959,
+      "p_holm": 1.0,
+      "significant_at_05": false,
+      "n_pairs": 110
+    },
+    "retrieval-bm25-struct": {
+      "baseline_ndcg10": 0.22016560893946932,
+      "config_ndcg10": 0.21199522676229265,
+      "delta": -0.008170382177176694,
+      "p_raw": 0.7756224377562244,
+      "p_holm": 1.0,
+      "significant_at_05": false,
+      "n_pairs": 110
+    },
+    "embed-e5-base": {
+      "baseline_ndcg10": 0.22016560893946932,
+      "config_ndcg10": 0.03776185097587406,
+      "delta": -0.18240375796359526,
+      "p_raw": 9.999000099990002e-05,
+      "p_holm": 0.0011998800119988001,
+      "significant_at_05": true,
+      "n_pairs": 110
+    },
+    "rerank-bm25-100": {
+      "baseline_ndcg10": 0.22016560893946932,
+      "config_ndcg10": 0.23413671087285093,
+      "delta": 0.01397110193338162,
+      "p_raw": 0.7259274072592741,
+      "p_holm": 1.0,
+      "significant_at_05": false,
+      "n_pairs": 110
+    },
+    "rerank-candidates-25": {
+      "baseline_ndcg10": 0.22016560893946932,
+      "config_ndcg10": 0.23681199255605512,
+      "delta": 0.016646383616585794,
+      "p_raw": 0.646935306469353,
+      "p_holm": 1.0,
+      "significant_at_05": false,
+      "n_pairs": 110
+    },
+    "rerank-candidates-50": {
+      "baseline_ndcg10": 0.22016560893946932,
+      "config_ndcg10": 0.24557374466028872,
+      "delta": 0.025408135720819427,
+      "p_raw": 0.5273472652734726,
+      "p_holm": 1.0,
+      "significant_at_05": false,
+      "n_pairs": 110
+    },
+    "rerank-candidates-200": {
+      "baseline_ndcg10": 0.22016560893946932,
+      "config_ndcg10": 0.20801727250232319,
+      "delta": -0.012148336437146138,
+      "p_raw": 0.7464253574642535,
+      "p_holm": 1.0,
+      "significant_at_05": false,
+      "n_pairs": 110
+    },
+    "hybrid-plus-rerank": {
+      "baseline_ndcg10": 0.22016560893946932,
+      "config_ndcg10": 0.22735198403768708,
+      "delta": 0.007186375098217785,
+      "p_raw": 0.8493150684931506,
+      "p_holm": 1.0,
+      "significant_at_05": false,
+      "n_pairs": 110
+    }
+  }
+}
