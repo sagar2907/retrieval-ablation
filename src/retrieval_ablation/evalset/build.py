@@ -22,7 +22,7 @@ from pathlib import Path
 
 from ..config import EVAL_DIR, GLOBAL_SEED, ensure_dirs
 from ..corpus.ingest import load_corpus
-from .schema import EvalQuery, summarise, write_eval_set
+from .schema import EvalQuery, read_eval_set, summarise, write_eval_set
 from .synthesize import build_queries
 
 log = logging.getLogger(__name__)
@@ -99,11 +99,49 @@ def write_verification_sample(
     target.write_text("\n".join(lines), encoding="utf-8")
 
 
+def merge_preserving_existing(
+    existing: list[EvalQuery], rebuilt: list[EvalQuery]
+) -> tuple[list[EvalQuery], list[str]]:
+    """Keep every existing query exactly as it is, and append only new ones.
+
+    Generation is a pure function of the corpus, so a query's *text and gold span*
+    can be regenerated at any time. Everything else attached to it cannot:
+    `verification`, `checked_by` and `check_reason` are the record of a label
+    audit that cost 216 model calls, and 44 of those queries carry a REJECTED
+    verdict that the accepted-subset robustness check rests on entirely.
+
+    `write_eval_set` overwrites the file unconditionally, and freshly built
+    queries carry `verification=GENERATED` with no checker fields. So growing the
+    eval set by re-running the builder would have replaced every audited label
+    with an unaudited one of the same id -- silently, since the file would look
+    normal and merely larger.
+
+    Returns the merged list and the ids that exist only in the committed file.
+    Those are reported rather than dropped: an id the current corpus no longer
+    generates usually means the corpus moved under the labels, which is worth
+    knowing about and never worth silently discarding.
+    """
+    by_id = {q.query_id: q for q in existing}
+    merged = list(existing)
+    merged.extend(q for q in rebuilt if q.query_id not in by_id)
+    rebuilt_ids = {q.query_id for q in rebuilt}
+    return merged, sorted(i for i in by_id if i not in rebuilt_ids)
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Build the labelled retrieval eval set")
     parser.add_argument("--n-queries", type=int, default=220)
     parser.add_argument("--seed", type=int, default=GLOBAL_SEED)
     parser.add_argument("--sample-size", type=int, default=40)
+    parser.add_argument(
+        "--extend",
+        action="store_true",
+        help=(
+            "grow the committed eval set instead of replacing it: existing queries "
+            "are kept verbatim, keeping their audit verdicts, and only unseen ones "
+            "are appended"
+        ),
+    )
     args = parser.parse_args()
 
     logging.basicConfig(level=logging.INFO, format="%(levelname)s %(message)s")
@@ -113,6 +151,22 @@ def main() -> None:
     log.info("loaded %d documents", len(docs))
 
     queries = build_queries(docs, n_queries=args.n_queries, seed=args.seed)
+    if args.extend and QUERIES_PATH.exists():
+        existing = read_eval_set(QUERIES_PATH)
+        queries, orphaned = merge_preserving_existing(existing, queries)
+        log.info(
+            "extended %d committed queries to %d (%d preserved with their audit state)",
+            len(existing),
+            len(queries),
+            len(existing),
+        )
+        if orphaned:
+            log.warning(
+                "%d committed queries are no longer produced by the current corpus "
+                "and were kept as-is: %s",
+                len(orphaned),
+                orphaned[:5],
+            )
     write_eval_set(queries, QUERIES_PATH)
 
     docs_by_id = {d.doc_id: d for d in docs}

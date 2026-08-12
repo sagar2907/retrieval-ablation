@@ -1,6 +1,6 @@
 # Retrieval ablation
 
-13 of 15 configurations measured.
+6 of 15 configurations measured.
 
 `nDCG@10` and the confidence interval are computed on the **shared subset**
 of queries every configuration can judge. Comparing configurations on their
@@ -13,19 +13,12 @@ baseline. Uncorrected, comparing 14 configurations at alpha=0.05 carries a
 
 | configuration | axis | nDCG@10 | 95% CI | Recall@50 | MRR | delta vs base | p (Holm) | sig | n |
 |---|---|---|---|---|---|---|---|---|---|
-| `rerank-candidates-50` | candidates | 0.2145 | [0.160, 0.273] | 0.5245 | 0.1859 | +0.0192 | 1.0000 | no | 143 |
-| `rerank-candidates-25` | candidates | 0.2103 | [0.157, 0.268] | 0.5245 | 0.1799 | +0.0150 | 1.0000 | no | 143 |
-| `rerank-bm25-100` | reranking | 0.2057 | [0.153, 0.263] | 0.5385 | 0.1798 | +0.0104 | 1.0000 | no | 143 |
-| `chunk-semantic95` | chunking | 0.2039 | [0.154, 0.258] | 0.6573 | 0.1697 | +0.0086 | 1.0000 | no | 143 |
-| `retrieval-hybrid-rrf` | retrieval | 0.1991 | [0.146, 0.254] | 0.4965 | 0.1736 | +0.0039 | 1.0000 | no | 143 |
-| `baseline-bm25-fixed512` | baseline | 0.1953 | [0.143, 0.251] | 0.5070 | 0.1741 | (baseline) | - | - | 143 |
-| `chunk-struct512` | chunking | 0.1874 | [0.134, 0.245] | 0.5245 | 0.1722 | -0.0078 | 1.0000 | no | 143 |
-| `retrieval-bm25-struct` | retrieval | 0.1874 | [0.134, 0.245] | 0.5245 | 0.1722 | -0.0078 | 1.0000 | no | 143 |
-| `rerank-candidates-200` | candidates | 0.1854 | [0.134, 0.240] | 0.5035 | 0.1640 | -0.0099 | 1.0000 | no | 143 |
-| `chunk-fixed256o32` | chunking | 0.1699 | [0.119, 0.226] | 0.4126 | 0.1604 | -0.0254 | 1.0000 | no | 143 |
-| `tables-row-sentences` | table_rendering | 0.1688 | [0.122, 0.222] | 0.4935 | 0.1610 | -0.0265 | 1.0000 | no | 143 |
-| `retrieval-dense-bge` | retrieval | 0.1196 | [0.077, 0.167] | 0.3077 | 0.1036 | -0.0757 | 0.1298 | no | 143 |
-| `embed-e5-base` | embedding | 0.0413 | [0.019, 0.068] | 0.2168 | 0.0337 | -0.1540 | 0.0012 | yes | 143 |
+| `chunk-semantic95` | chunking | 0.2189 | [0.187, 0.252] | 0.6641 | 0.1828 | +0.0218 | 0.2622 | no | 390 |
+| `chunk-struct512` | chunking | 0.2135 | [0.180, 0.249] | 0.5667 | 0.1905 | +0.0164 | 0.5629 | no | 390 |
+| `retrieval-bm25-struct` | retrieval | 0.2135 | [0.180, 0.249] | 0.5667 | 0.1905 | +0.0164 | 0.5629 | no | 390 |
+| `baseline-bm25-fixed512` | baseline | 0.1971 | [0.166, 0.230] | 0.5385 | 0.1769 | (baseline) | - | - | 390 |
+| `tables-row-sentences` | table_rendering | 0.1644 | [0.135, 0.195] | 0.5324 | 0.1501 | -0.0327 | 0.1188 | no | 390 |
+| `chunk-fixed256o32` | chunking | 0.1556 | [0.127, 0.185] | 0.4474 | 0.1376 | -0.0415 | 0.0285 | yes | 390 |
 
 ## Chunking reachability and reranking ceiling
 
@@ -40,19 +33,12 @@ reranker from one that never saw the answer.
 
 | configuration | chunks | reachable | ceiling | nDCG low-overlap | nDCG high-overlap | seconds |
 |---|---|---|---|---|---|---|
-| `baseline-bm25-fixed512` | 37,498 | 100.0% | - | 0.1091 | 0.2254 | 1 |
-| `chunk-fixed256o32` | 75,084 | 100.0% | - | 0.1030 | 0.1932 | 2 |
-| `chunk-semantic95` | 29,556 | 100.0% | - | 0.1254 | 0.2312 | 1 |
-| `chunk-struct512` | 42,215 | 100.0% | - | 0.0837 | 0.2236 | 1 |
-| `tables-row-sentences` | 40,155 | 95.4% | - | 0.1014 | 0.1924 | 1 |
-| `retrieval-dense-bge` | 42,215 | 100.0% | - | 0.1346 | 0.1143 | 2 |
-| `retrieval-hybrid-rrf` | 42,215 | 100.0% | - | 0.1374 | 0.2207 | 2 |
-| `retrieval-bm25-struct` | 42,215 | 100.0% | - | 0.0837 | 0.2236 | 0 |
-| `embed-e5-base` | 42,215 | 100.0% | - | 0.0467 | 0.0394 | 1 |
-| `rerank-bm25-100` | 42,215 | 100.0% | 61.6% | 0.2309 | 0.1969 | 1 |
-| `rerank-candidates-25` | 42,215 | 100.0% | 44.4% | 0.1852 | 0.2190 | 1 |
-| `rerank-candidates-50` | 42,215 | 100.0% | 53.2% | 0.1937 | 0.2218 | 1 |
-| `rerank-candidates-200` | 42,215 | 100.0% | 73.6% | 0.2104 | 0.1767 | 1 |
+| `baseline-bm25-fixed512` | 37,498 | 100.0% | - | 0.0823 | 0.2378 | 2 |
+| `chunk-fixed256o32` | 75,084 | 100.0% | - | 0.0754 | 0.1840 | 2 |
+| `chunk-semantic95` | 29,556 | 100.0% | - | 0.1376 | 0.2477 | 1 |
+| `chunk-struct512` | 42,215 | 100.0% | - | 0.1016 | 0.2532 | 1 |
+| `tables-row-sentences` | 40,155 | 95.9% | - | 0.0840 | 0.1929 | 1 |
+| `retrieval-bm25-struct` | 42,215 | 100.0% | - | 0.1016 | 0.2532 | 1 |
 
 ## The lexical-overlap confound
 
@@ -68,5 +54,12 @@ These configurations did not run. No number is reported for them.
 
 | configuration | reason |
 |---|---|
+| `retrieval-dense-bge` | query vectors for bge-m3 cover only 216 of 586 queries. Re-run the GPU notebook against the current eval set. |
+| `retrieval-hybrid-rrf` | query vectors for bge-m3 cover only 216 of 586 queries. Re-run the GPU notebook against the current eval set. |
+| `embed-e5-base` | query vectors for e5-base cover only 216 of 586 queries. Re-run the GPU notebook against the current eval set. |
 | `embed-e5-base-v2` | no usable query vectors for e5-base-v2: queryvectors-e5-base-v2.npz is absent, or records different query text than the set being scored (check the loader warning above). A dense index needs both sides embedded by the same model on the same wording; reusing vectors from other text compares two things that were never asked and returns confident nonsense. Re-run the GPU notebook against this eval set to produce them. |
-| `hybrid-plus-rerank` | no cross-encoder scores for candidates-hybrid-plus-rerank: the GPU run has not scored this configuration's shortlist. Falling back to a live reranker also failed (ModuleNotFoundError). |
+| `rerank-bm25-100` | cross-encoder scores cover only 216 of 582 queries. Reranking the covered fraction and leaving the rest in first-stage order measures neither. Re-run the GPU notebook against the current eval set. |
+| `rerank-candidates-25` | cross-encoder scores cover only 216 of 582 queries. Reranking the covered fraction and leaving the rest in first-stage order measures neither. Re-run the GPU notebook against the current eval set. |
+| `rerank-candidates-50` | cross-encoder scores cover only 216 of 582 queries. Reranking the covered fraction and leaving the rest in first-stage order measures neither. Re-run the GPU notebook against the current eval set. |
+| `rerank-candidates-200` | cross-encoder scores cover only 216 of 582 queries. Reranking the covered fraction and leaving the rest in first-stage order measures neither. Re-run the GPU notebook against the current eval set. |
+| `hybrid-plus-rerank` | query vectors for bge-m3 cover only 216 of 586 queries. Re-run the GPU notebook against the current eval set. |

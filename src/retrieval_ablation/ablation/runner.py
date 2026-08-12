@@ -408,6 +408,38 @@ def _prepare(
                 key,
                 embedding_key,
             )
+        elif len(query_vectors) < len(queries):
+            # Partial coverage is not a usable dense arm, and must not be
+            # discovered mid-search. PrecomputedEmbedder raises KeyError on a query
+            # it has no vector for, and that exception escapes the retriever and
+            # aborts the entire grid -- the same failure the can_embed_queries flag
+            # was added to prevent, reappearing because the flag asks whether *any*
+            # vectors exist rather than whether these queries are covered.
+            #
+            # This is reachable simply by growing the eval set: the artifacts cover
+            # the queries that existed when the GPU ran, and every query added
+            # since has no vector.
+            missing = len(queries) - len(query_vectors)
+            log.warning(
+                "group %s: queryvectors-%s covers %d of %d queries; %d were added "
+                "after the GPU run. Skipping rather than scoring a subset.",
+                key,
+                embedding_key,
+                len(query_vectors),
+                len(queries),
+                missing,
+            )
+            return _Prepared(
+                [],
+                {},
+                BM25Index([]),
+                None,
+                skipped_reason=(
+                    f"query vectors for {embedding_key} cover only "
+                    f"{len(query_vectors)} of {len(queries)} queries. Re-run the GPU "
+                    f"notebook against the current eval set."
+                ),
+            )
         dense = dense_index_from_artifact(artifact, chunks, query_vectors)
     elif embedding_key and embedder is not None:
         log.info("group %s: embedding %d chunks with %s", key, len(chunks), embedding_key)
@@ -428,7 +460,7 @@ def _best_rerank_scores(
     return best
 
 
-def _build_retriever(  # noqa: PLR0911 - each return is a distinct, named unavailability
+def _build_retriever(  # noqa: PLR0911,PLR0912 - each return is a distinct, named unavailability
     config: Config, prepared: _Prepared, query_ids: dict[str, str] | None = None
 ):
     """Assemble the retriever this configuration describes, or return a reason."""
@@ -462,6 +494,23 @@ def _build_retriever(  # noqa: PLR0911 - each return is a distinct, named unavai
         best = _best_rerank_scores(scores_paths, by_id)
         if not best:
             return None, _STALE_RERANK_SCORES.format(file=", ".join(p.name for p in scores_paths))
+        if len(best) < len(by_id):
+            # PrecomputedReranker deliberately leaves an unscored query in its
+            # first-stage order rather than inventing a ranking. That is right for a
+            # handful of gaps and wrong as a silent default: growing the eval set
+            # from 216 to 586 left 63% of queries unscored, so a "reranking" arm
+            # would have been reranked on 37% of them and plain BM25 on the rest --
+            # a mixture reported under the name of one of its halves.
+            #
+            # The dilution biases toward the null, so it could not have manufactured
+            # a finding; it would have understated one while the row claimed to
+            # measure reranking at the full sample. Same rule as the dense arms.
+            return None, (
+                f"cross-encoder scores cover only {len(best)} of {len(by_id)} queries. "
+                f"Reranking the covered fraction and leaving the rest in first-stage "
+                f"order measures neither. Re-run the GPU notebook against the current "
+                f"eval set."
+            )
         return (
             PrecomputedReranker(
                 first,

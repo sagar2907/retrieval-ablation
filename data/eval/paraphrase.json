@@ -1,23 +1,23 @@
 {
   "model": "gemini-3.5-flash-lite",
   "_note": "Paraphrases rewrite EvalQuery.text only. Gold spans, grades and verification status are carried over untouched, so this file indexes the same passages as queries.jsonl and the two runs are comparable. Queries whose rewrite was refused keep their original text rather than being dropped, so both files contain the same query ids.",
-  "n_queries_total": 216,
-  "n_attempted": 216,
-  "n_kept": 216,
+  "n_queries_total": 586,
+  "n_attempted": 586,
+  "n_kept": 586,
   "n_refused": 0,
-  "mean_overlap_before": 0.4613,
-  "mean_overlap_after": 0.1684,
+  "mean_overlap_before": 0.4693,
+  "mean_overlap_after": 0.1632,
   "refusal_reasons": [],
   "stopped_early": null,
   "usage": {
-    "live_calls": 216,
-    "cached_calls": 5,
-    "prompt_tokens": 45069,
-    "output_tokens": 5422,
+    "live_calls": 586,
+    "cached_calls": 220,
+    "prompt_tokens": 122357,
+    "output_tokens": 14601,
     "thought_tokens": 0,
-    "rate_limited_responses": 16,
-    "seconds_spent_waiting": 687.0,
-    "p95_latency_seconds": 1.75
+    "rate_limited_responses": 22,
+    "seconds_spent_waiting": 987.0,
+    "p95_latency_seconds": 1.492
   },
   "examples": [
     {

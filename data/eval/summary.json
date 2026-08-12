@@ -1,13 +1,15 @@
 {
-  "n_queries": 216,
+  "n_queries": 586,
   "by_kind": {
-    "table_lookup": 216
+    "table_lookup": 586
   },
   "by_verification": {
-    "generated": 216
+    "rejected": 44,
+    "model_checked": 172,
+    "generated": 370
   },
-  "mean_lexical_overlap": 0.46133323980546204,
-  "n_documents_referenced": 86,
+  "mean_lexical_overlap": 0.4693344340528641,
+  "n_documents_referenced": 106,
   "seed": 20260730,
-  "requested": 220
+  "requested": 600
 }
