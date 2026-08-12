@@ -119,21 +119,28 @@ def main() -> None:
                 if config.embedding
                 else None
             )
-            # Coverage, not mere presence. PrecomputedEmbedder raises KeyError for a
-            # query it has no vector for, and that aborts the export -- the same
-            # crash the runner hit when the eval set grew from 216 to 586, in a
-            # second place that made the same "are there vectors?" check instead of
-            # "are these queries covered?". Partial coverage would also produce a
-            # shortlist for a subset while the filename claims the whole set.
+            # Coverage, not mere presence: PrecomputedEmbedder raises KeyError for a
+            # query it has no vector for, which aborts the export, and a partial
+            # artifact would produce a shortlist for a subset while the filename
+            # claims the whole set.
+            #
+            # Counted in distinct *texts*. load_query_vectors returns a mapping
+            # keyed by query text, because that is what a Retriever is handed, so
+            # two queries wording the same question collapse to one entry. Comparing
+            # against the query count called a complete artifact short -- 582 of 586
+            # -- and skipped the arm. Both mistakes were made twice, here and in the
+            # runner, which is what happens when two places ask the same question
+            # of the same artifact and each answers it separately.
             covered = len(query_vectors or {})
-            if not vectors.exists() or covered < len(queries):
+            wanted = len({q.text for q in queries})
+            if not vectors.exists() or covered < wanted:
                 log.warning(
                     "skipping %s: a %s first stage needs vectors for %s covering all "
-                    "%d queries; %d are covered",
+                    "%d distinct query texts; %d are covered",
                     config.name,
                     config.retrieval,
                     config.embedding,
-                    len(queries),
+                    wanted,
                     covered,
                 )
                 continue
