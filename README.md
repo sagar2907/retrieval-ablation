@@ -37,7 +37,7 @@ exactly the table structure being tested.
 
 ## Measured results
 
-**14 of 15 configurations measured** on the original wording, **15 of 15** on the
+**13 of 15 configurations measured** on the original wording, **14 of 15** on the
 paraphrased one. Full corpus, 143 queries judgeable by every configuration. Dense
 vectors, cross-encoder scores and the semantic chunk boundaries were produced on a
 Kaggle T4; reproduce with `python -m retrieval_ablation.ablation.runner`.
@@ -48,7 +48,6 @@ Kaggle T4; reproduce with `python -m retrieval_ablation.ablation.runner`.
 | `rerank-candidates-25` | candidates | 0.2103 | [0.157, 0.268] | 0.5245 | 0.1799 | +0.0150 | 1.000 |
 | `rerank-bm25-100` | reranking | 0.2057 | [0.153, 0.263] | 0.5385 | 0.1798 | +0.0104 | 1.000 |
 | `chunk-semantic95` | chunking | 0.2039 | [0.154, 0.258] | **0.6573** | 0.1697 | +0.0086 | 1.000 |
-| `hybrid-plus-rerank` | interaction | 0.2003 | [0.148, 0.256] | 0.5455 | 0.1729 | +0.0050 | 1.000 |
 | `retrieval-hybrid-rrf` | retrieval | 0.1991 | [0.146, 0.254] | 0.4965 | 0.1736 | +0.0039 | 1.000 |
 | `baseline-bm25-fixed512` | baseline | 0.1953 | [0.143, 0.251] | 0.5070 | 0.1741 | — | — |
 | `chunk-struct512` | chunking | 0.1874 | [0.134, 0.245] | 0.5245 | 0.1722 | −0.0078 | 1.000 |
@@ -76,14 +75,14 @@ Rewriting the questions so they stop quoting the filing's own row labels — sam
 corpus, same gold spans, same query ids, same 143 shared queries, only the wording
 different — reverses the ranking of the two retrieval families.
 
-The paraphrased grid measures **15 of 15**; the original measures 14, because
-`embed-e5-base-v2`'s query vectors were only ever built for the paraphrased
-wording and the loader will not substitute the other set.
+The paraphrased grid measures **14 of 15**, the original **13** — the gaps are
+`embed-e5-base-v2`, whose query vectors exist only for the paraphrased wording,
+and `hybrid-plus-rerank`, explained in the note below the table.
 
 | configuration | original | paraphrased | change | Δ vs base | p (Holm) |
 |---|---|---|---|---|---|
 | `rerank-candidates-200` | 0.1854 | **0.1210** | −35% | +0.0735 | **0.0060** ✓ |
-| `hybrid-plus-rerank` | 0.2003 | **0.1210** | −40% | +0.0735 | **0.0052** ✓ |
+| `hybrid-plus-rerank` | not measured | not measured | — | — | see note below |
 | `rerank-bm25-100` | 0.2057 | **0.1178** | −43% | +0.0703 | **0.0121** ✓ |
 | `retrieval-hybrid-rrf` | 0.1991 | **0.1088** | −45% | +0.0613 | **0.0042** ✓ |
 | `rerank-candidates-50` | 0.2145 | **0.1047** | −51% | +0.0572 | **0.0200** ✓ |
@@ -97,20 +96,20 @@ wording and the loader will not substitute the other set.
 | `embed-e5-base` | 0.0413 | 0.0223 | −46% | −0.0252 | 0.449 |
 
 On the original wording **nothing was a significant improvement**. On the
-paraphrased wording **five configurations are** — every reranking arm above depth
-25, plus both hybrid arms.
+paraphrased wording **four configurations are** — every reranking arm above depth
+25, plus `retrieval-hybrid-rrf`.
 
-> **`hybrid-plus-rerank` carries a caveat that the other four do not.** Its
-> shortlist should come from the hybrid first stage, but until now the exporter
-> skipped hybrid configurations — a branch written when no dense vectors existed
-> and left in place after they did — so the only cross-encoder scores available
-> were computed from a BM25 shortlist. The two shortlists share about 54% of their
-> top 50, and **30.7% of the hybrid shortlist has no score at all**; those
-> candidates are ranked below every scored hit rather than being given an invented
-> number. So the row is not wrong about what it computed, but the pipeline it
-> describes is "hybrid retrieval, reranked wherever BM25 happened to agree". The
-> correct shortlists are now exported and committed; scoring them needs one GPU
-> run, after which this row should be re-measured.
+> **`hybrid-plus-rerank` is no longer among them, and the row is now `not
+> measured`.** Its shortlist should come from the hybrid first stage, but the
+> exporter skipped hybrid configurations — a branch written when no dense vectors
+> existed and left in place after they did — so the only cross-encoder scores
+> available were computed from a BM25 shortlist. The two share about 54% of their
+> top 50, and 30.7% of the hybrid shortlist had no score at all. The runner now
+> matches scores to the shortlist they were computed over, finds none for this
+> configuration, and reports that instead of reusing another arm's. Correct
+> shortlists for both wordings are exported and committed; one GPU run scores
+> them. **The +0.0735 previously reported for this row should be disregarded** —
+> it described "hybrid retrieval, reranked wherever BM25 happened to agree".
 
 ### Completing the grid removed two findings
 
@@ -439,7 +438,7 @@ Nothing below is called verified unless it was run and its output inspected.
 | Generation + long-context comparison | numbers above, from the API's own reported token counts |
 | FastAPI service, Docker, citation UI | live run: index 31.7 s, /search 1.9 ms, /answer 429 path verified |
 
-**454 tests pass, offline, with no API key and no model download.** `ruff` clean.
+**468 tests pass, offline, with no API key and no model download.** `ruff` clean.
 
 ### Not done
 

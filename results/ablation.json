@@ -1,6 +1,6 @@
 {
   "n_configurations": 15,
-  "n_measured": 14,
+  "n_measured": 13,
   "results": [
     {
       "name": "baseline-bm25-fixed512",
@@ -35,7 +35,7 @@
       ],
       "ndcg10_low_overlap_queries": 0.10906355443615744,
       "ndcg10_high_overlap_queries": 0.2253749414554204,
-      "seconds": 0.4
+      "seconds": 0.9
     },
     {
       "name": "chunk-fixed256o32",
@@ -70,7 +70,7 @@
       ],
       "ndcg10_low_overlap_queries": 0.10301332696941103,
       "ndcg10_high_overlap_queries": 0.19318229092812148,
-      "seconds": 0.6
+      "seconds": 1.6
     },
     {
       "name": "chunk-semantic95",
@@ -105,7 +105,7 @@
       ],
       "ndcg10_low_overlap_queries": 0.1254308256223142,
       "ndcg10_high_overlap_queries": 0.2312333775655177,
-      "seconds": 0.3
+      "seconds": 0.8
     },
     {
       "name": "chunk-struct512",
@@ -140,7 +140,7 @@
       ],
       "ndcg10_low_overlap_queries": 0.08371197904702865,
       "ndcg10_high_overlap_queries": 0.22364460142534653,
-      "seconds": 0.4
+      "seconds": 1.0
     },
     {
       "name": "tables-row-sentences",
@@ -175,7 +175,7 @@
       ],
       "ndcg10_low_overlap_queries": 0.1013894406020413,
       "ndcg10_high_overlap_queries": 0.1923568295135462,
-      "seconds": 0.4
+      "seconds": 0.5
     },
     {
       "name": "retrieval-dense-bge",
@@ -210,7 +210,7 @@
       ],
       "ndcg10_low_overlap_queries": 0.1345797434397401,
       "ndcg10_high_overlap_queries": 0.11431556742067106,
-      "seconds": 1.7
+      "seconds": 1.5
     },
     {
       "name": "retrieval-hybrid-rrf",
@@ -245,7 +245,7 @@
       ],
       "ndcg10_low_overlap_queries": 0.13741838284917673,
       "ndcg10_high_overlap_queries": 0.22067543111620666,
-      "seconds": 2.2
+      "seconds": 2.4
     },
     {
       "name": "retrieval-bm25-struct",
@@ -409,7 +409,7 @@
       ],
       "ndcg10_low_overlap_queries": 0.1851629729296683,
       "ndcg10_high_overlap_queries": 0.21903902105751452,
-      "seconds": 0.4
+      "seconds": 0.5
     },
     {
       "name": "rerank-candidates-50",
@@ -444,7 +444,7 @@
       ],
       "ndcg10_low_overlap_queries": 0.19368905068063394,
       "ndcg10_high_overlap_queries": 0.22176580621841444,
-      "seconds": 0.4
+      "seconds": 0.5
     },
     {
       "name": "rerank-candidates-200",
@@ -479,7 +479,7 @@
       ],
       "ndcg10_low_overlap_queries": 0.21037219040522503,
       "ndcg10_high_overlap_queries": 0.1766796389796163,
-      "seconds": 0.5
+      "seconds": 0.8
     },
     {
       "name": "hybrid-plus-rerank",
@@ -491,30 +491,19 @@
       "candidate_k": 100,
       "table_rendering": "markdown",
       "notes": "the production configuration: hybrid retrieval then cross-encoder",
-      "measured": true,
-      "skipped_reason": null,
+      "measured": false,
+      "skipped_reason": "no cross-encoder scores for candidates-hybrid-plus-rerank: the GPU run has not scored this configuration's shortlist. Falling back to a live reranker also failed (ModuleNotFoundError).",
       "n_chunks": 42215,
-      "metrics_all": {
-        "ndcg@10": 0.19528296621459906,
-        "recall@50": 0.5509259259259259,
-        "mrr": 0.16515790663963492
-      },
-      "metrics_common_subset": {
-        "ndcg@10": 0.2002701471728859,
-        "recall@50": 0.5454545454545454,
-        "mrr": 0.17293435129425003
-      },
-      "n_scored_all": 216,
-      "n_scored_common": 143,
-      "fraction_reachable": 1.0,
-      "first_stage_recall_ceiling": 0.6018518518518519,
-      "ndcg10_ci95": [
-        0.14813338266785736,
-        0.2560958436781635
-      ],
-      "ndcg10_low_overlap_queries": 0.22736854892006966,
-      "ndcg10_high_overlap_queries": 0.1908112710913218,
-      "seconds": 2.2
+      "metrics_all": {},
+      "metrics_common_subset": {},
+      "n_scored_all": 0,
+      "n_scored_common": 0,
+      "fraction_reachable": null,
+      "first_stage_recall_ceiling": null,
+      "ndcg10_ci95": null,
+      "ndcg10_low_overlap_queries": null,
+      "ndcg10_high_overlap_queries": null,
+      "seconds": 0.0
     }
   ],
   "significance_vs_baseline": {
@@ -559,7 +548,7 @@
       "config_ndcg10": 0.11955874583119942,
       "delta": -0.07572164094091517,
       "p_raw": 0.0117988201179882,
-      "p_holm": 0.1415858414158584,
+      "p_holm": 0.1297870212978702,
       "significant_at_05": false,
       "n_pairs": 143
     },
@@ -586,7 +575,7 @@
       "config_ndcg10": 0.04128176728594069,
       "delta": -0.15399861948617388,
       "p_raw": 9.999000099990002e-05,
-      "p_holm": 0.0012998700129987003,
+      "p_holm": 0.0011998800119988001,
       "significant_at_05": true,
       "n_pairs": 143
     },
@@ -622,15 +611,6 @@
       "config_ndcg10": 0.1853972921456829,
       "delta": -0.009883094626431685,
       "p_raw": 0.7506249375062494,
-      "p_holm": 1.0,
-      "significant_at_05": false,
-      "n_pairs": 143
-    },
-    "hybrid-plus-rerank": {
-      "baseline_ndcg10": 0.1952803867721146,
-      "config_ndcg10": 0.2002701471728859,
-      "delta": 0.0049897604007713365,
-      "p_raw": 0.869013098690131,
       "p_holm": 1.0,
       "significant_at_05": false,
       "n_pairs": 143

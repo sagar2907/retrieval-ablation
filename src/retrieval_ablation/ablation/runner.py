@@ -174,18 +174,41 @@ def _artifact_vectors(embedding_key: str, chunker: str) -> Path | None:
     return candidate if candidate.exists() else None
 
 
-def _artifact_rerank_scores() -> list[Path]:
-    """Every GPU-produced cross-encoder score file, newest naming first.
+def _candidates_stem(config: Config) -> str:
+    """Name of the candidates file this configuration's shortlist was written to.
 
-    Returns all of them rather than one, because which file applies depends on
-    the wording being scored and not on its name. The eval sets differ only in
-    query text, so an original run and a paraphrased run each have their own
-    scores, and the caller picks by asking `load_rerank_scores` which one was
-    computed against the queries in hand. Hard-coding a single filename here is
-    what left the paraphrased arms unmeasurable even after their scores existed.
+    `export_candidates` groups by what actually determines a shortlist -- the
+    chunker and the first stage -- and names the file after the first
+    configuration with that signature. So rerank-candidates-25/50/200 all share
+    rerank-bm25-100's shortlist, and hybrid-plus-rerank has its own. Recomputing
+    the same grouping here keeps the two sides describing one mapping instead of
+    two that happen to agree.
     """
-    return sorted(RESULTS_DIR.glob("rerank-scores-*.json")) + sorted(
-        RESULTS_DIR.glob("rerank-scores-*.json.gz")
+    signature = (config.chunker, config.retrieval)
+    for other in build_grid():
+        if other.reranker is not None and (other.chunker, other.retrieval) == signature:
+            return f"candidates-{other.name}"
+    return f"candidates-{config.name}"
+
+
+def _artifact_rerank_scores(config: Config) -> list[Path]:
+    """Cross-encoder scores computed over *this* configuration's shortlist.
+
+    Two filters, and both are needed. The name selects the shortlist the scores
+    were computed over; `load_rerank_scores` then checks the recorded query text
+    to select the wording. Either alone is insufficient.
+
+    An earlier version returned every score file and let the caller keep whichever
+    covered the most queries. That worked only while exactly one file existed. The
+    moment a hybrid run adds a second, both cover all 216 queries, the tie falls
+    to whichever sorts first, and every configuration is reranked with scores
+    computed over a shortlist it never retrieved -- ~46% of a BM25 shortlist is
+    absent from the hybrid one, and those candidates would be pushed below every
+    scored hit. Silent, and it would have degraded four measured arms.
+    """
+    stem = _candidates_stem(config)
+    return sorted(RESULTS_DIR.glob(f"rerank-scores-{stem}.json")) + sorted(
+        RESULTS_DIR.glob(f"rerank-scores-{stem}*.json.gz")
     )
 
 
@@ -431,7 +454,7 @@ def _build_retriever(  # noqa: PLR0911 - each return is a distinct, named unavai
     # the only option: torch cannot load under the enforced code-integrity policy.
     # Using them also keeps the reranking arms reproducible from a committed
     # artifact rather than from whatever model version happens to download.
-    scores_paths = _artifact_rerank_scores()
+    scores_paths = _artifact_rerank_scores(config)
     if scores_paths and query_ids:
         # query_ids maps text -> id; the loader needs the inverse to check that
         # each score was computed against the wording being asked now.
@@ -455,7 +478,18 @@ def _build_retriever(  # noqa: PLR0911 - each return is a distinct, named unavai
         reranker = CrossEncoderReranker(f"BAAI/{config.reranker}")
         reranker.score("warmup", ["warmup passage"])
     except Exception as exc:
-        return None, f"reranker unavailable: {type(exc).__name__}: {exc}"
+        # Name the missing artifact first when there was one. On this machine the
+        # live path can never succeed, so reporting only the import error sends a
+        # reader to a torch problem when the actual cause is that nobody has
+        # scored this configuration's shortlist yet -- a fixable, different thing.
+        reason = f"reranker unavailable: {type(exc).__name__}: {exc}"
+        if not scores_paths:
+            reason = (
+                f"no cross-encoder scores for {_candidates_stem(config)}: the GPU run has "
+                f"not scored this configuration's shortlist. Falling back to a live "
+                f"reranker also failed ({type(exc).__name__})."
+            )
+        return None, reason
 
     return RerankingRetriever(first, reranker, texts, candidate_k=config.candidate_k), None
 

@@ -153,7 +153,7 @@ def sample_queries(
     return picked
 
 
-def main() -> None:  # noqa: PLR0915 - a linear pipeline; splitting it would hide the order
+def main() -> None:  # noqa: PLR0912,PLR0915 - a linear pipeline; splitting it would hide the order
     parser = argparse.ArgumentParser(description="Run generation and long-context evaluation")
     parser.add_argument("--n-queries", type=int, default=20)
     parser.add_argument("--n-faithfulness", type=int, default=10)
@@ -254,9 +254,15 @@ def main() -> None:  # noqa: PLR0915 - a linear pipeline; splitting it would hid
         # "not measured" for that reason and not for any reason to do with
         # faithfulness. Answers already produced are cached, so this pass costs
         # only the judge calls themselves.
+        # Counted as verdicts obtained, not as scores inspected. The budget used
+        # to be applied as `scores[: n * 2]`, doubling for two arms -- which
+        # silently became a 2x overspend whenever long-context answers were absent
+        # or skipped, on the single most quota-sensitive step in the project.
         judged = 0
         try:
-            for score in scores[: args.n_faithfulness * 2]:
+            for score in scores:
+                if judged >= args.n_faithfulness:
+                    break
                 answer = next(
                     a for a in answers if a.query_id == score.query_id and a.arm == score.arm
                 )
@@ -341,20 +347,35 @@ def publish(payload: dict, results_path: Path, table_path: Path) -> bool:
     Compared on answers *scored*, not queries requested: the request is an
     intention, and the scores are what the quota actually bought.
 
+    Faithfulness verdicts are counted separately, because they are the one thing
+    here a re-run can lose while producing an identical number of scores. Answers
+    come from cache, so a repeat of the same sample yields the same score count
+    with every verdict null if the judge is rate-limited that day -- which passes a
+    count-only comparison and destroys the most expensive data in the file. The
+    first version of this guard compared only the totals and would have done
+    exactly that.
+
     Returns whether it wrote.
     """
-    previous = 0
+
+    def _counts(payload: dict) -> tuple[int, int]:
+        scores = payload.get("scores", [])
+        return len(scores), sum(1 for s in scores if s.get("faithfulness") is not None)
+
+    previous = (0, 0)
     if results_path.exists():
         try:
-            previous = len(json.loads(results_path.read_text(encoding="utf-8")).get("scores", []))
+            previous = _counts(json.loads(results_path.read_text(encoding="utf-8")))
         except (OSError, ValueError):
             # An unreadable file is not evidence of anything worth protecting.
-            previous = 0
+            previous = (0, 0)
 
-    if len(payload.get("scores", [])) < previous:
+    current = _counts(payload)
+    if current[0] < previous[0] or current[1] < previous[1]:
         print(
-            f"\nREFUSING TO OVERWRITE {results_path.name}: it holds {previous} scored "
-            f"answers and this run produced {len(payload.get('scores', []))}. "
+            f"\nREFUSING TO OVERWRITE {results_path.name}: it holds {previous[0]} scored "
+            f"answers and {previous[1]} faithfulness verdicts; this run produced "
+            f"{current[0]} and {current[1]}. "
             f"{payload.get('incomplete_reason') or 'This run stopped early.'}\n"
             f"Re-run when quota allows, or delete the file to replace it deliberately."
         )

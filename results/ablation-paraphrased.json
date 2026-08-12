@@ -1,6 +1,6 @@
 {
   "n_configurations": 15,
-  "n_measured": 15,
+  "n_measured": 14,
   "results": [
     {
       "name": "baseline-bm25-fixed512",
@@ -70,7 +70,7 @@
       ],
       "ndcg10_low_overlap_queries": 0.020989891801909726,
       "ndcg10_high_overlap_queries": 0.1519701876267046,
-      "seconds": 1.1
+      "seconds": 1.2
     },
     {
       "name": "chunk-semantic95",
@@ -210,7 +210,7 @@
       ],
       "ndcg10_low_overlap_queries": 0.09648894060213066,
       "ndcg10_high_overlap_queries": 0.1300615052793994,
-      "seconds": 1.8
+      "seconds": 2.1
     },
     {
       "name": "retrieval-hybrid-rrf",
@@ -245,7 +245,7 @@
       ],
       "ndcg10_low_overlap_queries": 0.08930579433577376,
       "ndcg10_high_overlap_queries": 0.34217490869682915,
-      "seconds": 2.6
+      "seconds": 2.9
     },
     {
       "name": "retrieval-bm25-struct",
@@ -315,7 +315,7 @@
       ],
       "ndcg10_low_overlap_queries": 0.016545488418909633,
       "ndcg10_high_overlap_queries": 0.09090909090909091,
-      "seconds": 1.4
+      "seconds": 1.0
     },
     {
       "name": "embed-e5-base-v2",
@@ -350,7 +350,7 @@
       ],
       "ndcg10_low_overlap_queries": 0.027711843039872876,
       "ndcg10_high_overlap_queries": 0.13636363636363635,
-      "seconds": 1.2
+      "seconds": 0.9
     },
     {
       "name": "rerank-bm25-100",
@@ -385,7 +385,7 @@
       ],
       "ndcg10_low_overlap_queries": 0.1069115769450741,
       "ndcg10_high_overlap_queries": 0.24833695943067038,
-      "seconds": 0.7
+      "seconds": 0.8
     },
     {
       "name": "rerank-candidates-25",
@@ -502,30 +502,19 @@
       "candidate_k": 100,
       "table_rendering": "markdown",
       "notes": "the production configuration: hybrid retrieval then cross-encoder",
-      "measured": true,
-      "skipped_reason": null,
+      "measured": false,
+      "skipped_reason": "no cross-encoder scores for candidates-hybrid-plus-rerank: the GPU run has not scored this configuration's shortlist. Falling back to a live reranker also failed (ModuleNotFoundError).",
       "n_chunks": 42215,
-      "metrics_all": {
-        "ndcg@10": 0.11988747341287463,
-        "recall@50": 0.2916666666666667,
-        "mrr": 0.10304765034521433
-      },
-      "metrics_common_subset": {
-        "ndcg@10": 0.12099902807587444,
-        "recall@50": 0.2727272727272727,
-        "mrr": 0.10158650359836978
-      },
-      "n_scored_all": 216,
-      "n_scored_common": 143,
-      "fraction_reachable": 1.0,
-      "first_stage_recall_ceiling": 0.37962962962962965,
-      "ndcg10_ci95": [
-        0.07793003118455515,
-        0.16887005972664831
-      ],
-      "ndcg10_low_overlap_queries": 0.10842029170084763,
-      "ndcg10_high_overlap_queries": 0.2719438645761962,
-      "seconds": 2.7
+      "metrics_all": {},
+      "metrics_common_subset": {},
+      "n_scored_all": 0,
+      "n_scored_common": 0,
+      "fraction_reachable": null,
+      "first_stage_recall_ceiling": null,
+      "ndcg10_ci95": null,
+      "ndcg10_low_overlap_queries": null,
+      "ndcg10_high_overlap_queries": null,
+      "seconds": 0.0
     }
   ],
   "significance_vs_baseline": {
@@ -579,7 +568,7 @@
       "config_ndcg10": 0.10875726467123954,
       "delta": 0.061293523698543934,
       "p_raw": 0.00029997000299970003,
-      "p_holm": 0.004199580041995801,
+      "p_holm": 0.0038996100389961006,
       "significant_at_05": true,
       "n_pairs": 143
     },
@@ -643,15 +632,6 @@
       "delta": 0.07353732104376019,
       "p_raw": 0.0004999500049995,
       "p_holm": 0.0059994000599940004,
-      "significant_at_05": true,
-      "n_pairs": 143
-    },
-    "hybrid-plus-rerank": {
-      "baseline_ndcg10": 0.047463740972695616,
-      "config_ndcg10": 0.12099902807587444,
-      "delta": 0.07353528710317882,
-      "p_raw": 0.00039996000399960006,
-      "p_holm": 0.005199480051994801,
       "significant_at_05": true,
       "n_pairs": 143
     }

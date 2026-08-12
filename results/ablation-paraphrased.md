@@ -1,6 +1,6 @@
 # Retrieval ablation
 
-15 of 15 configurations measured.
+14 of 15 configurations measured.
 
 `nDCG@10` and the confidence interval are computed on the **shared subset**
 of queries every configuration can judge. Comparing configurations on their
@@ -14,9 +14,8 @@ baseline. Uncorrected, comparing 14 configurations at alpha=0.05 carries a
 | configuration | axis | nDCG@10 | 95% CI | Recall@50 | MRR | delta vs base | p (Holm) | sig | n |
 |---|---|---|---|---|---|---|---|---|---|
 | `rerank-candidates-200` | candidates | 0.1210 | [0.077, 0.170] | 0.2867 | 0.1049 | +0.0735 | 0.0060 | yes | 143 |
-| `hybrid-plus-rerank` | interaction | 0.1210 | [0.078, 0.169] | 0.2727 | 0.1016 | +0.0735 | 0.0052 | yes | 143 |
 | `rerank-bm25-100` | reranking | 0.1178 | [0.074, 0.166] | 0.2657 | 0.1013 | +0.0703 | 0.0121 | yes | 143 |
-| `retrieval-hybrid-rrf` | retrieval | 0.1088 | [0.070, 0.152] | 0.3077 | 0.0887 | +0.0613 | 0.0042 | yes | 143 |
+| `retrieval-hybrid-rrf` | retrieval | 0.1088 | [0.070, 0.152] | 0.3077 | 0.0887 | +0.0613 | 0.0039 | yes | 143 |
 | `rerank-candidates-50` | candidates | 0.1047 | [0.064, 0.151] | 0.2168 | 0.0897 | +0.0572 | 0.0200 | yes | 143 |
 | `retrieval-dense-bge` | retrieval | 0.0991 | [0.059, 0.144] | 0.2797 | 0.0886 | +0.0516 | 0.0592 | no | 143 |
 | `rerank-candidates-25` | candidates | 0.0963 | [0.055, 0.143] | 0.2168 | 0.0881 | +0.0488 | 0.0504 | no | 143 |
@@ -44,7 +43,7 @@ reranker from one that never saw the answer.
 |---|---|---|---|---|---|---|
 | `baseline-bm25-fixed512` | 37,498 | 100.0% | - | 0.0406 | 0.1301 | 1 |
 | `chunk-fixed256o32` | 75,084 | 100.0% | - | 0.0210 | 0.1520 | 1 |
-| `chunk-semantic95` | 29,556 | 100.0% | - | 0.0564 | 0.0758 | 0 |
+| `chunk-semantic95` | 29,556 | 100.0% | - | 0.0564 | 0.0758 | 1 |
 | `chunk-struct512` | 42,215 | 100.0% | - | 0.0381 | 0.1692 | 1 |
 | `tables-row-sentences` | 40,155 | 95.4% | - | 0.0383 | 0.1584 | 1 |
 | `retrieval-dense-bge` | 42,215 | 100.0% | - | 0.0965 | 0.1301 | 2 |
@@ -56,7 +55,6 @@ reranker from one that never saw the answer.
 | `rerank-candidates-25` | 42,215 | 100.0% | 17.1% | 0.0886 | 0.1877 | 1 |
 | `rerank-candidates-50` | 42,215 | 100.0% | 24.5% | 0.0938 | 0.2356 | 1 |
 | `rerank-candidates-200` | 42,215 | 100.0% | 43.1% | 0.1135 | 0.2105 | 1 |
-| `hybrid-plus-rerank` | 42,215 | 100.0% | 38.0% | 0.1084 | 0.2719 | 3 |
 
 ## The lexical-overlap confound
 
@@ -65,3 +63,11 @@ own wording and hand a lexical matcher an exact string. The two nDCG columns
 above split the query set at 0.4 content-word overlap. A configuration whose
 advantage exists only in the high-overlap column is winning at string
 matching, not at retrieval.
+
+## Not measured
+
+These configurations did not run. No number is reported for them.
+
+| configuration | reason |
+|---|---|
+| `hybrid-plus-rerank` | no cross-encoder scores for candidates-hybrid-plus-rerank: the GPU run has not scored this configuration's shortlist. Falling back to a live reranker also failed (ModuleNotFoundError). |

@@ -11,7 +11,7 @@ import json
 from retrieval_ablation.generation.run import publish
 
 
-def payload(n_scores: int, reason: str | None = None) -> dict:
+def payload(n_scores: int, reason: str | None = None, n_verdicts: int = 0) -> dict:
     return {
         "model": "m",
         "n_queries_sampled": n_scores,
@@ -27,7 +27,14 @@ def payload(n_scores: int, reason: str | None = None) -> dict:
         "comparison": {"measured": False, "reason": "fixture"},
         "api_usage": {},
         "answers": [],
-        "scores": [{"query_id": f"q{i}", "arm": "retrieval"} for i in range(n_scores)],
+        "scores": [
+            {
+                "query_id": f"q{i}",
+                "arm": "retrieval",
+                "faithfulness": 1.0 if i < n_verdicts else None,
+            }
+            for i in range(n_scores)
+        ],
     }
 
 
@@ -69,6 +76,31 @@ class TestPublish:
         results.write_text("{ not json", encoding="utf-8")
 
         assert publish(payload(1), results, table) is True
+
+    def test_refuses_to_drop_faithfulness_verdicts_at_equal_score_count(self, tmp_path):
+        """Regression: the guard counted scores and ignored the verdicts inside them.
+
+        Answers are cached, so repeating the same sample yields an identical score
+        count. If the judge is rate-limited that day every verdict is null, the
+        totals match, and a count-only comparison lets the write through --
+        destroying the most expensive data in the file, which is precisely what
+        this guard exists to prevent.
+        """
+        results, table = tmp_path / "generation.json", tmp_path / "generation.md"
+        publish(payload(12, n_verdicts=5), results, table)
+
+        assert publish(payload(12, "judge rate-limited", n_verdicts=0), results, table) is False
+        kept = json.loads(results.read_text(encoding="utf-8"))["scores"]
+        assert sum(1 for s in kept if s["faithfulness"] is not None) == 5
+
+    def test_more_verdicts_at_equal_score_count_still_writes(self, tmp_path):
+        """Otherwise a successful judge pass could never be recorded."""
+        results, table = tmp_path / "generation.json", tmp_path / "generation.md"
+        publish(payload(12, n_verdicts=2), results, table)
+
+        assert publish(payload(12, n_verdicts=9), results, table) is True
+        kept = json.loads(results.read_text(encoding="utf-8"))["scores"]
+        assert sum(1 for s in kept if s["faithfulness"] is not None) == 9
 
 
 class TestResolveContext:
