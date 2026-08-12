@@ -33,7 +33,7 @@ reranker from one that never saw the answer.
 
 | configuration | chunks | reachable | ceiling | nDCG low-overlap | nDCG high-overlap | seconds |
 |---|---|---|---|---|---|---|
-| `baseline-bm25-fixed512` | 37,498 | 100.0% | - | 0.0823 | 0.2378 | 2 |
+| `baseline-bm25-fixed512` | 37,498 | 100.0% | - | 0.0823 | 0.2378 | 1 |
 | `chunk-fixed256o32` | 75,084 | 100.0% | - | 0.0754 | 0.1840 | 2 |
 | `chunk-semantic95` | 29,556 | 100.0% | - | 0.1376 | 0.2477 | 1 |
 | `chunk-struct512` | 42,215 | 100.0% | - | 0.1016 | 0.2532 | 1 |

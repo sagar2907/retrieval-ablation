@@ -641,21 +641,27 @@ same 143 shared queries. Then the grid runs again.
 
 | configuration | original | paraphrased | change | Δ vs base | p (Holm) |
 |---|---|---|---|---|---|
-| `rerank-candidates-200` | 0.1854 | **0.1210** | −35% | +0.0735 | **0.0050** ✓ |
-| `hybrid-plus-rerank` | 0.2003 | **0.1210** | −40% | +0.0735 | **0.0044** ✓ |
-| `rerank-bm25-100` | 0.2057 | **0.1178** | −43% | +0.0703 | **0.0099** ✓ |
-| `retrieval-hybrid-rrf` | 0.1991 | **0.1088** | −45% | +0.0613 | **0.0036** ✓ |
-| `retrieval-dense-bge` | 0.1196 | **0.0991** | **−17%** | +0.0516 | **0.0444** ✓ |
+| `rerank-candidates-200` | 0.1854 | **0.1210** | −35% | +0.0735 | **0.0060** ✓ |
+| `rerank-bm25-100` | 0.2057 | **0.1178** | −43% | +0.0703 | **0.0121** ✓ |
+| `retrieval-hybrid-rrf` | 0.1991 | **0.1088** | −45% | +0.0613 | **0.0039** ✓ |
+| `rerank-candidates-50` | 0.2145 | **0.1047** | −51% | +0.0572 | **0.0200** ✓ |
+| `retrieval-dense-bge` | 0.1196 | 0.0991 | **−17%** | +0.0516 | 0.059 |
+| `rerank-candidates-25` | 0.2103 | 0.0963 | −54% | +0.0488 | 0.050 |
 | `baseline-bm25-fixed512` | 0.1953 | 0.0475 | **−76%** | — | — |
 | `chunk-fixed256o32` | 0.1699 | 0.0311 | −82% | −0.0164 | 1.000 |
 | `embed-e5-base` | 0.0413 | 0.0223 | −46% | −0.0252 | 0.449 |
 
 **On the original wording nothing was a significant improvement. On the
-paraphrased wording five configurations are** — every reranking arm above depth
-25, plus both hybrid arms. The study's entire conclusion was a property of how its
-questions happened to be phrased.
+paraphrased wording four configurations are** — every reranking arm above depth
+25, plus `retrieval-hybrid-rrf`. The study's entire conclusion was a property of
+how its questions happened to be phrased.
 
-Five, and not the seven an earlier version of this document reported. Completing
+`hybrid-plus-rerank` is absent because it was withdrawn: its cross-encoder scores
+had been computed over a BM25 shortlist rather than its own, so what it measured
+was "hybrid retrieval, reranked wherever BM25 happened to agree". `retrieval-dense-bge`
+and `rerank-candidates-25` sit at 0.059 and 0.050 — on the threshold, not over it.
+
+Four, and not the seven an earlier version of this document reported. Completing
 the grid is what changed it, and the way it changed is worth more than the number:
 
 | configuration | Δ | p (raw) | Holm over 12 | Holm over 14 |

@@ -37,6 +37,19 @@ exactly the table structure being tested.
 
 ## Measured results
 
+> **Which benchmark these numbers describe.** Every figure in this section was
+> measured against the eval set at **216 queries**, with 143 judgeable by every
+> configuration, and is archived under
+> [`results/archive/`](results/archive/). The eval set has since been extended to
+> **586 queries** (390 shared), and the GPU artifacts — dense vectors, query
+> vectors, cross-encoder scores — still cover the original 216. The runner refuses
+> to score an arm on partial coverage, so `results/ablation.json` currently
+> measures 6 of 15 and is *not* what is tabulated below. One GPU run against the
+> larger set replaces both. The archived numbers are kept as the headline because
+> they are complete; the live files are kept because they are current. Neither is
+> hidden behind the other.
+
+
 **13 of 15 configurations measured** on the original wording, **14 of 15** on the
 paraphrased one. Full corpus, 143 queries judgeable by every configuration. Dense
 vectors, cross-encoder scores and the semantic chunk boundaries were produced on a
@@ -592,6 +605,13 @@ uv run python -m retrieval_ablation.corpus.ingest && uv run python -m retrieval_
 - Query ids are content-addressed on (document, row label, period) — not on
   character offsets — so the same fact keeps its id when table rendering changes
   the document text.
+- Two runs of the ablation produce **identical metrics, confidence intervals and
+  significance results, and a different file**. The difference is the per-row
+  `seconds` field, which is a wall-clock measurement of this machine rather than a
+  property of the experiment. Verified by running the grid twice and diffing:
+  zero substantive differences, `significance_vs_baseline` identical. Worth
+  stating precisely, because "deterministic" and "byte-identical output" are not
+  the same claim and only the first one is true here.
 
 ## Licence
 
