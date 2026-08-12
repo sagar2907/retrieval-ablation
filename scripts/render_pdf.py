@@ -442,15 +442,26 @@ def verify(pdf_path: Path, expect: list[str], preview: bool = True) -> bool:
 #: Strings that must survive rendering. Deliberately the *measured numbers* and
 #: the findings, not decorative text: if a table cell is dropped during layout the
 #: document would still look complete while having lost a result.
+#: Strings that must survive the round trip out of the rendered PDF.
+#:
+#: Two kinds, deliberately. Structural landmarks catch a truncated or reordered
+#: render. Load-bearing *figures* catch something subtler: this list is pinned to
+#: the study's headline numbers, so when the results change and the prose is not
+#: updated, rendering fails rather than quietly producing a document that
+#: contradicts results/. That has already happened -- "0.1953" was the baseline
+#: at 216 queries and is 0.1971 at 586, and this check is what noticed.
+#:
+#: Update it when a headline number legitimately changes, and treat a failure as a
+#: question about the document rather than about the list.
 EXPECTED = [
-    "0.2145",
-    "0.1953",
-    "111.7%",
-    "17.5x",
-    "20.4%",
-    "526,296",
-    "42,215",
-    "131,551",
+    "0.1208",  # hybrid-plus-rerank, best configuration on the paraphrased wording
+    "0.1971",  # baseline nDCG@10, original wording
+    "+0.0680",  # its delta over that baseline
+    "0.6641",  # best Recall@50 in the grid, semantic chunking
+    "17.5x",  # retrieval vs long context, cost ratio
+    "20.4%",  # label audit rejection rate
+    "526,296",  # inline-XBRL characters in one filing
+    "42,215",  # chunks under struct512
     "Glossary",
     "Decisions that turned out wrong",
 ]
