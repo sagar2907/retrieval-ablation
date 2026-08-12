@@ -612,22 +612,27 @@ pseudo-chunk. An empty gold list made precision compute as a genuine `0.0`. Now
 
 ## 15. The retrieval ablation
 
-Full corpus, 42,215 chunks, 143 queries judgeable by every configuration.
+Full corpus, 42,215 chunks, 390 of 586 queries judgeable by every configuration. **Original wording.**
 
 | configuration | nDCG@10 | 95% CI | Recall@50 | Δ vs base | p (Holm) |
 |---|---|---|---|---|---|
-| `rerank-candidates-50` | **0.2145** | [0.160, 0.273] | 0.5245 | +0.0192 | 1.000 |
-| `rerank-candidates-25` | 0.2103 | [0.157, 0.268] | 0.5245 | +0.0150 | 1.000 |
-| `rerank-bm25-100` | 0.2057 | [0.153, 0.263] | 0.5385 | +0.0104 | 1.000 |
-| `hybrid-plus-rerank` | 0.2003 | [0.148, 0.256] | **0.5455** | +0.0050 | 1.000 |
-| `retrieval-hybrid-rrf` | 0.1991 | [0.146, 0.254] | 0.4965 | +0.0039 | 1.000 |
-| `baseline-bm25-fixed512` | 0.1953 | [0.143, 0.251] | 0.5070 | — | — |
-| `chunk-struct512` | 0.1874 | [0.134, 0.245] | 0.5245 | −0.0078 | 1.000 |
-| `rerank-candidates-200` | 0.1854 | [0.134, 0.240] | 0.5035 | −0.0099 | 1.000 |
-| `chunk-fixed256o32` | 0.1699 | [0.119, 0.226] | 0.4126 | −0.0254 | 1.000 |
-| `tables-row-sentences` | 0.1688 | [0.122, 0.222] | 0.4935 | −0.0265 | 1.000 |
-| `retrieval-dense-bge` | 0.1196 | [0.077, 0.167] | 0.3077 | −0.0757 | 0.130 |
-| `embed-e5-base` | 0.0413 | [0.019, 0.068] | 0.2168 | −0.1540 | **0.001** |
+| `rerank-candidates-50` | 0.2198 | [0.186, 0.255] | 0.5667 | +0.0227 | 1.000 |
+| `chunk-semantic95` | 0.2189 | [0.187, 0.252] | 0.6641 | +0.0218 | 0.787 |
+| `chunk-struct512` | 0.2135 | [0.180, 0.249] | 0.5667 | +0.0164 | 1.000 |
+| `retrieval-bm25-struct` | 0.2135 | [0.180, 0.249] | 0.5667 | +0.0164 | 1.000 |
+| `rerank-candidates-25` | 0.2116 | [0.179, 0.245] | 0.5667 | +0.0145 | 1.000 |
+| `rerank-bm25-100` | 0.2068 | [0.174, 0.241] | 0.5487 | +0.0097 | 1.000 |
+| `baseline-bm25-fixed512` | 0.1971 | [0.166, 0.230] | 0.5385 | — | — |
+| `rerank-candidates-200` | 0.1924 | [0.161, 0.226] | 0.5051 | −0.0047 | 1.000 |
+| `hybrid-plus-rerank` | 0.1869 | [0.155, 0.220] | 0.4744 | −0.0102 | 1.000 |
+| `retrieval-hybrid-rrf` | 0.1817 | [0.150, 0.215] | 0.5205 | −0.0154 | 1.000 |
+| `tables-row-sentences` | 0.1644 | [0.135, 0.195] | 0.5324 | −0.0327 | 0.297 |
+| `chunk-fixed256o32` | 0.1556 | [0.127, 0.185] | 0.4474 | −0.0415 | 0.063 |
+| `retrieval-dense-bge` | 0.1044 | [0.079, 0.132] | 0.2718 | −0.0927 | **0.0014** ✓ |
+| `embed-e5-base-v2` | 0.1007 | [0.077, 0.127] | 0.2949 | −0.0965 | **0.0014** ✓ |
+| `embed-e5-base` | 0.0367 | [0.023, 0.052] | 0.1795 | −0.1604 | **0.0014** ✓ |
+
+Nothing beats the baseline significantly here. The three significant rows are the dense arms, all significantly *worse*.
 
 ### Finding 0 — the benchmark was hiding the effect it existed to measure
 
@@ -637,7 +642,7 @@ last thing on the list got done.
 Every query in this benchmark was generated from a table row and reused that row's
 label word for word. Paraphrasing rewrites the questions the way a person would
 ask them, touching nothing else — same corpus, same gold spans, same query ids,
-same 143 shared queries. Then the grid runs again.
+same 390 shared queries. Then the grid runs again.
 
 | configuration | original | paraphrased | Δ vs base | p (Holm) |
 |---|---|---|---|---|
@@ -709,9 +714,8 @@ it had almost nothing to lose. About three quarters of what BM25 was scoring was
 the benchmark handing it back its own words.
 
 Two earlier conclusions dissolve here, and both had been written up as findings.
-`embed-e5-base` was the single significant result on the original wording, at
-p = 0.001 *below* baseline; on paraphrased queries it is not significant at all
-(p = 0.449). Meanwhile the chunking and table-rendering axes stay null on both
+`embed-e5-base` is significantly *below* baseline on both wordings -- the one
+configuration the study can say is simply worse. Meanwhile the chunking and table-rendering axes stay null on both
 wordings — which matters, because it shows the confound was specific rather than a
 haze that moved every number. A benchmark can be badly wrong about one comparison
 and perfectly fine about another, which is exactly what makes this kind of flaw
@@ -837,22 +841,22 @@ checkable grounds. **44 of 216 rejected — 20.4%**, 0 unparseable. Rejections
 concentrate on entity/place names used as subjects ("united states", "duke energy
 ohio") and on passages with several figures under one label.
 
-Re-running the whole grid on the 172 accepted labels:
+Re-running the whole grid on the 542 accepted labels:
 
-- Twelve of thirteen configurations gain **+0.020 to +0.031** — the signature of
-  labels that were genuinely unanswerable, penalising all systems about equally.
-  The exception is `embed-e5-base`, which *loses* 0.0035: bad labels were not what
-  was holding it back.
-- **The ranking is stable, not identical.** Top three and bottom four unchanged;
-  `retrieval-hybrid-rrf` and `hybrid-plus-rerank` trade ranks 4 and 5 across a gap
-  of 0.0025. That is noise, and is why neither is reported as a finding.
-- **The significance picture is unchanged**: no improvement survives Holm on
-  either label set, and `embed-e5-base` is the single significant comparison at
-  p = 0.001 on both.
-- The overlap effect gets *stronger*: `rerank-bm25-100` goes from +112% to
-  **+171%** on low-overlap queries, and `retrieval-dense-bge` inverts harder still
-  — 0.2212 low against 0.1220 high, now **beating the baseline's low-overlap
-  0.1276 by +73%** while trailing it badly overall.
+- **Every configuration moves by less than 0.011** -- from −0.0015 for
+  `embed-e5-base` to +0.0101 for `rerank-candidates-50`. The rejected labels were
+  penalising systems roughly equally, which is what you would expect if they were
+  unanswerable rather than wrong in some direction.
+- **The ranking is stable, not identical.** Adjacent configurations separated by
+  thousandths trade places, which is noise and is exactly why none of them is
+  reported as a finding.
+- **The significance picture is unchanged** on both label sets, which is the point
+  of running the check at all: no conclusion here rests on the label defects.
+
+The audit covered the original 216 queries. The 370 added when the set was
+extended are unaudited and carry `GENERATED`, so "accepted" means "not rejected by
+the audit that ran", not "checked". That distinction is why verification status is
+stored per query rather than asserted once for the project.
 
 These are marked `MODEL_CHECKED`, never `HUMAN_VERIFIED`, and a test enforces it.
 A model auditing labels a program generated from the same tables is not an
