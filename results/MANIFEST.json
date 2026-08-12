@@ -6,7 +6,7 @@
     "vram_mib": 14911
   },
   "n_documents": 120,
-  "n_queries": 216,
+  "n_queries": 586,
   "artifacts": [
     {
       "file": "vectors-bge-m3-struct512.npz",
@@ -14,13 +14,21 @@
       "chunker": "struct512",
       "n_chunks": 42215,
       "dimension": 1024,
-      "seconds": 847.3,
-      "chunks_per_sec": 49.8
+      "seconds": 846.0,
+      "chunks_per_sec": 49.9
     },
     {
       "file": "queryvectors-bge-m3.npz",
       "embedder": "bge-m3",
-      "n_queries": 216,
+      "query_set": "original",
+      "n_queries": 586,
+      "dimension": 1024
+    },
+    {
+      "file": "queryvectors-bge-m3-paraphrased.npz",
+      "embedder": "bge-m3",
+      "query_set": "paraphrased",
+      "n_queries": 586,
       "dimension": 1024
     },
     {
@@ -29,25 +37,78 @@
       "chunker": "struct512",
       "n_chunks": 42215,
       "dimension": 768,
-      "seconds": 294.6,
-      "chunks_per_sec": 143.3
+      "seconds": 292.1,
+      "chunks_per_sec": 144.5
     },
     {
       "file": "queryvectors-e5-base.npz",
       "embedder": "e5-base",
-      "n_queries": 216,
+      "query_set": "original",
+      "n_queries": 586,
       "dimension": 768
+    },
+    {
+      "file": "queryvectors-e5-base-paraphrased.npz",
+      "embedder": "e5-base",
+      "query_set": "paraphrased",
+      "n_queries": 586,
+      "dimension": 768
+    },
+    {
+      "file": "vectors-e5-base-v2-struct512.npz",
+      "embedder": "e5-base-v2",
+      "chunker": "struct512",
+      "n_chunks": 42215,
+      "dimension": 768,
+      "seconds": 287.3,
+      "chunks_per_sec": 146.9
+    },
+    {
+      "file": "queryvectors-e5-base-v2.npz",
+      "embedder": "e5-base-v2",
+      "query_set": "original",
+      "n_queries": 586,
+      "dimension": 768
+    },
+    {
+      "file": "queryvectors-e5-base-v2-paraphrased.npz",
+      "embedder": "e5-base-v2",
+      "query_set": "paraphrased",
+      "n_queries": 586,
+      "dimension": 768
+    },
+    {
+      "file": "chunks-semantic95.json.gz",
+      "chunker": "semantic95",
+      "embedder": "bge-m3",
+      "n_chunks": 29556,
+      "corpus_digest": "6b7f9d044f13a335dbd2e2390f3d711507939038674576b39cdc554968245798",
+      "seconds": 1093.3
     },
     {
       "file": "rerank-scores-candidates-rerank-bm25-100.json",
       "reranker": "BAAI/bge-reranker-v2-m3",
-      "n_queries": 216,
-      "n_pairs": 43200,
-      "seconds": 927.5,
-      "pairs_per_sec": 46.6
+      "query_set": "original",
+      "n_queries": 586,
+      "n_pairs": 117200,
+      "seconds": 2486.2,
+      "pairs_per_sec": 47.1
     },
     {
       "file": "candidates-hybrid-plus-rerank.json.gz",
+      "skipped": "candidate list not present in repo"
+    },
+    {
+      "file": "rerank-scores-candidates-rerank-bm25-100-paraphrased.json",
+      "reranker": "BAAI/bge-reranker-v2-m3",
+      "query_set": "paraphrased",
+      "n_queries": 586,
+      "n_pairs": 117200,
+      "seconds": 2468.1,
+      "pairs_per_sec": 47.5
+    },
+    {
+      "file": "candidates-hybrid-plus-rerank-paraphrased.json.gz",
       "skipped": "candidate list not present in repo"
     }
   ]

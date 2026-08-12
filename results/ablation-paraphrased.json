@@ -1,6 +1,6 @@
 {
   "n_configurations": 15,
-  "n_measured": 6,
+  "n_measured": 14,
   "results": [
     {
       "name": "baseline-bm25-fixed512",
@@ -35,7 +35,7 @@
       ],
       "ndcg10_low_overlap_queries": 0.04144739372342495,
       "ndcg10_high_overlap_queries": 0.1890948738004998,
-      "seconds": 2.3
+      "seconds": 1.8
     },
     {
       "name": "chunk-fixed256o32",
@@ -70,7 +70,7 @@
       ],
       "ndcg10_low_overlap_queries": 0.025263070251274708,
       "ndcg10_high_overlap_queries": 0.2263246252714896,
-      "seconds": 3.8
+      "seconds": 2.9
     },
     {
       "name": "chunk-semantic95",
@@ -105,7 +105,7 @@
       ],
       "ndcg10_low_overlap_queries": 0.05995766410564255,
       "ndcg10_high_overlap_queries": 0.14181934691706877,
-      "seconds": 1.7
+      "seconds": 1.3
     },
     {
       "name": "chunk-struct512",
@@ -140,7 +140,7 @@
       ],
       "ndcg10_low_overlap_queries": 0.046672326322701754,
       "ndcg10_high_overlap_queries": 0.27520975870416564,
-      "seconds": 2.2
+      "seconds": 1.8
     },
     {
       "name": "tables-row-sentences",
@@ -175,7 +175,7 @@
       ],
       "ndcg10_low_overlap_queries": 0.045090549409411325,
       "ndcg10_high_overlap_queries": 0.23493323469436123,
-      "seconds": 2.3
+      "seconds": 1.8
     },
     {
       "name": "retrieval-dense-bge",
@@ -187,19 +187,30 @@
       "candidate_k": 100,
       "table_rendering": "markdown",
       "notes": "dense only",
-      "measured": false,
-      "skipped_reason": "query vectors for bge-m3 cover only 216 of 586 queries. Re-run the GPU notebook against the current eval set.",
-      "n_chunks": 0,
-      "metrics_all": {},
-      "metrics_common_subset": {},
-      "n_scored_all": 0,
-      "n_scored_common": 0,
-      "fraction_reachable": null,
+      "measured": true,
+      "skipped_reason": null,
+      "n_chunks": 42215,
+      "metrics_all": {
+        "ndcg@10": 0.08576421107365625,
+        "recall@50": 0.2627986348122867,
+        "mrr": 0.07571058522031691
+      },
+      "metrics_common_subset": {
+        "ndcg@10": 0.08386957997267692,
+        "recall@50": 0.2564102564102564,
+        "mrr": 0.0746055319718518
+      },
+      "n_scored_all": 586,
+      "n_scored_common": 390,
+      "fraction_reachable": 1.0,
       "first_stage_recall_ceiling": null,
-      "ndcg10_ci95": null,
-      "ndcg10_low_overlap_queries": null,
-      "ndcg10_high_overlap_queries": null,
-      "seconds": 0.0
+      "ndcg10_ci95": [
+        0.06114128767581673,
+        0.10831149553827861
+      ],
+      "ndcg10_low_overlap_queries": 0.07669942490167762,
+      "ndcg10_high_overlap_queries": 0.16991144082466866,
+      "seconds": 4.4
     },
     {
       "name": "retrieval-hybrid-rrf",
@@ -211,19 +222,30 @@
       "candidate_k": 100,
       "table_rendering": "markdown",
       "notes": "BM25 + dense fused with RRF",
-      "measured": false,
-      "skipped_reason": "query vectors for bge-m3 cover only 216 of 586 queries. Re-run the GPU notebook against the current eval set.",
-      "n_chunks": 0,
-      "metrics_all": {},
-      "metrics_common_subset": {},
-      "n_scored_all": 0,
-      "n_scored_common": 0,
-      "fraction_reachable": null,
+      "measured": true,
+      "skipped_reason": null,
+      "n_chunks": 42215,
+      "metrics_all": {
+        "ndcg@10": 0.10494900222250009,
+        "recall@50": 0.30716723549488056,
+        "mrr": 0.09201590061908468
+      },
+      "metrics_common_subset": {
+        "ndcg@10": 0.10224124525981873,
+        "recall@50": 0.29743589743589743,
+        "mrr": 0.08913131278280757
+      },
+      "n_scored_all": 586,
+      "n_scored_common": 390,
+      "fraction_reachable": 1.0,
       "first_stage_recall_ceiling": null,
-      "ndcg10_ci95": null,
-      "ndcg10_low_overlap_queries": null,
-      "ndcg10_high_overlap_queries": null,
-      "seconds": 0.0
+      "ndcg10_ci95": [
+        0.0775169251440351,
+        0.12857210895637522
+      ],
+      "ndcg10_low_overlap_queries": 0.08063879179194595,
+      "ndcg10_high_overlap_queries": 0.36147068687429207,
+      "seconds": 6.6
     },
     {
       "name": "retrieval-bm25-struct",
@@ -258,7 +280,7 @@
       ],
       "ndcg10_low_overlap_queries": 0.046672326322701754,
       "ndcg10_high_overlap_queries": 0.27520975870416564,
-      "seconds": 2.4
+      "seconds": 1.8
     },
     {
       "name": "embed-e5-base",
@@ -270,19 +292,30 @@
       "candidate_k": 100,
       "table_rendering": "markdown",
       "notes": "embedding axis: e5-base vs bge-m3",
-      "measured": false,
-      "skipped_reason": "query vectors for e5-base cover only 216 of 586 queries. Re-run the GPU notebook against the current eval set.",
-      "n_chunks": 0,
-      "metrics_all": {},
-      "metrics_common_subset": {},
-      "n_scored_all": 0,
-      "n_scored_common": 0,
-      "fraction_reachable": null,
+      "measured": true,
+      "skipped_reason": null,
+      "n_chunks": 42215,
+      "metrics_all": {
+        "ndcg@10": 0.02375939044045799,
+        "recall@50": 0.10409556313993173,
+        "mrr": 0.02037635227635407
+      },
+      "metrics_common_subset": {
+        "ndcg@10": 0.0137401848204225,
+        "recall@50": 0.07948717948717948,
+        "mrr": 0.012519485841554899
+      },
+      "n_scored_all": 586,
+      "n_scored_common": 390,
+      "fraction_reachable": 1.0,
       "first_stage_recall_ceiling": null,
-      "ndcg10_ci95": null,
-      "ndcg10_low_overlap_queries": null,
-      "ndcg10_high_overlap_queries": null,
-      "seconds": 0.0
+      "ndcg10_ci95": [
+        0.005621887346708482,
+        0.023256625624677455
+      ],
+      "ndcg10_low_overlap_queries": 0.008965950906648106,
+      "ndcg10_high_overlap_queries": 0.07103099178571524,
+      "seconds": 3.4
     },
     {
       "name": "embed-e5-base-v2",
@@ -294,19 +327,30 @@
       "candidate_k": 100,
       "table_rendering": "markdown",
       "notes": "embedding axis: e5-base-v2 vs bge-m3",
-      "measured": false,
-      "skipped_reason": "query vectors for e5-base-v2 cover only 216 of 586 queries. Re-run the GPU notebook against the current eval set.",
-      "n_chunks": 0,
-      "metrics_all": {},
-      "metrics_common_subset": {},
-      "n_scored_all": 0,
-      "n_scored_common": 0,
-      "fraction_reachable": null,
+      "measured": true,
+      "skipped_reason": null,
+      "n_chunks": 42215,
+      "metrics_all": {
+        "ndcg@10": 0.06454671268984004,
+        "recall@50": 0.24061433447098976,
+        "mrr": 0.05364515236548477
+      },
+      "metrics_common_subset": {
+        "ndcg@10": 0.05062729845178119,
+        "recall@50": 0.2282051282051282,
+        "mrr": 0.04212865533028493
+      },
+      "n_scored_all": 586,
+      "n_scored_common": 390,
+      "fraction_reachable": 1.0,
       "first_stage_recall_ceiling": null,
-      "ndcg10_ci95": null,
-      "ndcg10_low_overlap_queries": null,
-      "ndcg10_high_overlap_queries": null,
-      "seconds": 0.0
+      "ndcg10_ci95": [
+        0.034596157976602634,
+        0.0681641294579756
+      ],
+      "ndcg10_low_overlap_queries": 0.04161885246958819,
+      "ndcg10_high_overlap_queries": 0.15872865023809715,
+      "seconds": 3.3
     },
     {
       "name": "rerank-bm25-100",
@@ -318,19 +362,30 @@
       "candidate_k": 100,
       "table_rendering": "markdown",
       "notes": "cross-encoder on a lexical first stage",
-      "measured": false,
-      "skipped_reason": "cross-encoder scores cover only 215 of 580 queries. Reranking the covered fraction and leaving the rest in first-stage order measures neither. Re-run the GPU notebook against the current eval set.",
+      "measured": true,
+      "skipped_reason": null,
       "n_chunks": 42215,
-      "metrics_all": {},
-      "metrics_common_subset": {},
-      "n_scored_all": 0,
-      "n_scored_common": 0,
-      "fraction_reachable": null,
-      "first_stage_recall_ceiling": null,
-      "ndcg10_ci95": null,
-      "ndcg10_low_overlap_queries": null,
-      "ndcg10_high_overlap_queries": null,
-      "seconds": 0.0
+      "metrics_all": {
+        "ndcg@10": 0.12238110695116948,
+        "recall@50": 0.2781569965870307,
+        "mrr": 0.10749772928148979
+      },
+      "metrics_common_subset": {
+        "ndcg@10": 0.11491249585176196,
+        "recall@50": 0.25384615384615383,
+        "mrr": 0.10023332503449892
+      },
+      "n_scored_all": 586,
+      "n_scored_common": 390,
+      "fraction_reachable": 1.0,
+      "first_stage_recall_ceiling": 0.33276450511945393,
+      "ndcg10_ci95": [
+        0.08840755516072785,
+        0.14318122515436116
+      ],
+      "ndcg10_low_overlap_queries": 0.10656428403582349,
+      "ndcg10_high_overlap_queries": 0.21509103764302337,
+      "seconds": 1.9
     },
     {
       "name": "rerank-candidates-25",
@@ -342,19 +397,30 @@
       "candidate_k": 25,
       "table_rendering": "markdown",
       "notes": "shortlist depth 25",
-      "measured": false,
-      "skipped_reason": "cross-encoder scores cover only 215 of 580 queries. Reranking the covered fraction and leaving the rest in first-stage order measures neither. Re-run the GPU notebook against the current eval set.",
+      "measured": true,
+      "skipped_reason": null,
       "n_chunks": 42215,
-      "metrics_all": {},
-      "metrics_common_subset": {},
-      "n_scored_all": 0,
-      "n_scored_common": 0,
-      "fraction_reachable": null,
-      "first_stage_recall_ceiling": null,
-      "ndcg10_ci95": null,
-      "ndcg10_low_overlap_queries": null,
-      "ndcg10_high_overlap_queries": null,
-      "seconds": 0.0
+      "metrics_all": {
+        "ndcg@10": 0.10484538266112646,
+        "recall@50": 0.25597269624573377,
+        "mrr": 0.09765193099934714
+      },
+      "metrics_common_subset": {
+        "ndcg@10": 0.09752638339307118,
+        "recall@50": 0.23846153846153847,
+        "mrr": 0.09057528755413438
+      },
+      "n_scored_all": 586,
+      "n_scored_common": 390,
+      "fraction_reachable": 1.0,
+      "first_stage_recall_ceiling": 0.189419795221843,
+      "ndcg10_ci95": [
+        0.07184948062594516,
+        0.12484412249661567
+      ],
+      "ndcg10_low_overlap_queries": 0.08576404665486335,
+      "ndcg10_high_overlap_queries": 0.23867442425156518,
+      "seconds": 1.9
     },
     {
       "name": "rerank-candidates-50",
@@ -366,19 +432,30 @@
       "candidate_k": 50,
       "table_rendering": "markdown",
       "notes": "shortlist depth 50",
-      "measured": false,
-      "skipped_reason": "cross-encoder scores cover only 215 of 580 queries. Reranking the covered fraction and leaving the rest in first-stage order measures neither. Re-run the GPU notebook against the current eval set.",
+      "measured": true,
+      "skipped_reason": null,
       "n_chunks": 42215,
-      "metrics_all": {},
-      "metrics_common_subset": {},
-      "n_scored_all": 0,
-      "n_scored_common": 0,
-      "fraction_reachable": null,
-      "first_stage_recall_ceiling": null,
-      "ndcg10_ci95": null,
-      "ndcg10_low_overlap_queries": null,
-      "ndcg10_high_overlap_queries": null,
-      "seconds": 0.0
+      "metrics_all": {
+        "ndcg@10": 0.1095678180104067,
+        "recall@50": 0.25597269624573377,
+        "mrr": 0.0969284441468893
+      },
+      "metrics_common_subset": {
+        "ndcg@10": 0.10038037010599393,
+        "recall@50": 0.23846153846153847,
+        "mrr": 0.08875915649535815
+      },
+      "n_scored_all": 586,
+      "n_scored_common": 390,
+      "fraction_reachable": 1.0,
+      "first_stage_recall_ceiling": 0.25597269624573377,
+      "ndcg10_ci95": [
+        0.07476046940495772,
+        0.12732627774923053
+      ],
+      "ndcg10_low_overlap_queries": 0.0900125883548645,
+      "ndcg10_high_overlap_queries": 0.224793751119547,
+      "seconds": 1.9
     },
     {
       "name": "rerank-candidates-200",
@@ -390,19 +467,30 @@
       "candidate_k": 200,
       "table_rendering": "markdown",
       "notes": "shortlist depth 200",
-      "measured": false,
-      "skipped_reason": "cross-encoder scores cover only 215 of 580 queries. Reranking the covered fraction and leaving the rest in first-stage order measures neither. Re-run the GPU notebook against the current eval set.",
+      "measured": true,
+      "skipped_reason": null,
       "n_chunks": 42215,
-      "metrics_all": {},
-      "metrics_common_subset": {},
-      "n_scored_all": 0,
-      "n_scored_common": 0,
-      "fraction_reachable": null,
-      "first_stage_recall_ceiling": null,
-      "ndcg10_ci95": null,
-      "ndcg10_low_overlap_queries": null,
-      "ndcg10_high_overlap_queries": null,
-      "seconds": 0.0
+      "metrics_all": {
+        "ndcg@10": 0.11457499720987185,
+        "recall@50": 0.3054607508532423,
+        "mrr": 0.10219719968165253
+      },
+      "metrics_common_subset": {
+        "ndcg@10": 0.11092244925421335,
+        "recall@50": 0.2717948717948718,
+        "mrr": 0.09708667377832371
+      },
+      "n_scored_all": 586,
+      "n_scored_common": 390,
+      "fraction_reachable": 1.0,
+      "first_stage_recall_ceiling": 0.4300341296928328,
+      "ndcg10_ci95": [
+        0.08468660259030647,
+        0.13864399934515775
+      ],
+      "ndcg10_low_overlap_queries": 0.10503711271885006,
+      "ndcg10_high_overlap_queries": 0.18154648767857287,
+      "seconds": 2.1
     },
     {
       "name": "hybrid-plus-rerank",
@@ -415,8 +503,8 @@
       "table_rendering": "markdown",
       "notes": "the production configuration: hybrid retrieval then cross-encoder",
       "measured": false,
-      "skipped_reason": "query vectors for bge-m3 cover only 216 of 586 queries. Re-run the GPU notebook against the current eval set.",
-      "n_chunks": 0,
+      "skipped_reason": "no cross-encoder scores for candidates-hybrid-plus-rerank: the GPU run has not scored this configuration's shortlist. Falling back to a live reranker also failed (ModuleNotFoundError).",
+      "n_chunks": 42215,
       "metrics_all": {},
       "metrics_common_subset": {},
       "n_scored_all": 0,
@@ -435,7 +523,7 @@
       "config_ndcg10": 0.04072934371436816,
       "delta": -0.01207554847652409,
       "p_raw": 0.1468853114688531,
-      "p_holm": 0.53994600539946,
+      "p_holm": 0.6479352064793521,
       "significant_at_05": false,
       "n_pairs": 390
     },
@@ -444,7 +532,7 @@
       "config_ndcg10": 0.06625471662959842,
       "delta": 0.013449824438706164,
       "p_raw": 0.10798920107989202,
-      "p_holm": 0.53994600539946,
+      "p_holm": 0.6479352064793521,
       "significant_at_05": false,
       "n_pairs": 390
     },
@@ -453,7 +541,7 @@
       "config_ndcg10": 0.0642521288135836,
       "delta": 0.01144723662269135,
       "p_raw": 0.11658834116588342,
-      "p_holm": 0.53994600539946,
+      "p_holm": 0.6479352064793521,
       "significant_at_05": false,
       "n_pairs": 390
     },
@@ -462,8 +550,26 @@
       "config_ndcg10": 0.05969383289286902,
       "delta": 0.006888940701976762,
       "p_raw": 0.41445855414458554,
-      "p_holm": 0.53994600539946,
+      "p_holm": 0.8289171082891711,
       "significant_at_05": false,
+      "n_pairs": 390
+    },
+    "retrieval-dense-bge": {
+      "baseline_ndcg10": 0.05280489219089225,
+      "config_ndcg10": 0.08386957997267692,
+      "delta": 0.031064687781784683,
+      "p_raw": 0.005699430056994301,
+      "p_holm": 0.039896010398960104,
+      "significant_at_05": true,
+      "n_pairs": 390
+    },
+    "retrieval-hybrid-rrf": {
+      "baseline_ndcg10": 0.05280489219089225,
+      "config_ndcg10": 0.1022412452598187,
+      "delta": 0.04943635306892647,
+      "p_raw": 9.999000099990002e-05,
+      "p_holm": 0.0012998700129987003,
+      "significant_at_05": true,
       "n_pairs": 390
     },
     "retrieval-bm25-struct": {
@@ -471,8 +577,62 @@
       "config_ndcg10": 0.0642521288135836,
       "delta": 0.01144723662269135,
       "p_raw": 0.11658834116588342,
-      "p_holm": 0.53994600539946,
+      "p_holm": 0.6479352064793521,
       "significant_at_05": false,
+      "n_pairs": 390
+    },
+    "embed-e5-base": {
+      "baseline_ndcg10": 0.05280489219089225,
+      "config_ndcg10": 0.0137401848204225,
+      "delta": -0.03906470737046975,
+      "p_raw": 9.999000099990002e-05,
+      "p_holm": 0.0012998700129987003,
+      "significant_at_05": true,
+      "n_pairs": 390
+    },
+    "embed-e5-base-v2": {
+      "baseline_ndcg10": 0.05280489219089225,
+      "config_ndcg10": 0.05062729845178118,
+      "delta": -0.002177593739111059,
+      "p_raw": 0.841015898410159,
+      "p_holm": 0.841015898410159,
+      "significant_at_05": false,
+      "n_pairs": 390
+    },
+    "rerank-bm25-100": {
+      "baseline_ndcg10": 0.05280489219089225,
+      "config_ndcg10": 0.11491249585176196,
+      "delta": 0.062107603660869704,
+      "p_raw": 9.999000099990002e-05,
+      "p_holm": 0.0012998700129987003,
+      "significant_at_05": true,
+      "n_pairs": 390
+    },
+    "rerank-candidates-25": {
+      "baseline_ndcg10": 0.05280489219089225,
+      "config_ndcg10": 0.09752638339307118,
+      "delta": 0.04472149120217894,
+      "p_raw": 0.00019998000199980003,
+      "p_holm": 0.0015998400159984002,
+      "significant_at_05": true,
+      "n_pairs": 390
+    },
+    "rerank-candidates-50": {
+      "baseline_ndcg10": 0.05280489219089225,
+      "config_ndcg10": 0.10038037010599393,
+      "delta": 0.04757547791510168,
+      "p_raw": 9.999000099990002e-05,
+      "p_holm": 0.0012998700129987003,
+      "significant_at_05": true,
+      "n_pairs": 390
+    },
+    "rerank-candidates-200": {
+      "baseline_ndcg10": 0.05280489219089225,
+      "config_ndcg10": 0.11092244925421335,
+      "delta": 0.05811755706332111,
+      "p_raw": 9.999000099990002e-05,
+      "p_holm": 0.0012998700129987003,
+      "significant_at_05": true,
       "n_pairs": 390
     }
   }

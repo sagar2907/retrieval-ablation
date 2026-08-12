@@ -1,6 +1,6 @@
 # Retrieval ablation
 
-13 of 15 configurations measured.
+14 of 15 configurations measured.
 
 `nDCG@10` and the confidence interval are computed on the **shared subset**
 of queries every configuration can judge. Comparing configurations on their
@@ -13,19 +13,20 @@ baseline. Uncorrected, comparing 14 configurations at alpha=0.05 carries a
 
 | configuration | axis | nDCG@10 | 95% CI | Recall@50 | MRR | delta vs base | p (Holm) | sig | n |
 |---|---|---|---|---|---|---|---|---|---|
-| `rerank-candidates-50` | candidates | 0.2456 | [0.181, 0.314] | 0.5727 | 0.2128 | +0.0254 | 1.0000 | no | 110 |
-| `rerank-candidates-25` | candidates | 0.2368 | [0.173, 0.303] | 0.5727 | 0.2038 | +0.0166 | 1.0000 | no | 110 |
-| `rerank-bm25-100` | reranking | 0.2341 | [0.172, 0.302] | 0.5909 | 0.2054 | +0.0140 | 1.0000 | no | 110 |
-| `retrieval-hybrid-rrf` | retrieval | 0.2299 | [0.167, 0.298] | 0.5636 | 0.2001 | +0.0097 | 1.0000 | no | 110 |
-| `hybrid-plus-rerank` | interaction | 0.2274 | [0.167, 0.293] | 0.6000 | 0.1966 | +0.0072 | 1.0000 | no | 110 |
-| `baseline-bm25-fixed512` | baseline | 0.2202 | [0.159, 0.287] | 0.5773 | 0.1979 | (baseline) | - | - | 110 |
-| `chunk-struct512` | chunking | 0.2120 | [0.149, 0.280] | 0.5727 | 0.1966 | -0.0082 | 1.0000 | no | 110 |
-| `retrieval-bm25-struct` | retrieval | 0.2120 | [0.149, 0.280] | 0.5727 | 0.1966 | -0.0082 | 1.0000 | no | 110 |
-| `rerank-candidates-200` | candidates | 0.2080 | [0.147, 0.273] | 0.5727 | 0.1861 | -0.0121 | 1.0000 | no | 110 |
-| `chunk-fixed256o32` | chunking | 0.1906 | [0.129, 0.256] | 0.4682 | 0.1805 | -0.0296 | 1.0000 | no | 110 |
-| `tables-row-sentences` | table_rendering | 0.1889 | [0.132, 0.253] | 0.5030 | 0.1829 | -0.0313 | 1.0000 | no | 110 |
-| `retrieval-dense-bge` | retrieval | 0.1409 | [0.088, 0.199] | 0.3455 | 0.1227 | -0.0792 | 0.3982 | no | 110 |
-| `embed-e5-base` | embedding | 0.0378 | [0.014, 0.067] | 0.2000 | 0.0325 | -0.1824 | 0.0012 | yes | 110 |
+| `rerank-candidates-50` | candidates | 0.2299 | [0.195, 0.267] | 0.5854 | 0.1977 | +0.0250 | 1.0000 | no | 357 |
+| `chunk-semantic95` | chunking | 0.2258 | [0.192, 0.261] | 0.6751 | 0.1888 | +0.0209 | 1.0000 | no | 357 |
+| `chunk-struct512` | chunking | 0.2235 | [0.187, 0.261] | 0.5854 | 0.1997 | +0.0185 | 1.0000 | no | 357 |
+| `retrieval-bm25-struct` | retrieval | 0.2235 | [0.187, 0.261] | 0.5854 | 0.1997 | +0.0185 | 1.0000 | no | 357 |
+| `rerank-candidates-25` | candidates | 0.2199 | [0.185, 0.256] | 0.5854 | 0.1921 | +0.0150 | 1.0000 | no | 357 |
+| `rerank-bm25-100` | reranking | 0.2157 | [0.181, 0.252] | 0.5658 | 0.1876 | +0.0107 | 1.0000 | no | 357 |
+| `baseline-bm25-fixed512` | baseline | 0.2050 | [0.172, 0.239] | 0.5630 | 0.1845 | (baseline) | - | - | 357 |
+| `rerank-candidates-200` | candidates | 0.2000 | [0.166, 0.236] | 0.5266 | 0.1745 | -0.0050 | 1.0000 | no | 357 |
+| `retrieval-hybrid-rrf` | retrieval | 0.1895 | [0.155, 0.226] | 0.5434 | 0.1702 | -0.0154 | 1.0000 | no | 357 |
+| `tables-row-sentences` | table_rendering | 0.1702 | [0.139, 0.202] | 0.5389 | 0.1558 | -0.0348 | 0.2943 | no | 357 |
+| `chunk-fixed256o32` | chunking | 0.1607 | [0.131, 0.193] | 0.4678 | 0.1417 | -0.0443 | 0.0460 | yes | 357 |
+| `retrieval-dense-bge` | retrieval | 0.1096 | [0.082, 0.139] | 0.2801 | 0.0977 | -0.0954 | 0.0013 | yes | 357 |
+| `embed-e5-base-v2` | embedding | 0.1033 | [0.078, 0.131] | 0.2997 | 0.0874 | -0.1016 | 0.0013 | yes | 357 |
+| `embed-e5-base` | embedding | 0.0352 | [0.021, 0.052] | 0.1709 | 0.0306 | -0.1698 | 0.0013 | yes | 357 |
 
 ## Chunking reachability and reranking ceiling
 
@@ -40,19 +41,20 @@ reranker from one that never saw the answer.
 
 | configuration | chunks | reachable | ceiling | nDCG low-overlap | nDCG high-overlap | seconds |
 |---|---|---|---|---|---|---|
-| `baseline-bm25-fixed512` | 37,498 | 100.0% | - | 0.1276 | 0.2420 | 1 |
-| `chunk-fixed256o32` | 75,084 | 100.0% | - | 0.1038 | 0.2110 | 1 |
-| `chunk-struct512` | 42,215 | 100.0% | - | 0.1157 | 0.2347 | 0 |
-| `tables-row-sentences` | 40,155 | 94.2% | - | 0.1253 | 0.2039 | 0 |
-| `retrieval-dense-bge` | 42,215 | 100.0% | - | 0.2212 | 0.1220 | 1 |
-| `retrieval-hybrid-rrf` | 42,215 | 100.0% | - | 0.2093 | 0.2347 | 2 |
-| `retrieval-bm25-struct` | 42,215 | 100.0% | - | 0.1157 | 0.2347 | 1 |
-| `embed-e5-base` | 42,215 | 100.0% | - | 0.0618 | 0.0321 | 1 |
-| `rerank-bm25-100` | 42,215 | 100.0% | 65.7% | 0.3462 | 0.2077 | 0 |
-| `rerank-candidates-25` | 42,215 | 100.0% | 48.8% | 0.2506 | 0.2336 | 0 |
-| `rerank-candidates-50` | 42,215 | 100.0% | 57.6% | 0.2806 | 0.2373 | 0 |
-| `rerank-candidates-200` | 42,215 | 100.0% | 78.5% | 0.3100 | 0.1840 | 1 |
-| `hybrid-plus-rerank` | 42,215 | 100.0% | 64.5% | 0.3399 | 0.2008 | 2 |
+| `baseline-bm25-fixed512` | 37,498 | 100.0% | - | 0.0818 | 0.2440 | 1 |
+| `chunk-fixed256o32` | 75,084 | 100.0% | - | 0.0704 | 0.1893 | 2 |
+| `chunk-semantic95` | 29,556 | 100.0% | - | 0.1397 | 0.2532 | 1 |
+| `chunk-struct512` | 42,215 | 100.0% | - | 0.1127 | 0.2586 | 1 |
+| `tables-row-sentences` | 40,155 | 95.6% | - | 0.0866 | 0.1967 | 1 |
+| `retrieval-dense-bge` | 42,215 | 100.0% | - | 0.0764 | 0.1202 | 4 |
+| `retrieval-hybrid-rrf` | 42,215 | 100.0% | - | 0.1012 | 0.2176 | 5 |
+| `retrieval-bm25-struct` | 42,215 | 100.0% | - | 0.1127 | 0.2586 | 1 |
+| `embed-e5-base` | 42,215 | 100.0% | - | 0.0341 | 0.0356 | 3 |
+| `embed-e5-base-v2` | 42,215 | 100.0% | - | 0.1020 | 0.1038 | 3 |
+| `rerank-bm25-100` | 42,215 | 100.0% | 65.7% | 0.1847 | 0.2255 | 1 |
+| `rerank-candidates-25` | 42,215 | 100.0% | 48.3% | 0.1789 | 0.2329 | 1 |
+| `rerank-candidates-50` | 42,215 | 100.0% | 57.9% | 0.1844 | 0.2444 | 1 |
+| `rerank-candidates-200` | 42,215 | 100.0% | 75.3% | 0.1707 | 0.2093 | 1 |
 
 ## The lexical-overlap confound
 
@@ -68,5 +70,4 @@ These configurations did not run. No number is reported for them.
 
 | configuration | reason |
 |---|---|
-| `chunk-semantic95` | bge-m3 unavailable: ModuleNotFoundError: No module named 'sentence_transformers' |
-| `embed-finance-e5` | finance-e5 unavailable: ModuleNotFoundError: No module named 'sentence_transformers' |
+| `hybrid-plus-rerank` | no cross-encoder scores for candidates-hybrid-plus-rerank: the GPU run has not scored this configuration's shortlist. Falling back to a live reranker also failed (ModuleNotFoundError). |

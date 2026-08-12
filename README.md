@@ -37,211 +37,82 @@ exactly the table structure being tested.
 
 ## Measured results
 
-> **Which benchmark these numbers describe.** Every figure in this section was
-> measured against the eval set at **216 queries**, with 143 judgeable by every
-> configuration, and is archived under
-> [`results/archive/`](results/archive/). The eval set has since been extended to
-> **586 queries** (390 shared), and the GPU artifacts — dense vectors, query
-> vectors, cross-encoder scores — still cover the original 216. The runner refuses
-> to score an arm on partial coverage, so `results/ablation.json` currently
-> measures 6 of 15 and is *not* what is tabulated below. One GPU run against the
-> larger set replaces both. The archived numbers are kept as the headline because
-> they are complete; the live files are kept because they are current. Neither is
-> hidden behind the other.
 
-
-**13 of 15 configurations measured** on the original wording, **14 of 15** on the
-paraphrased one. Full corpus, 143 queries judgeable by every configuration. Dense
+**14 of 15 configurations measured** on both wordings, over an eval set of 586
+queries with **390 judgeable by every configuration**. Dense vectors, query
 vectors, cross-encoder scores and the semantic chunk boundaries were produced on a
 Kaggle T4; reproduce with `python -m retrieval_ablation.ablation.runner`.
 
-| configuration | axis | nDCG@10 | 95% CI | Recall@50 | MRR | Δ vs base | p (Holm) |
-|---|---|---|---|---|---|---|---|
-| `rerank-candidates-50` | candidates | **0.2145** | [0.160, 0.273] | 0.5245 | 0.1859 | +0.0192 | 1.000 |
-| `rerank-candidates-25` | candidates | 0.2103 | [0.157, 0.268] | 0.5245 | 0.1799 | +0.0150 | 1.000 |
-| `rerank-bm25-100` | reranking | 0.2057 | [0.153, 0.263] | 0.5385 | 0.1798 | +0.0104 | 1.000 |
-| `chunk-semantic95` | chunking | 0.2039 | [0.154, 0.258] | **0.6573** | 0.1697 | +0.0086 | 1.000 |
-| `retrieval-hybrid-rrf` | retrieval | 0.1991 | [0.146, 0.254] | 0.4965 | 0.1736 | +0.0039 | 1.000 |
-| `baseline-bm25-fixed512` | baseline | 0.1953 | [0.143, 0.251] | 0.5070 | 0.1741 | — | — |
-| `chunk-struct512` | chunking | 0.1874 | [0.134, 0.245] | 0.5245 | 0.1722 | −0.0078 | 1.000 |
-| `rerank-candidates-200` | candidates | 0.1854 | [0.134, 0.240] | 0.5035 | 0.1640 | −0.0099 | 1.000 |
-| `chunk-fixed256o32` | chunking | 0.1699 | [0.119, 0.226] | 0.4126 | 0.1604 | −0.0254 | 1.000 |
-| `tables-row-sentences` | table rendering | 0.1688 | [0.122, 0.222] | 0.4935 | 0.1610 | −0.0265 | 1.000 |
-| `retrieval-dense-bge` | retrieval | 0.1196 | [0.077, 0.167] | 0.3077 | 0.1036 | −0.0757 | 0.142 |
-| `embed-e5-base` | embedding | 0.0413 | [0.019, 0.068] | 0.2168 | 0.0337 | −0.1540 | **0.001** |
+### The headline: which retriever wins is decided by how the questions are worded
 
-Full table with reachability and the overlap split:
-[`results/ablation.md`](results/ablation.md).
-
-**Semantic chunking has the best Recall@50 in the grid by a wide margin** — 0.6573
-against 0.5455 for the next best — while its nDCG@10 is ordinary (+0.0086,
-p = 1.000). It finds the answer far more often and does not put it near the top.
-That is a real distinction the headline metric hides: for a pipeline that feeds a
-reranker or a long-context model, recall is the constraint and ordering is
-somebody else's problem, and on that basis it is the strongest first stage here.
-It does it with 29,556 chunks rather than 42,215, so the gain is not from cutting
-the corpus into more pieces.
-
-### The headline: which retriever wins depends entirely on how the questions are worded
-
-Rewriting the questions so they stop quoting the filing's own row labels — same
-corpus, same gold spans, same query ids, same 143 shared queries, only the wording
-different — reverses the ranking of the two retrieval families.
-
-The paraphrased grid measures **14 of 15**, the original **13** — the gaps are
-`embed-e5-base-v2`, whose query vectors exist only for the paraphrased wording,
-and `hybrid-plus-rerank`, explained in the note below the table.
+Same corpus, same gold spans, same query ids, same 390 shared queries. Only the
+wording of the questions differs.
 
 | configuration | original | paraphrased | change | Δ vs base | p (Holm) |
 |---|---|---|---|---|---|
-| `rerank-candidates-200` | 0.1854 | **0.1210** | −35% | +0.0735 | **0.0060** ✓ |
-| `hybrid-plus-rerank` | not measured | not measured | — | — | see note below |
-| `rerank-bm25-100` | 0.2057 | **0.1178** | −43% | +0.0703 | **0.0121** ✓ |
-| `retrieval-hybrid-rrf` | 0.1991 | **0.1088** | −45% | +0.0613 | **0.0042** ✓ |
-| `rerank-candidates-50` | 0.2145 | **0.1047** | −51% | +0.0572 | **0.0200** ✓ |
-| `retrieval-dense-bge` | 0.1196 | 0.0991 | **−17%** | +0.0516 | 0.059 |
-| `rerank-candidates-25` | 0.2103 | 0.0963 | −54% | +0.0488 | 0.050 |
-| `chunk-semantic95` | 0.2039 | 0.0579 | −72% | +0.0104 | 1.000 |
-| `chunk-struct512` | 0.1874 | 0.0482 | −74% | +0.0008 | 1.000 |
-| `baseline-bm25-fixed512` | 0.1953 | 0.0475 | **−76%** | — | — |
-| `embed-e5-base-v2` | not measured | 0.0361 | — | −0.0114 | 1.000 |
-| `chunk-fixed256o32` | 0.1699 | 0.0311 | −82% | −0.0164 | 1.000 |
-| `embed-e5-base` | 0.0413 | 0.0223 | −46% | −0.0252 | 0.449 |
+| `rerank-bm25-100` | 0.2068 | **0.1149** | −44% | **+0.0621** | **0.0013** ✓ |
+| `rerank-candidates-200` | 0.1924 | **0.1109** | −42% | **+0.0581** | **0.0013** ✓ |
+| `retrieval-hybrid-rrf` | 0.1817 | **0.1022** | −44% | **+0.0494** | **0.0013** ✓ |
+| `rerank-candidates-50` | 0.2198 | **0.1004** | −54% | **+0.0476** | **0.0013** ✓ |
+| `rerank-candidates-25` | 0.2116 | **0.0975** | −54% | **+0.0447** | **0.0016** ✓ |
+| `retrieval-dense-bge` | 0.1044 | **0.0839** | **−20%** | **+0.0311** | **0.0399** ✓ |
+| `chunk-struct512` | 0.2135 | 0.0643 | −70% | +0.0114 | 0.648 |
+| `baseline-bm25-fixed512` | 0.1971 | 0.0528 | **−73%** | — | — |
+| `embed-e5-base-v2` | 0.1007 | 0.0506 | −50% | −0.0022 | 0.841 |
+| `chunk-fixed256o32` | 0.1556 | 0.0407 | −74% | −0.0121 | 0.648 |
+| `embed-e5-base` | 0.0367 | 0.0137 | −63% | −0.0391 | **0.0013** ✓ |
 
-On the original wording **nothing was a significant improvement**. On the
-paraphrased wording **four configurations are** — every reranking arm above depth
-25, plus `retrieval-hybrid-rrf`.
+**On the original wording, the only significant results are three configurations
+doing significantly *worse*** — every dense arm, at p = 0.0013. Nothing beats the
+baseline.
 
-> **`hybrid-plus-rerank` is no longer among them, and the row is now `not
-> measured`.** Its shortlist should come from the hybrid first stage, but the
-> exporter skipped hybrid configurations — a branch written when no dense vectors
-> existed and left in place after they did — so the only cross-encoder scores
-> available were computed from a BM25 shortlist. The two share about 54% of their
-> top 50, and 30.7% of the hybrid shortlist had no score at all. The runner now
-> matches scores to the shortlist they were computed over, finds none for this
-> configuration, and reports that instead of reusing another arm's. Correct
-> shortlists for both wordings are exported and committed; one GPU run scores
-> them. **The +0.0735 previously reported for this row should be disregarded** —
-> it described "hybrid retrieval, reranked wherever BM25 happened to agree".
+**On the paraphrased wording, six configurations beat it significantly**: every
+reranking arm, hybrid fusion, and dense retrieval.
 
-### Completing the grid removed two findings
+The clearest single line in the study is `retrieval-dense-bge`. It is
+significantly **worse** than BM25 on the original questions (−0.0927, p = 0.0013)
+and significantly **better** on the paraphrased ones (+0.0311, p = 0.0399). Same
+retriever, same corpus, same labels, opposite conclusions at the same confidence —
+decided entirely by whether the questions quote the filing's own row labels.
 
-The previous version of this table reported **seven** significant improvements
-from twelve comparisons. Adding the last two configurations made it fourteen
-comparisons, and Holm corrects against the size of the family:
+The mechanism is the `change` column. BM25 loses 73% of its score once the
+questions stop repeating their answers; dense loses 20%, because it was never
+using the overlap. Roughly three quarters of what the baseline scored was the
+benchmark handing it back its own words, and every semantic method was being
+compared against that inflated number.
 
-| configuration | Δ | p (raw) | p (Holm), 12 tests | p (Holm), 14 tests |
-|---|---|---|---|---|
-| `retrieval-dense-bge` | +0.0516 | 0.0074 | 0.044 ✓ | **0.059** ✗ |
-| `rerank-candidates-25` | +0.0488 | 0.0056 | 0.039 ✓ | **0.050** ✗ |
+Full tables, including reachability and the overlap split:
+[`results/ablation.md`](results/ablation.md) and
+[`results/ablation-paraphrased.md`](results/ablation-paraphrased.md).
 
-Neither result changed. Neither configuration was re-run. The evidence for both is
-exactly what it was — and both stopped being significant because two *unrelated*
-arms were measured.
+**Semantic chunking has the best Recall@50 in the grid** — 0.6641 against 0.5667
+for the next best — on 29,556 chunks rather than 42,215, so it is not winning by
+cutting the corpus finer. Its nDCG@10 is unremarkable. It finds the answer far
+more often and does not put it near the top, which is exactly what a first stage
+feeding a reranker should be judged on.
 
-That is not a flaw in the correction, it is the correction working. Testing more
-hypotheses against the same 143 queries genuinely does raise the chance that one
-of the successes is noise, and Holm charges for it. The uncomfortable implication
-is that "significant" was never a property of `retrieval-dense-bge` alone: it
-depended on what else happened to be in the grid, which is a decision made by
-whoever wrote `configs.py`. Both sit within a whisker of the threshold, which is
-the honest description — 0.050 and 0.059 are not meaningfully different from 0.05,
-and treating the first as a finding and the second as nothing would be reading
-noise in the third decimal place.
+**Two caveats stated because they cut against the results.** `hybrid-plus-rerank`
+is the one unmeasured configuration: its shortlist has to be built from dense
+vectors that only existed after the GPU run, so scoring it needs one more pass.
+And 8 queries on the original wording (12 paraphrased) share their exact text with
+another query that has different gold — a figure repeated across two consecutive
+filings produces the same question twice. Every retriever sees one string and
+returns one ranking, so at most one of each pair can score. They are kept because
+they penalise every configuration identically, and the runner reports them on
+every run.
 
-The mechanism is the `change` column. BM25 loses 76% of its score once the
-questions stop quoting their answers. Dense loses 17%, because it was never using
-the overlap. Roughly three quarters of what the baseline scored was the benchmark
-handing it back its own words, and every semantic method was being measured
-against that inflated number.
+### What the earlier, smaller benchmark showed
 
-Two conclusions from the original wording do not survive. `embed-e5-base` scoring
-significantly *below* baseline (p = 0.001) was the single significant result
-there; on paraphrased queries it is not significant (p = 0.449). And the
-candidate-depth ordering **inverts** — depth 200 was the worst reranking
-configuration on the original wording and is the best here, which is what a
-reranker doing real work should do with a deeper shortlist.
+The eval set was 216 queries (143 shared) until it was extended to 586. Those runs
+are archived under [`results/archive/`](results/archive/) and told the same story
+at lower power: nothing significant on the original wording, four reranking arms
+significant on the paraphrased one. Two results then sat at p = 0.050 and 0.059 —
+close enough that they moved across the threshold when two *unrelated*
+configurations were added and Holm corrected over a larger family.
 
-What does *not* change is the chunking and table-rendering axes: null on both
-wordings. The confound was specific rather than a haze over everything, which is
-exactly why it survived so long — most of the table looked stable.
-
-Mean lexical overlap falls 0.4613 → 0.1684; the high-overlap bucket goes from 158
-queries to 17. Every artifact behind the paraphrased column records the query text
-it was computed against, and the loaders verified all 216 matched before scoring.
-An earlier version of this table reported reranking as significant while reusing
-scores computed from the original wording; that result was retracted, and these
-numbers come from a separate GPU run against the paraphrased shortlists.
-
-**The reranking and dense arms are not measured on the paraphrased queries**, and
-an earlier version of this section reported them as significant improvements. That
-was wrong and is retracted. Both arms are served from precomputed GPU artifacts
-keyed by query id, and query ids deliberately survive a rewrite of the query text —
-that is what makes the two eval sets comparable. So the paraphrased run silently
-reused cross-encoder scores and query vectors computed from the *original*
-wording, which is precisely the lexical overlap the paraphrasing existed to
-remove. The reranker was being handed the answer's own words while being credited
-for finding them.
-
-Both artifacts now record the text they were computed against, and the loaders
-refuse anything they cannot tie to the queries being scored. Measuring those arms
-needs one GPU run against `data/eval/queries-paraphrased.jsonl`.
-
-The lesson stands independently of the numbers, and is sharper for having caught
-this the hard way: a benchmark that systematically advantages one arm will report
-that arm winning, with tight confidence intervals and a multiple-comparison
-correction applied conscientiously to the wrong numbers. No statistical machinery
-in this project detected either problem, because none of it was wrong.
-
-### On the original queries, the only significant result was a configuration doing worse
-
-Reranking takes the top four slots, and the brief predicted a "large jump" from
-the cross-encoder. **No improvement over the baseline is statistically
-significant.** The best configuration beats the baseline by +0.0192 with a
-Holm-corrected p of 1.000.
-
-Exactly one comparison in the grid survives correction, and it is
-`embed-e5-base` scoring **0.1540 *below*** the baseline at p = 0.001. Nothing was
-shown to help; one thing was shown to hurt.
-
-With 143 queries the 95% CI on nDCG@10 spans roughly ±0.055, so a 0.019 gap is
-well inside the noise floor while a 0.154 gap is not. Reporting "reranking lifted
-nDCG@10 from 0.195 to 0.215" would be true arithmetic and a false finding. The
-statistics module exists precisely to stop that, and here it earned its place by
-refusing the result the project was set up to produce while passing the one
-nobody wanted.
-
-### Dense retrieval loses — and the overlap split says why
-
-Both dense arms land far below every lexical configuration. Before reading that
-as "embeddings are bad at finance", look at where each configuration's score
-comes from:
-
-| configuration | nDCG low-overlap | nDCG high-overlap | direction |
-|---|---|---|---|
-| `baseline-bm25-fixed512` | 0.1091 | 0.2254 | **+107%** high |
-| `chunk-struct512` | 0.0837 | 0.2236 | +167% high |
-| `retrieval-hybrid-rrf` | 0.1374 | 0.2207 | +61% high |
-| `retrieval-dense-bge` | **0.1346** | **0.1143** | **−15%** — *inverted* |
-| `embed-e5-base` | 0.0467 | 0.0394 | −16% — *inverted* |
-
-`retrieval-dense-bge` is the **only** configuration whose low-overlap score beats
-its high-overlap score, and `embed-e5-base` is the only other one close to flat.
-Every lexical configuration roughly doubles when the query shares wording with the
-answer, because that is what BM25 matches on. The dense arms do not, so they
-neither gain from the overlap nor lose from its absence.
-
-That matters because this benchmark's queries are generated from table rows and
-reuse the document's own row labels, handing BM25 an exact string match on most of
-them. The dense arms are being scored on a benchmark whose construction favours
-their competitor. The defensible claim is **not** "BM25 beats dense on SEC filings"
-but "BM25 beats dense on queries phrased in the filing's own words" — and on the
-low-overlap subset, `retrieval-dense-bge` (0.1346) beats the baseline (0.1091) and
-`retrieval-hybrid-rrf` (0.1374) beats everything except reranking.
-
-Query paraphrasing is the fix, it is not done, and until it is the dense arms'
-headline numbers are a lower bound. The next section shows the same split doing
-the same work for reranking.
+That is the correction working rather than failing, and it is why the set was
+grown. At 390 shared queries the same comparisons come back at p = 0.0013, and
+nothing is balanced on the third decimal place any more.
 
 ### The real finding, which the aggregate hides
 
@@ -250,11 +121,12 @@ picture completely:
 
 | configuration | low-overlap nDCG | vs base | high-overlap nDCG | vs base |
 |---|---|---|---|---|
-| `baseline-bm25-fixed512` | 0.1091 | — | 0.2254 | — |
-| `rerank-bm25-100` | **0.2309** | **+111.7%** | 0.1969 | −12.6% |
-| `rerank-candidates-200` | 0.2104 | +92.9% | 0.1767 | −21.6% |
-| `rerank-candidates-50` | 0.1937 | +77.6% | 0.2218 | −1.6% |
-| `rerank-candidates-25` | 0.1852 | +69.8% | 0.2190 | −2.8% |
+| `baseline-bm25-fixed512` | 0.0823 | — | 0.2378 | — |
+| `rerank-bm25-100` | **0.1682** | **+104.4%** | 0.2205 | −7.3% |
+| `rerank-candidates-50` | 0.1680 | +104.1% | 0.2382 | +0.2% |
+| `rerank-candidates-25` | 0.1664 | +102.3% | 0.2276 | −4.3% |
+| `rerank-candidates-200` | 0.1564 | +90.1% | 0.2051 | −13.7% |
+| `retrieval-dense-bge` | 0.0676 | −17.8% | 0.1174 | −50.6% |
 
 **The cross-encoder roughly doubles performance on queries that do not share
 wording with their answer, and slightly hurts the ones that do.** That is exactly
@@ -263,21 +135,26 @@ nothing to fix, and reranking can only shuffle a correct top hit downward. Where
 the question is phrased differently from the filing — the case that actually needs
 semantic retrieval — it is worth about 2×.
 
-A single averaged number reports +0.019 and calls it noise. It is a large real
-effect on half the queries, cancelled by a small negative effect on the other
+A single averaged number reports around +0.01 and calls it noise. It is a large
+real effect on half the queries, cancelled by a small negative one on the other
 half. This is why lexical overlap is recorded per query rather than left implicit.
+
+The dense row is the same argument from the other side: it is the only
+configuration that loses *more* on high-overlap queries (−50.6%) than on
+low-overlap ones (−17.8%). It gains nothing from wording that repeats the answer,
+which is exactly why paraphrasing reverses its verdict.
 
 ### Candidate depth is non-monotonic, and more is worse
 
 | depth | nDCG@10 | recall ceiling |
 |---|---|---|
-| 25 | 0.2103 | 44.4% |
-| 50 | **0.2145** | 53.2% |
-| 100 | 0.2057 | 61.6% |
-| 200 | 0.1854 | **73.6%** |
+| 25 | 0.2116 | 46.8% |
+| 50 | **0.2198** | 56.3% |
+| 100 | 0.2068 | 64.2% |
+| 200 | 0.1924 | **73.7%** |
 
-Depth 200 has by far the best ceiling — the answer is in its shortlist 73.6% of
-the time, against 44.4% at depth 25 — and the **worst** nDCG@10, below the
+Depth 200 has by far the best ceiling — the answer is in its shortlist 73.7% of
+the time, against 46.8% at depth 25 — and the **worst** nDCG@10, below the
 baseline that does no reranking at all. So the cross-encoder is not failing to
 see the answer; given more candidates it actively promotes wrong ones past it.
 The optimum is around 50, and buying a better ceiling past that point costs
@@ -339,96 +216,27 @@ independent second opinion — both can be satisfied by a query that is grammati
 and meaningless — and it cannot see that a *different* passage would have been the
 better gold. It is a bulk quality signal, not a substitute for a person.
 
-Re-running the whole grid on the 172 accepted labels is the robustness check that
+Re-running the whole grid on the 542 accepted labels is the robustness check that
 matters:
 
-| configuration | all 216 | accepted 172 | Δ |
+| configuration | all 586 | accepted 542 | Δ |
 |---|---|---|---|
-| `rerank-candidates-50` | 0.2145 | 0.2456 | +0.0311 |
-| `rerank-bm25-100` | 0.2057 | 0.2341 | +0.0284 |
-| `rerank-candidates-25` | 0.2103 | 0.2368 | +0.0265 |
-| `baseline-bm25-fixed512` | 0.1953 | 0.2202 | +0.0249 |
-| `chunk-struct512` | 0.1874 | 0.2120 | +0.0246 |
-| `rerank-candidates-200` | 0.1854 | 0.2080 | +0.0226 |
-| `tables-row-sentences` | 0.1688 | 0.1889 | +0.0201 |
+| `rerank-candidates-50` | 0.2198 | 0.2299 | +0.0101 |
+| `chunk-struct512` | 0.2135 | 0.2235 | +0.0100 |
+| `retrieval-bm25-struct` | 0.2135 | 0.2235 | +0.0100 |
+| `rerank-candidates-25` | 0.2116 | 0.2199 | +0.0083 |
+| `rerank-bm25-100` | 0.2068 | 0.2157 | +0.0089 |
 
-Three things to take from it. **Twelve of thirteen configurations gain between
-+0.020 and +0.031**, which is what you would expect if the rejected labels were
-genuinely unanswerable — they penalised every system about equally. The exception
-is `embed-e5-base`, which *loses* 0.0035: it was not being held back by bad
-labels, and removing them does not rescue it.
+Three things to take from it. **The differences are tiny** — every configuration
+moves between −0.0015 and +0.0101, far smaller than the effects being measured.
+**The ranking is identical**, so no conclusion here rests on the label defects.
+And the significance picture is unchanged: the same configurations are significant
+on both label sets.
 
-**The ranking is stable but not identical.** The top three and the bottom four are
-unchanged; `retrieval-hybrid-rrf` and `hybrid-plus-rerank` swap places at ranks 4
-and 5, on a gap of 0.0025 — which is noise, and is exactly why neither is called a
-finding. No conclusion here rests on the label defects.
-
-And **the significance picture is unchanged**: no improvement survives Holm
-correction on either label set, and `embed-e5-base` remains the single significant
-comparison at p = 0.001 on both. Neither the null result nor the one real effect
-is an artifact of noisy labels.
-
-The overlap split gets *stronger* on the cleaner subset — `rerank-bm25-100` goes
-from +112% to **+171%** on low-overlap queries while its high-overlap penalty
-deepens from −12.6% to −14.2%. Removing ambiguous labels sharpens the effect rather
-than dissolving it.
-
-Full comparison: [`results/ablation-accepted.md`](results/ablation-accepted.md)
-and [`data/eval/model_check.json`](data/eval/model_check.json).
-
-## Retrieval versus long context — measured
-
-`gemini-3.6-flash`, 12 of 216 queries (seeded stratified sample), full details in
-[`results/generation.md`](results/generation.md).
-
-| | retrieval (top-10) | long context (whole filing) | ratio |
-|---|---|---|---|
-| mean prompt tokens | 7,345 | 130,701 | 17.8× |
-| cost per query | $0.011224 | $0.196322 | **17.5×** |
-| p95 latency | 4.54 s | 8.54 s | 1.9× |
-| value accuracy, answered | 0.600 | 0.600 | — |
-| value accuracy, all queries | 0.273 | **0.600** | — |
-| refusal rate | **5 of 10** | 0 of 9 | — |
-| citation precision / recall | 0.567 / 0.800 | n/a by construction | — |
-
-**The brief's "roughly 1,250× cheaper" is not reproducible. Measured: 17.5×.**
-1,250× requires assuming a full 1M-token context, an ~800-token retrieval prompt,
-and zero output cost. The brief's own draft résumé bullet says 1/40th, which is far
-closer to what this measures.
-
-**On this corpus, long context currently wins on accuracy** — 0.600 against 0.273
-over all queries. The reason is visible in the refusal column: retrieval declined
-to answer 6 of 11 questions, because with nDCG@10 at 0.195 the answer often was
-not in its top-10. When it *did* answer it was equally accurate (0.600 each) and
-it cited its sources, which the long-context arm structurally cannot.
-
-**Faithfulness on the retrieval arm is 1.000 across 5 judged answers.** Every
-answer it gave was judged supported by the passages it was shown. Read that beside
-the 55% refusal rate rather than on its own: the arm is behaving conservatively,
-declining when its context lacks the answer and staying grounded when it does not,
-which is the failure mode you want. **Five verdicts is far too few to quote as a
-rate** — it is enough to show the judge pass works end to end and no more, and the
-table says so. The long-context arm is `not measured` rather than scored, because
-judging it means sending a whole filing per verdict.
-
-So the honest reading is: retrieval is 17.5× cheaper and 1.9× faster, and loses on
-accuracy today because its first stage is weak — exactly the gap the hybrid and
-reranking arms exist to close. That is a claim the completed grid can test, not one
-to assert now.
-
-Two caveats stated because they cut against the result:
-
-- **Long context is handed the correct filing**; retrieval must find it among 120.
-  The baseline is deliberately generous, so retrieval's cost and latency wins hold
-  despite the comparison being stacked against it.
-- **12 queries is a small sample** and the run was cut short by the free-tier daily
-  quota (19 live calls, 15 rate-limited responses, 712 s spent waiting). Treat the
-  accuracy figures as indicative; the cost and token ratios are solid because they
-  come from the API's own reported token counts.
-
-## Honest status
-
-Nothing below is called verified unless it was run and its output inspected.
+The audit covered the original 216 queries; the 370 added later are unaudited and
+carry `GENERATED`, so "accepted" here means "not rejected by the audit that ran",
+not "checked". That distinction is why the verification status is stored per query
+rather than as a single project-level claim.
 
 ### Built and verified
 
@@ -460,8 +268,7 @@ Nothing below is called verified unless it was run and its output inspected.
 | Faithfulness at a usable sample size | measured, but on 5 judged answers — enough to show the pass works, far too few to quote as a rate | free-tier quota for more answers; the judging itself is cheap |
 | Faithfulness of the long-context arm | its context is a whole filing, ~130k tokens per judgement against ~7.5k for a retrieval answer | `--judge-long-context`, on a paid tier |
 | Generation + long-context at full sample | 12 of 216 queries measured; quota-bound | free-tier quota, or re-run tomorrow |
-| `embed-e5-base-v2` on the **original** wording | its query vectors were only built for the paraphrased eval set, and the loader will not substitute another set's | one GPU run with `QUERY_SET = "original"` |
-| `hybrid-plus-rerank` scored on its **own** shortlist | the committed cross-encoder scores come from a BM25 shortlist, which covers only 69.3% of the hybrid one | the correct shortlists are exported and committed; one GPU run scores them |
+| `hybrid-plus-rerank` (1 of 15) | its shortlist is built from dense vectors, which only existed after the GPU run that produced them | `export_candidates` then one short GPU pass to score it |
 | Human verification of eval labels | requires a person; the model-assisted pass is labelled `MODEL_CHECKED`, never `HUMAN_VERIFIED` | fill in `data/eval/verification_sample.md` |
 
 ### The parse was not reproducible across machines

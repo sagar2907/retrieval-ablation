@@ -174,6 +174,36 @@ def _artifact_vectors(embedding_key: str, chunker: str) -> Path | None:
     return candidate if candidate.exists() else None
 
 
+def ambiguous_queries(queries: Sequence[EvalQuery]) -> list[str]:
+    """Query ids whose text is shared with another query that has different gold.
+
+    Retrieval is a function of the query *text*: two queries wording the same
+    question are indistinguishable to every configuration and receive the same
+    ranking. If their gold passages differ, at most one of them can score, and the
+    other is counted wrong no matter what a retriever does.
+
+    These arise honestly. A figure reported in two consecutive filings produces
+    "In 2025, what amount did Walmart Inc. record as federal tax credits?" twice,
+    once labelled against the FY2025 filing and once against FY2026, and both
+    labels are correct. Paraphrasing adds a few more by mapping two distinct
+    questions onto one sentence.
+
+    They are reported rather than dropped. The penalty falls on every
+    configuration identically -- it is a property of the benchmark, not of any
+    retriever -- so comparisons stay fair, which is what this study measures.
+    Dropping them would also have to be done across both wordings at once or the
+    two runs would score different query sets and stop being comparable.
+    """
+    by_text: dict[str, list[EvalQuery]] = {}
+    for query in queries:
+        by_text.setdefault(query.text, []).append(query)
+    out: list[str] = []
+    for group in by_text.values():
+        if len(group) > 1 and len({q.gold[0].passage_id for q in group if q.gold}) > 1:
+            out.extend(q.query_id for q in group)
+    return sorted(out)
+
+
 def _candidates_stem(config: Config) -> str:
     """Name of the candidates file this configuration's shortlist was written to.
 
@@ -408,7 +438,7 @@ def _prepare(
                 key,
                 embedding_key,
             )
-        elif len(query_vectors) < len(queries):
+        elif len(query_vectors) < len({q.text for q in queries}):
             # Partial coverage is not a usable dense arm, and must not be
             # discovered mid-search. PrecomputedEmbedder raises KeyError on a query
             # it has no vector for, and that exception escapes the retriever and
@@ -419,15 +449,18 @@ def _prepare(
             # This is reachable simply by growing the eval set: the artifacts cover
             # the queries that existed when the GPU ran, and every query added
             # since has no vector.
-            missing = len(queries) - len(query_vectors)
+            # Distinct *texts*, not queries. The retriever interface is keyed by
+            # query text, so two queries wording the same question collapse to one
+            # entry, and comparing against the query count reported a shortfall for
+            # a complete artifact -- 582 of 586 when all 586 were present.
+            wanted = len({q.text for q in queries})
             log.warning(
-                "group %s: queryvectors-%s covers %d of %d queries; %d were added "
-                "after the GPU run. Skipping rather than scoring a subset.",
+                "group %s: queryvectors-%s covers %d of %d distinct query texts. "
+                "Skipping rather than scoring a subset.",
                 key,
                 embedding_key,
                 len(query_vectors),
-                len(queries),
-                missing,
+                wanted,
             )
             return _Prepared(
                 [],
@@ -436,8 +469,8 @@ def _prepare(
                 None,
                 skipped_reason=(
                     f"query vectors for {embedding_key} cover only "
-                    f"{len(query_vectors)} of {len(queries)} queries. Re-run the GPU "
-                    f"notebook against the current eval set."
+                    f"{len(query_vectors)} of {len({q.text for q in queries})} distinct "
+                    f"query texts. Re-run the GPU notebook against the current eval set."
                 ),
             )
         dense = dense_index_from_artifact(artifact, chunks, query_vectors)
@@ -600,6 +633,16 @@ def run_ablation(  # noqa: PLR0915 - a linear pipeline; splitting it would hide 
     }
     common = common_judgeable_queries(qrels_by_config) if qrels_by_config else set()
     log.info("queries judgeable by every configuration: %d of %d", len(common), len(queries))
+
+    ambiguous = ambiguous_queries(queries)
+    if ambiguous:
+        log.warning(
+            "%d queries share their exact text with another query that has different "
+            "gold. Every retriever sees one string and returns one ranking, so at "
+            "most one of each pair can score. They are kept because they penalise "
+            "every configuration identically, but they cap the achievable score.",
+            len(ambiguous),
+        )
 
     overlap = {q.query_id: (q.lexical_overlap or 0.0) for q in queries}
     query_text = {q.query_id: q.text for q in queries}
