@@ -38,7 +38,7 @@ exactly the table structure being tested.
 ## Measured results
 
 
-**14 of 15 configurations measured** on both wordings, over an eval set of 586
+**15 of 15 configurations measured** on both wordings, over an eval set of 586
 queries with **390 judgeable by every configuration**. Dense vectors, query
 vectors, cross-encoder scores and the semantic chunk boundaries were produced on a
 Kaggle T4; reproduce with `python -m retrieval_ablation.ablation.runner`.
@@ -50,30 +50,40 @@ wording of the questions differs.
 
 | configuration | original | paraphrased | change | Δ vs base | p (Holm) |
 |---|---|---|---|---|---|
-| `rerank-bm25-100` | 0.2068 | **0.1149** | −44% | **+0.0621** | **0.0013** ✓ |
-| `rerank-candidates-200` | 0.1924 | **0.1109** | −42% | **+0.0581** | **0.0013** ✓ |
-| `retrieval-hybrid-rrf` | 0.1817 | **0.1022** | −44% | **+0.0494** | **0.0013** ✓ |
-| `rerank-candidates-50` | 0.2198 | **0.1004** | −54% | **+0.0476** | **0.0013** ✓ |
+| `hybrid-plus-rerank` | 0.1869 | **0.1208** | −35% | **+0.0680** | **0.0014** ✓ |
+| `rerank-bm25-100` | 0.2068 | **0.1149** | −44% | **+0.0621** | **0.0014** ✓ |
+| `rerank-candidates-200` | 0.1924 | **0.1109** | −42% | **+0.0581** | **0.0014** ✓ |
+| `retrieval-hybrid-rrf` | 0.1817 | **0.1022** | −44% | **+0.0494** | **0.0014** ✓ |
+| `rerank-candidates-50` | 0.2198 | **0.1004** | −54% | **+0.0476** | **0.0014** ✓ |
 | `rerank-candidates-25` | 0.2116 | **0.0975** | −54% | **+0.0447** | **0.0016** ✓ |
-| `retrieval-dense-bge` | 0.1044 | **0.0839** | **−20%** | **+0.0311** | **0.0399** ✓ |
+| `retrieval-dense-bge` | 0.1044 | **0.0839** | −20% | **+0.0311** | **0.0399** ✓ |
+| `chunk-semantic95` | 0.2189 | 0.0663 | −70% | +0.0134 | 0.648 |
 | `chunk-struct512` | 0.2135 | 0.0643 | −70% | +0.0114 | 0.648 |
-| `baseline-bm25-fixed512` | 0.1971 | 0.0528 | **−73%** | — | — |
+| `retrieval-bm25-struct` | 0.2135 | 0.0643 | −70% | +0.0114 | 0.648 |
+| `tables-row-sentences` | 0.1644 | 0.0597 | −64% | +0.0069 | 0.829 |
 | `embed-e5-base-v2` | 0.1007 | 0.0506 | −50% | −0.0022 | 0.841 |
 | `chunk-fixed256o32` | 0.1556 | 0.0407 | −74% | −0.0121 | 0.648 |
-| `embed-e5-base` | 0.0367 | 0.0137 | −63% | −0.0391 | **0.0013** ✓ |
+| `embed-e5-base` | 0.0367 | 0.0137 | −63% | **−0.0391** | **0.0014** ✓ *(worse)* |
+| `baseline-bm25-fixed512` | 0.1971 | 0.0528 | −73% | — | — |
 
-**On the original wording, the only significant results are three configurations
-doing significantly *worse*** — every dense arm, at p = 0.0013. Nothing beats the
-baseline.
+**On the original wording, not one configuration beats the baseline
+significantly.** The only significant results are three doing significantly
+*worse* — every dense arm, at p = 0.0013.
 
-**On the paraphrased wording, six configurations beat it significantly**: every
-reranking arm, hybrid fusion, and dense retrieval.
+**On the paraphrased wording, seven beat it significantly**: both hybrid arms,
+every reranking arm, and dense retrieval.
 
-The clearest single line in the study is `retrieval-dense-bge`. It is
-significantly **worse** than BM25 on the original questions (−0.0927, p = 0.0013)
-and significantly **better** on the paraphrased ones (+0.0311, p = 0.0399). Same
-retriever, same corpus, same labels, opposite conclusions at the same confidence —
-decided entirely by whether the questions quote the filing's own row labels.
+Two configurations reverse sign entirely:
+
+| | original | paraphrased |
+|---|---|---|
+| `hybrid-plus-rerank` | 0.1869, **below** baseline | **0.1208, best in the study** (+0.0680, p = 0.0014) |
+| `retrieval-dense-bge` | 0.1044, **−0.0927 significant** | 0.0839, **+0.0311 significant** |
+
+`retrieval-dense-bge` is significantly *worse* than BM25 on the original questions
+and significantly *better* on the paraphrased ones — same retriever, same corpus,
+same labels, opposite conclusions at the same confidence, decided entirely by
+whether the questions quote the filing's own row labels.
 
 The mechanism is the `change` column. BM25 loses 73% of its score once the
 questions stop repeating their answers; dense loses 20%, because it was never
@@ -87,19 +97,16 @@ Full tables, including reachability and the overlap split:
 
 **Semantic chunking has the best Recall@50 in the grid** — 0.6641 against 0.5667
 for the next best — on 29,556 chunks rather than 42,215, so it is not winning by
-cutting the corpus finer. Its nDCG@10 is unremarkable. It finds the answer far
-more often and does not put it near the top, which is exactly what a first stage
-feeding a reranker should be judged on.
+cutting the corpus finer. Its nDCG@10 is unremarkable on both wordings. It finds
+the answer far more often and does not put it near the top, which is exactly what
+a first stage feeding a reranker should be judged on.
 
-**Two caveats stated because they cut against the results.** `hybrid-plus-rerank`
-is the one unmeasured configuration: its shortlist has to be built from dense
-vectors that only existed after the GPU run, so scoring it needs one more pass.
-And 8 queries on the original wording (12 paraphrased) share their exact text with
-another query that has different gold — a figure repeated across two consecutive
-filings produces the same question twice. Every retriever sees one string and
-returns one ranking, so at most one of each pair can score. They are kept because
-they penalise every configuration identically, and the runner reports them on
-every run.
+**One caveat, stated because it cuts against the results.** 8 queries on the
+original wording (12 paraphrased) share their exact text with another query that
+has different gold — a figure repeated across two consecutive filings produces the
+same question twice. Every retriever sees one string and returns one ranking, so
+at most one of each pair can score. They are kept because they penalise every
+configuration identically, and the runner reports them on every run.
 
 ### What the earlier, smaller benchmark showed
 
@@ -249,7 +256,7 @@ rather than as a single project-level claim.
 | Statistics (bootstrap CI, paired permutation, Holm) | 25 tests, determinism asserted under fixed seeds |
 | BM25, dense, RRF fusion, reranking wiring | 66 tests, offline with fakes |
 | Eval set, 216 queries | every gold passage verified to contain the value its query asks for |
-| Ablation runner, 13 configurations | numbers above, on the full corpus |
+| Ablation runner, 15 configurations on both wordings | numbers above, on the full corpus |
 | Cross-encoder reranking arms | Kaggle T4: 43,200 pairs scored, 46.6 pairs/s; scores committed |
 | Dense and hybrid arms | Kaggle T4: 42,215 passage + 216 query vectors per model, aligned by id with 0 orphans |
 | GPU embeddings (BGE-M3, E5-base) | Kaggle T4: 49.8 and 143.3 chunks/s; model commit hashes recorded |
@@ -268,7 +275,6 @@ rather than as a single project-level claim.
 | Faithfulness at a usable sample size | measured, but on 5 judged answers — enough to show the pass works, far too few to quote as a rate | free-tier quota for more answers; the judging itself is cheap |
 | Faithfulness of the long-context arm | its context is a whole filing, ~130k tokens per judgement against ~7.5k for a retrieval answer | `--judge-long-context`, on a paid tier |
 | Generation + long-context at full sample | 12 of 216 queries measured; quota-bound | free-tier quota, or re-run tomorrow |
-| `hybrid-plus-rerank` (1 of 15) | its shortlist is built from dense vectors, which only existed after the GPU run that produced them | `export_candidates` then one short GPU pass to score it |
 | Human verification of eval labels | requires a person; the model-assisted pass is labelled `MODEL_CHECKED`, never `HUMAN_VERIFIED` | fill in `data/eval/verification_sample.md` |
 
 ### The parse was not reproducible across machines

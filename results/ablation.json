@@ -1,6 +1,6 @@
 {
   "n_configurations": 15,
-  "n_measured": 14,
+  "n_measured": 15,
   "results": [
     {
       "name": "baseline-bm25-fixed512",
@@ -35,7 +35,7 @@
       ],
       "ndcg10_low_overlap_queries": 0.08227846923291164,
       "ndcg10_high_overlap_queries": 0.23780381560489885,
-      "seconds": 1.2
+      "seconds": 1.5
     },
     {
       "name": "chunk-fixed256o32",
@@ -70,7 +70,7 @@
       ],
       "ndcg10_low_overlap_queries": 0.07538257625012462,
       "ndcg10_high_overlap_queries": 0.18399995063926503,
-      "seconds": 1.8
+      "seconds": 1.9
     },
     {
       "name": "chunk-semantic95",
@@ -210,7 +210,7 @@
       ],
       "ndcg10_low_overlap_queries": 0.06764161850156597,
       "ndcg10_high_overlap_queries": 0.1174464385353644,
-      "seconds": 4.0
+      "seconds": 3.1
     },
     {
       "name": "retrieval-hybrid-rrf",
@@ -245,7 +245,7 @@
       ],
       "ndcg10_low_overlap_queries": 0.09207183875042575,
       "ndcg10_high_overlap_queries": 0.21342231525773467,
-      "seconds": 5.5
+      "seconds": 4.7
     },
     {
       "name": "retrieval-bm25-struct",
@@ -315,7 +315,7 @@
       ],
       "ndcg10_low_overlap_queries": 0.03293336011649975,
       "ndcg10_high_overlap_queries": 0.03804234600045459,
-      "seconds": 3.4
+      "seconds": 2.6
     },
     {
       "name": "embed-e5-base-v2",
@@ -350,7 +350,7 @@
       ],
       "ndcg10_low_overlap_queries": 0.08978311162276092,
       "ndcg10_high_overlap_queries": 0.10452934690426702,
-      "seconds": 3.4
+      "seconds": 2.8
     },
     {
       "name": "rerank-bm25-100",
@@ -420,7 +420,7 @@
       ],
       "ndcg10_low_overlap_queries": 0.16644558597607842,
       "ndcg10_high_overlap_queries": 0.22763000580661658,
-      "seconds": 1.2
+      "seconds": 1.5
     },
     {
       "name": "rerank-candidates-50",
@@ -490,7 +490,7 @@
       ],
       "ndcg10_low_overlap_queries": 0.15642071036243999,
       "ndcg10_high_overlap_queries": 0.20511484405133562,
-      "seconds": 1.3
+      "seconds": 1.4
     },
     {
       "name": "hybrid-plus-rerank",
@@ -502,19 +502,30 @@
       "candidate_k": 100,
       "table_rendering": "markdown",
       "notes": "the production configuration: hybrid retrieval then cross-encoder",
-      "measured": false,
-      "skipped_reason": "no cross-encoder scores for candidates-hybrid-plus-rerank: the GPU run has not scored this configuration's shortlist. Falling back to a live reranker also failed (ModuleNotFoundError).",
+      "measured": true,
+      "skipped_reason": null,
       "n_chunks": 42215,
-      "metrics_all": {},
-      "metrics_common_subset": {},
-      "n_scored_all": 0,
-      "n_scored_common": 0,
-      "fraction_reachable": null,
-      "first_stage_recall_ceiling": null,
-      "ndcg10_ci95": null,
-      "ndcg10_low_overlap_queries": null,
-      "ndcg10_high_overlap_queries": null,
-      "seconds": 0.0
+      "metrics_all": {
+        "ndcg@10": 0.1945158978124091,
+        "recall@50": 0.4931740614334471,
+        "mrr": 0.16746515114236407
+      },
+      "metrics_common_subset": {
+        "ndcg@10": 0.18689235349639757,
+        "recall@50": 0.47435897435897434,
+        "mrr": 0.1626450822257706
+      },
+      "n_scored_all": 586,
+      "n_scored_common": 390,
+      "fraction_reachable": 1.0,
+      "first_stage_recall_ceiling": 0.6126279863481229,
+      "ndcg10_ci95": [
+        0.15490683382581052,
+        0.22046300629597557
+      ],
+      "ndcg10_low_overlap_queries": 0.1604491391716654,
+      "ndcg10_high_overlap_queries": 0.19625765856974023,
+      "seconds": 4.8
     }
   ],
   "significance_vs_baseline": {
@@ -523,7 +534,7 @@
       "config_ndcg10": 0.15559232964518216,
       "delta": -0.0415356261393508,
       "p_raw": 0.005699430056994301,
-      "p_holm": 0.05699430056994301,
+      "p_holm": 0.06269373062693731,
       "significant_at_05": false,
       "n_pairs": 390
     },
@@ -532,7 +543,7 @@
       "config_ndcg10": 0.21891123653458505,
       "delta": 0.021783280750052064,
       "p_raw": 0.08739126087391261,
-      "p_holm": 0.6991300869913009,
+      "p_holm": 0.7865213478652134,
       "significant_at_05": false,
       "n_pairs": 390
     },
@@ -550,7 +561,7 @@
       "config_ndcg10": 0.1644281925458542,
       "delta": -0.032699763238678785,
       "p_raw": 0.029697030296970302,
-      "p_holm": 0.2672732726727327,
+      "p_holm": 0.296970302969703,
       "significant_at_05": false,
       "n_pairs": 390
     },
@@ -559,7 +570,7 @@
       "config_ndcg10": 0.10442056252652485,
       "delta": -0.09270739325800813,
       "p_raw": 9.999000099990002e-05,
-      "p_holm": 0.0012998700129987003,
+      "p_holm": 0.0013998600139986002,
       "significant_at_05": true,
       "n_pairs": 390
     },
@@ -586,7 +597,7 @@
       "config_ndcg10": 0.03670614969234333,
       "delta": -0.16042180609218964,
       "p_raw": 9.999000099990002e-05,
-      "p_holm": 0.0012998700129987003,
+      "p_holm": 0.0013998600139986002,
       "significant_at_05": true,
       "n_pairs": 390
     },
@@ -595,7 +606,7 @@
       "config_ndcg10": 0.10067263921525771,
       "delta": -0.09645531656927524,
       "p_raw": 9.999000099990002e-05,
-      "p_holm": 0.0012998700129987003,
+      "p_holm": 0.0013998600139986002,
       "significant_at_05": true,
       "n_pairs": 390
     },
@@ -631,6 +642,15 @@
       "config_ndcg10": 0.19237945524039365,
       "delta": -0.004748500544139291,
       "p_raw": 0.8083191680831917,
+      "p_holm": 1.0,
+      "significant_at_05": false,
+      "n_pairs": 390
+    },
+    "hybrid-plus-rerank": {
+      "baseline_ndcg10": 0.197127955784533,
+      "config_ndcg10": 0.18689235349639757,
+      "delta": -0.010235602288135371,
+      "p_raw": 0.5966403359664033,
       "p_holm": 1.0,
       "significant_at_05": false,
       "n_pairs": 390

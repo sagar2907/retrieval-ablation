@@ -14,8 +14,8 @@
       "chunker": "struct512",
       "n_chunks": 42215,
       "dimension": 1024,
-      "seconds": 846.0,
-      "chunks_per_sec": 49.9
+      "seconds": 949.3,
+      "chunks_per_sec": 44.5
     },
     {
       "file": "queryvectors-bge-m3.npz",
@@ -37,8 +37,8 @@
       "chunker": "struct512",
       "n_chunks": 42215,
       "dimension": 768,
-      "seconds": 292.1,
-      "chunks_per_sec": 144.5
+      "seconds": 325.7,
+      "chunks_per_sec": 129.6
     },
     {
       "file": "queryvectors-e5-base.npz",
@@ -60,8 +60,8 @@
       "chunker": "struct512",
       "n_chunks": 42215,
       "dimension": 768,
-      "seconds": 287.3,
-      "chunks_per_sec": 146.9
+      "seconds": 320.1,
+      "chunks_per_sec": 131.9
     },
     {
       "file": "queryvectors-e5-base-v2.npz",
@@ -83,33 +83,35 @@
       "embedder": "bge-m3",
       "n_chunks": 29556,
       "corpus_digest": "6b7f9d044f13a335dbd2e2390f3d711507939038674576b39cdc554968245798",
-      "seconds": 1093.3
+      "seconds": 1234.2
     },
     {
       "file": "rerank-scores-candidates-rerank-bm25-100.json",
+      "query_set": "original",
+      "reused": "rerank-scores-candidates-rerank-bm25-100.json.gz"
+    },
+    {
+      "file": "rerank-scores-candidates-hybrid-plus-rerank.json",
       "reranker": "BAAI/bge-reranker-v2-m3",
       "query_set": "original",
       "n_queries": 586,
       "n_pairs": 117200,
-      "seconds": 2486.2,
-      "pairs_per_sec": 47.1
-    },
-    {
-      "file": "candidates-hybrid-plus-rerank.json.gz",
-      "skipped": "candidate list not present in repo"
+      "seconds": 2807.2,
+      "pairs_per_sec": 41.7
     },
     {
       "file": "rerank-scores-candidates-rerank-bm25-100-paraphrased.json",
+      "query_set": "paraphrased",
+      "reused": "rerank-scores-candidates-rerank-bm25-100-paraphrased.json.gz"
+    },
+    {
+      "file": "rerank-scores-candidates-hybrid-plus-rerank-paraphrased.json",
       "reranker": "BAAI/bge-reranker-v2-m3",
       "query_set": "paraphrased",
       "n_queries": 586,
       "n_pairs": 117200,
-      "seconds": 2468.1,
-      "pairs_per_sec": 47.5
-    },
-    {
-      "file": "candidates-hybrid-plus-rerank-paraphrased.json.gz",
-      "skipped": "candidate list not present in repo"
+      "seconds": 2797.1,
+      "pairs_per_sec": 41.9
     }
   ]
 }
