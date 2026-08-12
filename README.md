@@ -100,6 +100,18 @@ On the original wording **nothing was a significant improvement**. On the
 paraphrased wording **five configurations are** — every reranking arm above depth
 25, plus both hybrid arms.
 
+> **`hybrid-plus-rerank` carries a caveat that the other four do not.** Its
+> shortlist should come from the hybrid first stage, but until now the exporter
+> skipped hybrid configurations — a branch written when no dense vectors existed
+> and left in place after they did — so the only cross-encoder scores available
+> were computed from a BM25 shortlist. The two shortlists share about 54% of their
+> top 50, and **30.7% of the hybrid shortlist has no score at all**; those
+> candidates are ranked below every scored hit rather than being given an invented
+> number. So the row is not wrong about what it computed, but the pipeline it
+> describes is "hybrid retrieval, reranked wherever BM25 happened to agree". The
+> correct shortlists are now exported and committed; scoring them needs one GPU
+> run, after which this row should be re-measured.
+
 ### Completing the grid removed two findings
 
 The previous version of this table reported **seven** significant improvements
@@ -437,6 +449,7 @@ Nothing below is called verified unless it was run and its output inspected.
 | Faithfulness of the long-context arm | its context is a whole filing, ~130k tokens per judgement against ~7.5k for a retrieval answer | `--judge-long-context`, on a paid tier |
 | Generation + long-context at full sample | 12 of 216 queries measured; quota-bound | free-tier quota, or re-run tomorrow |
 | `embed-e5-base-v2` on the **original** wording | its query vectors were only built for the paraphrased eval set, and the loader will not substitute another set's | one GPU run with `QUERY_SET = "original"` |
+| `hybrid-plus-rerank` scored on its **own** shortlist | the committed cross-encoder scores come from a BM25 shortlist, which covers only 69.3% of the hybrid one | the correct shortlists are exported and committed; one GPU run scores them |
 | Human verification of eval labels | requires a person; the model-assisted pass is labelled `MODEL_CHECKED`, never `HUMAN_VERIFIED` | fill in `data/eval/verification_sample.md` |
 
 ### The parse was not reproducible across machines

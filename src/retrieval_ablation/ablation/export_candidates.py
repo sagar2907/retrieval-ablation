@@ -38,7 +38,10 @@ from ..corpus.ingest import load_corpus
 from ..evalset.build import QUERIES_PATH
 from ..evalset.paraphrase import PARAPHRASED_PATH
 from ..evalset.schema import read_eval_set
+from ..index.artifacts import dense_index_from_artifact, load_query_vectors
+from ..index.base import Retriever
 from ..index.bm25 import BM25Index
+from ..index.fusion import HybridRetriever
 from .configs import build_grid
 from .runner import make_chunker
 
@@ -93,21 +96,45 @@ def main() -> None:
             continue
         seen.add(signature)
 
-        if config.retrieval != "bm25":
-            # Hybrid first stages need dense vectors, which are what the GPU
-            # worker is being asked to produce. That candidate list has to be
-            # exported on a second pass, after vectors come back.
-            log.warning(
-                "skipping %s: a %s first stage needs dense vectors that do not exist yet",
-                config.name,
-                config.retrieval,
-            )
-            continue
-
         chunker = make_chunker(config.chunker)
         chunks = chunker.chunk_corpus(docs)
-        index = BM25Index(chunks)
+        bm25 = BM25Index(chunks)
         log.info("%s: %d chunks indexed", config.name, len(chunks))
+
+        # A shortlist is whatever the configuration's *own* first stage returned.
+        # Exporting a BM25 shortlist for a hybrid configuration would score a
+        # pipeline whose two stages disagree about what was retrieved, and the
+        # results table would still call it hybrid-plus-rerank.
+        #
+        # This branch used to skip hybrid outright, on the grounds that dense
+        # vectors "do not exist yet" -- true when it was written, and quietly
+        # false ever since the GPU run produced them. The consequence was not a
+        # missing row but a mislabelled one: hybrid-plus-rerank was measured, on a
+        # lexical shortlist. Presence is now checked rather than assumed.
+        index: Retriever = bm25
+        if config.retrieval != "bm25":
+            vectors = RESULTS_DIR / f"vectors-{config.embedding}-{config.chunker}.npz"
+            query_vectors = (
+                load_query_vectors(config.embedding, {q.query_id: q.text for q in queries})
+                if config.embedding
+                else None
+            )
+            if not vectors.exists() or not query_vectors:
+                log.warning(
+                    "skipping %s: a %s first stage needs vectors for %s against this "
+                    "eval set, and they are not present",
+                    config.name,
+                    config.retrieval,
+                    config.embedding,
+                )
+                continue
+            dense = dense_index_from_artifact(vectors, chunks, query_vectors)
+            index = (
+                dense
+                if config.retrieval == "dense"
+                else HybridRetriever([bm25, dense], k=config.rrf_k)
+            )
+            log.info("%s: first stage is %s", config.name, index.name)
 
         payload: dict[str, dict] = {}
         for query in queries:
