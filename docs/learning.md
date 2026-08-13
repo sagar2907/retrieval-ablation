@@ -608,6 +608,126 @@ pseudo-chunk. An empty gold list made precision compute as a genuine `0.0`. Now
 
 ---
 
+## 14b. The artifact-provenance mistakes, in full
+
+Everything in this project that failed silently failed the same way: an artifact
+computed under one set of assumptions was consumed under another, and nothing in
+between checked. Each instance below produced numbers rather than errors, which is
+why every one was caught by an audit rather than by a test.
+
+**A corpus whose definition was a query.** The corpus was "the four most recent
+10-K filings per company". That is not a corpus, it is a question whose answer
+changes whenever one of thirty companies files an annual report -- which Procter &
+Gamble duly did, so a rebuild produced its FY2026 filing and dropped the FY2022 one
+the gold labels point into. `ingest()` now rebuilds exactly the filings the
+committed manifest names. Worth noting why it never appeared locally: the EDGAR
+client caches submission listings, and this machine's copy predated the filing. A
+stale cache was hiding a reproducibility bug from the only machine that could have
+noticed it early.
+
+**A judge asked to grade an answer against the words "(full document)".** The
+long-context arm cites one `<doc>#fulldoc` pseudo-chunk that exists nowhere in the
+chunk map, and the faithfulness judge looked context ids up in that map with a
+string literal as the fallback. Every long-context answer would have been scored
+against a placeholder, and the verdict would have appeared in the faithfulness
+column as data. It was never caught because faithfulness had never finished
+running; it would have looked like a real measurement the first time it did.
+
+**Faithfulness was never blocked by quota, and I said it was three times.** The
+judge loop sat inside the same `try` as answer generation, so a quota error while
+answering skipped judging entirely. The two use different models with separate
+allowances, and the judge's had capacity throughout -- it completed 432 calls
+elsewhere in this project. The evidence was in every run's usage block: nineteen
+live calls, none of them judge calls. "Quota exhausted" was true every time while
+being the wrong answer to why *this* metric was missing, and a true statement that
+answers a question nobody asked is a comfortable place to stop looking.
+
+**A guard that permitted the loss it existed to prevent.** A quota-limited re-run
+overwrote a finished twelve-query generation result with a one-query one, so a
+guard was added to refuse a shrinking file. It compared the number of scored
+answers -- and faithfulness verdicts live *inside* those scores, so a re-run
+producing an identical count with every verdict null would have passed the check
+and destroyed the most expensive data in the file.
+
+**Scores matched to the wrong shortlist, twice.** Cross-encoder scores are valid
+only for the shortlist they were computed over. The exporter skipped hybrid
+configurations on the grounds that dense vectors "did not exist yet" -- true when
+written, false ever since -- so `hybrid-plus-rerank` was measured on a BM25
+shortlist while carrying a name that says otherwise. Then the consumer selected
+score files by whichever covered the most queries, a tiebreak that would have
+handed hybrid scores to every BM25 arm the moment a second file existed.
+
+That row was withdrawn rather than footnoted, and measuring it properly settled the
+question: on its own shortlist it scores 0.1869, *below* both the baseline and the
+0.2003 the withdrawn version reported. The wrong number was not merely unfounded,
+it was flattering.
+
+**A coverage check that compared two different things, in three files.** Query
+vectors are returned keyed by query *text*, because that is what a retriever is
+handed. Comparing the size of that mapping against the *query* count reported 582
+of 586 for a complete artifact, because a handful of queries word the same
+question. The same comparison was written independently in the runner and the
+exporter, so fixing one left the other wrong -- which is what happens when two
+places ask the same question of one artifact and each answers it separately.
+
+**A benchmark defect the miscount exposed.** Chasing those four queries found that
+eight of them on the original wording, twelve paraphrased, share their exact text
+with another query that has *different* gold. A figure reported in two consecutive
+filings produces the same question twice, labelled against each, and both labels
+are correct. Every retriever sees one string and returns one ranking, so at most
+one of each pair can score. They are kept and reported on every run: the penalty
+falls on every configuration identically, so comparisons stay fair, and dropping
+them would have to happen across both wordings at once or the two runs would stop
+scoring the same queries.
+
+**A label that asserted something the weights do not have.** The third embedding
+arm was called `finance-e5` and commented as domain-adapted to financial text.
+`intfloat/e5-base-v2` is trained on general web data like the rest of its family.
+The arm had never been measured so no number rested on it, but a name claiming a
+property a reader cannot check is its own kind of false result. It is now
+`e5-base-v2`, and the axis is what it always was: English-specialised against
+multilingual.
+
+**Growing the eval set would have erased the label audit.** `write_eval_set`
+overwrites unconditionally and freshly built queries carry `GENERATED` with no
+checker fields, so re-running the builder to add queries would have replaced all
+216 audited labels -- including the 44 rejections the robustness check rests on --
+with unaudited ones of the same id. The file would have looked normal and merely
+larger.
+
+**Two ignore rules that were each correct and each too narrow.** `.gitignore`
+named `results/retrieval-ablation/` after one 8.5 GB download; the next unpacked to
+`results/results/` and sat unignored. Broadening it to `results/*/` then swallowed
+the one directory worth committing -- the archive of completed runs against the
+earlier eval set.
+
+## 14c. The mistake that kept recurring, and the one I made reporting it
+
+Four times, prose in this document and the README contradicted the results files
+while the results themselves were correct. A grid re-run changes fourteen numbers;
+the tables quoting them are maintained by hand; nobody re-reads a document they did
+not just edit. The worst instance reported `retrieval-dense-bge` as significant at
+p = 0.0444 when the authoritative value was 0.059, and another described a
+configuration as *not* significant when it had become significantly worse.
+
+Every one was caught by an audit script that walks every decimal figure in the
+documentation and checks it against the values the results files contain. Not one
+was caught by reading. That is the useful finding: at this density of numbers,
+review does not work and mechanisation does. **The fix is to generate these tables
+from `results/*.json` rather than transcribe them**, and it is the most valuable
+piece of work left on this repository.
+
+The PDF renderer has a smaller version of the same idea -- it verifies that known
+strings survive into the rendered document -- and it earned its place late by
+failing on `0.1953`, the baseline nDCG at 216 queries, which is 0.1971 at 586. It
+was not detecting a broken PDF. It was detecting that the prose had stopped
+agreeing with the results.
+
+And then that commit was pushed anyway. The gate printed its failure, the push went
+out, and a follow-up check caught it. A gate whose output nobody reads is
+decoration, which is every silent bug above wearing different clothes.
+
+
 # Part IV — What was measured
 
 ## 15. The retrieval ablation
