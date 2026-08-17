@@ -714,8 +714,12 @@ Every one was caught by an audit script that walks every decimal figure in the
 documentation and checks it against the values the results files contain. Not one
 was caught by reading. That is the useful finding: at this density of numbers,
 review does not work and mechanisation does. **The fix is to generate these tables
-from `results/*.json` rather than transcribe them**, and it is the most valuable
-piece of work left on this repository.
+from `results/*.json` rather than transcribe them**, which `scripts/render_tables.py`
+now does: seven tables across this document and the README are rebuilt from the
+results files, and `--check` fails the test suite when a document disagrees with
+them. It found a real omission on its first run -- the hand-written overlap split
+was missing `hybrid-plus-rerank` and `retrieval-hybrid-rrf`, which are the top two
+configurations in that table.
 
 The PDF renderer has a smaller version of the same idea -- it verifies that known
 strings survive into the rendered document -- and it earned its place late by
@@ -728,29 +732,120 @@ out, and a follow-up check caught it. A gate whose output nobody reads is
 decoration, which is every silent bug above wearing different clothes.
 
 
+## 14d. Six defects the fix introduced, and what they have in common
+
+Mechanising the tables was the right call and it broke the document immediately.
+All six failures below were found in the hour after the generator started working,
+and every one of them passed the checks that existed.
+
+**The check that could not fail.** `--check` printed "no generated blocks" for a
+document with no markers and exited 0. Deleting the markers would have returned the
+tables to hand maintenance with the gate still green -- the precise failure the
+generator was written to prevent, reproduced inside the prevention. An unmarked
+document is unverified, not clean.
+
+**Markup printed into the PDF.** The markers are HTML comments, invisible in every
+markdown viewer, so reading the source and reading the rendered markdown both
+showed nothing. The renderer printed them verbatim: six lines of
+`<!-- generated:... -->` in the published document, and its verification step said
+*verified*.
+
+**Why the verification step could not see it.** Its three checks all asked whether
+something expected was present -- ink on every page, known strings surviving,
+replacement characters absent. None of these defects removed anything expected.
+Asking *what must be absent* is a different question and it needed its own check.
+That asymmetry is the transferable lesson here, more than any individual bug.
+
+**`nDCG@10` printed as `nDCG@1`.** Column widths were allocated from character
+counts, but the header row is drawn in bold, and bold Helvetica is wider per
+character, so the header overflowed a column sized for the same number of
+regular-weight characters and was shaved by one. Not a clipped label: the name of a
+different metric, in a document whose subject is which metric said what. `delta vs
+base` lost its last character the same way. Both were fixed by measuring with
+`get_string_width` under the font each row actually uses, and truncation is now
+reported instead of accepted.
+
+**A significance tick that became a question mark.** The tables mark significance
+with `✓`, which Latin-1 cannot encode, so `sanitise` degraded it to `?`. The cell
+read `0.0014 ?` in a column headed `p (Holm)`, which reads as doubt about the
+number. It survived because the replacement-character check only flagged *runs* of
+two or more. One destroyed character is already a corrupted document, so unmapped
+characters are now collected and named rather than counted.
+
+**Then the new check failed on a correct document.** It searched the rendered text
+for the pattern `<!--.*?-->`, and the section you are reading quotes the marker
+syntax in order to explain it. A pattern cannot distinguish a quotation from a leak.
+A false alarm costs the same credibility as a missed defect, because the next
+failure is the one that gets waved through -- and this project has already pushed a
+commit straight past a gate that was printing its failure. The fix was to stop
+pattern-matching and read the exact comment lines out of the source, so the question
+becomes "did any of *these* reach the page".
+
+**How all five of the above were actually found:** by rasterising a page and looking
+at it. Not by a check, not by reading the markdown. The one instruction in the
+original brief that kept paying off was to render pages to images before declaring
+the document done.
+
+**One shape, three times.** A markdown construct that spans two source lines has to
+be joined before its emphasis spans can be matched. That was fixed for paragraphs,
+and the fix was never extended to blockquotes or to multi-line list items -- so a
+two-line bullet emitted its continuation as a separate paragraph flush against the
+left margin, visibly outside the list it belonged to. Fixing a defect for one code
+path and leaving its siblings is its own category of mistake, and it is only visible
+if you look at the page.
+
+**Two more the new check then found, both older than the check.** Rasterising
+one page to inspect the table led to noticing that inline code inside a bold span
+printed its backticks -- 22 of them, most in the module-by-module list where every
+entry is a bold filename in backticks, because span matching only went one level
+deep. And the statement this document calls its central design decision, set as a
+two-line blockquote, printed its `**` markers as text: blockquotes were written line
+by line, so the paragraph-joining fix that solved straddling emphasis for ordinary
+paragraphs was never extended to them. Neither defect was
+introduced by the table generator; they were found because a check finally asked
+what should not be on the page, and the answer was "24 characters of markup".
+
+**And a crash in the cosmetic path.** `label_for` called `Path.relative_to`, which
+raises on any path outside the repository, so a caller passing an absolute path from
+elsewhere got a `ValueError` instead of a label. Found by the first test that used
+`tmp_path`, which is the argument for writing tests that do not run inside the
+happy path.
+
+`scripts/render_pdf.py` had produced six rendering defects across this project and
+had **no tests at all**. It has them now. That gap existed because the script is
+"just tooling", and tooling is exactly where an unverified failure gets published
+under your name.
+
+
 # Part IV — What was measured
 
 ## 15. The retrieval ablation
 
-Full corpus, 42,215 chunks, 390 of 586 queries judgeable by every configuration. **Original wording.**
+Full corpus, 390 of 586 queries judgeable by every configuration. **Original wording.**
+Chunk counts differ by chunker and that is the point of four of these rows: 42,215
+under structure-aware splitting, 37,498 for the fixed-512 baseline, 75,084 at
+fixed-256, 29,556 semantic. Quoting one figure for the whole table would misstate
+three of them.
 
-| configuration | nDCG@10 | 95% CI | Recall@50 | Δ vs base | p (Holm) |
-|---|---|---|---|---|---|
-| `rerank-candidates-50` | 0.2198 | [0.186, 0.255] | 0.5667 | +0.0227 | 1.000 |
-| `chunk-semantic95` | 0.2189 | [0.187, 0.252] | 0.6641 | +0.0218 | 0.787 |
-| `chunk-struct512` | 0.2135 | [0.180, 0.249] | 0.5667 | +0.0164 | 1.000 |
-| `retrieval-bm25-struct` | 0.2135 | [0.180, 0.249] | 0.5667 | +0.0164 | 1.000 |
-| `rerank-candidates-25` | 0.2116 | [0.179, 0.245] | 0.5667 | +0.0145 | 1.000 |
-| `rerank-bm25-100` | 0.2068 | [0.174, 0.241] | 0.5487 | +0.0097 | 1.000 |
-| `baseline-bm25-fixed512` | 0.1971 | [0.166, 0.230] | 0.5385 | — | — |
-| `rerank-candidates-200` | 0.1924 | [0.161, 0.226] | 0.5051 | −0.0047 | 1.000 |
-| `hybrid-plus-rerank` | 0.1869 | [0.155, 0.220] | 0.4744 | −0.0102 | 1.000 |
-| `retrieval-hybrid-rrf` | 0.1817 | [0.150, 0.215] | 0.5205 | −0.0154 | 1.000 |
-| `tables-row-sentences` | 0.1644 | [0.135, 0.195] | 0.5324 | −0.0327 | 0.297 |
-| `chunk-fixed256o32` | 0.1556 | [0.127, 0.185] | 0.4474 | −0.0415 | 0.063 |
-| `retrieval-dense-bge` | 0.1044 | [0.079, 0.132] | 0.2718 | −0.0927 | **0.0014** ✓ |
-| `embed-e5-base-v2` | 0.1007 | [0.077, 0.127] | 0.2949 | −0.0965 | **0.0014** ✓ |
-| `embed-e5-base` | 0.0367 | [0.023, 0.052] | 0.1795 | −0.1604 | **0.0014** ✓ |
+<!-- generated:full-original -->
+| configuration | nDCG@10 | 95% CI | Recall@50 | MRR | Δ vs base | p (Holm) |
+|---|---|---|---|---|---|---|
+| `rerank-candidates-50` | 0.2198 | [0.186, 0.255] | 0.5667 | 0.1891 | +0.0227 | 1.000 |
+| `chunk-semantic95` | 0.2189 | [0.187, 0.252] | 0.6641 | 0.1828 | +0.0218 | 0.787 |
+| `chunk-struct512` | 0.2135 | [0.180, 0.249] | 0.5667 | 0.1905 | +0.0164 | 1.000 |
+| `retrieval-bm25-struct` | 0.2135 | [0.180, 0.249] | 0.5667 | 0.1905 | +0.0164 | 1.000 |
+| `rerank-candidates-25` | 0.2116 | [0.179, 0.245] | 0.5667 | 0.1843 | +0.0145 | 1.000 |
+| `rerank-bm25-100` | 0.2068 | [0.174, 0.241] | 0.5487 | 0.1797 | +0.0097 | 1.000 |
+| `baseline-bm25-fixed512` | 0.1971 | [0.166, 0.230] | 0.5385 | 0.1769 | — | — |
+| `rerank-candidates-200` | 0.1924 | [0.161, 0.226] | 0.5051 | 0.1674 | −0.0047 | 1.000 |
+| `hybrid-plus-rerank` | 0.1869 | [0.155, 0.220] | 0.4744 | 0.1626 | −0.0102 | 1.000 |
+| `retrieval-hybrid-rrf` | 0.1817 | [0.150, 0.215] | 0.5205 | 0.1630 | −0.0154 | 1.000 |
+| `tables-row-sentences` | 0.1644 | [0.135, 0.195] | 0.5324 | 0.1501 | −0.0327 | 0.297 |
+| `chunk-fixed256o32` | 0.1556 | [0.127, 0.185] | 0.4474 | 0.1376 | −0.0415 | 0.063 |
+| `retrieval-dense-bge` | 0.1044 | [0.079, 0.132] | 0.2718 | 0.0928 | −0.0927 | **0.0014** ✓ |
+| `embed-e5-base-v2` | 0.1007 | [0.077, 0.127] | 0.2949 | 0.0853 | −0.0965 | **0.0014** ✓ |
+| `embed-e5-base` | 0.0367 | [0.023, 0.052] | 0.1795 | 0.0312 | −0.1604 | **0.0014** ✓ |
+<!-- /generated:full-original -->
 
 Nothing beats the baseline significantly here. The three significant rows are the dense arms, all significantly *worse*.
 
@@ -764,18 +859,25 @@ label word for word. Paraphrasing rewrites the questions the way a person would
 ask them, touching nothing else — same corpus, same gold spans, same query ids,
 same 390 shared queries. Then the grid runs again.
 
-| configuration | original | paraphrased | Δ vs base | p (Holm) |
-|---|---|---|---|---|
-| `hybrid-plus-rerank` | 0.1869 | **0.1208** | **+0.0680** | **0.0014** ✓ |
-| `rerank-bm25-100` | 0.2068 | **0.1149** | **+0.0621** | **0.0014** ✓ |
-| `rerank-candidates-200` | 0.1924 | **0.1109** | **+0.0581** | **0.0014** ✓ |
-| `retrieval-hybrid-rrf` | 0.1817 | **0.1022** | **+0.0494** | **0.0014** ✓ |
-| `rerank-candidates-50` | 0.2198 | **0.1004** | **+0.0476** | **0.0014** ✓ |
-| `rerank-candidates-25` | 0.2116 | **0.0975** | **+0.0447** | **0.0016** ✓ |
-| `retrieval-dense-bge` | 0.1044 | **0.0839** | **+0.0311** | **0.0399** ✓ |
-| `baseline-bm25-fixed512` | 0.1971 | 0.0528 | — | — |
-| `chunk-fixed256o32` | 0.1556 | 0.0407 | −0.0121 | 0.648 |
-| `embed-e5-base` | 0.0367 | 0.0137 | −0.0391 | **0.0014** ✓ *(worse)* |
+<!-- generated:headline -->
+| configuration | original | paraphrased | change | Δ vs base | p (Holm) |
+|---|---|---|---|---|---|
+| `hybrid-plus-rerank` | 0.1869 | **0.1208** | −35% | **+0.0680** | **0.0014** ✓ |
+| `rerank-bm25-100` | 0.2068 | **0.1149** | −44% | **+0.0621** | **0.0014** ✓ |
+| `rerank-candidates-200` | 0.1924 | **0.1109** | −42% | **+0.0581** | **0.0014** ✓ |
+| `retrieval-hybrid-rrf` | 0.1817 | **0.1022** | −44% | **+0.0494** | **0.0014** ✓ |
+| `rerank-candidates-50` | 0.2198 | **0.1004** | −54% | **+0.0476** | **0.0014** ✓ |
+| `rerank-candidates-25` | 0.2116 | **0.0975** | −54% | **+0.0447** | **0.0016** ✓ |
+| `retrieval-dense-bge` | 0.1044 | **0.0839** | −20% | **+0.0311** | **0.0399** ✓ |
+| `chunk-semantic95` | 0.2189 | 0.0663 | −70% | +0.0134 | 0.648 |
+| `chunk-struct512` | 0.2135 | 0.0643 | −70% | +0.0114 | 0.648 |
+| `retrieval-bm25-struct` | 0.2135 | 0.0643 | −70% | +0.0114 | 0.648 |
+| `tables-row-sentences` | 0.1644 | 0.0597 | −64% | +0.0069 | 0.829 |
+| `embed-e5-base-v2` | 0.1007 | 0.0506 | −50% | −0.0022 | 0.841 |
+| `chunk-fixed256o32` | 0.1556 | 0.0407 | −74% | −0.0121 | 0.648 |
+| `embed-e5-base` | 0.0367 | 0.0137 | −63% | **−0.0391** | **0.0014** ✓ *(worse)* |
+| `baseline-bm25-fixed512` | 0.1971 | 0.0528 | −73% | — | — |
+<!-- /generated:headline -->
 
 **On the original wording not one configuration beats the baseline significantly.
 On the paraphrased wording seven do** — both hybrid arms, every reranking arm, and
@@ -942,12 +1044,14 @@ will do so with tight confidence intervals and a straight face.
 
 ### Finding 3 — deeper shortlists are worse
 
+<!-- generated:candidate-depth -->
 | depth | nDCG@10 | recall ceiling |
 |---|---|---|
-| 25 | 0.2103 | 44.4% |
-| 50 | **0.2145** | 53.2% |
-| 100 | 0.2057 | 61.6% |
-| 200 | 0.1854 | **73.6%** |
+| 25 | 0.2116 | 46.8% |
+| 50 | **0.2198** | 56.3% |
+| 100 | 0.2068 | 64.2% |
+| 200 | 0.1924 | 73.7% |
+<!-- /generated:candidate-depth -->
 
 Depth 200 has by far the **best** ceiling and the **worst** score — below no
 reranking at all. The cross-encoder is not failing to *see* the answer; given more

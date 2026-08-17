@@ -48,6 +48,7 @@ Kaggle T4; reproduce with `python -m retrieval_ablation.ablation.runner`.
 Same corpus, same gold spans, same query ids, same 390 shared queries. Only the
 wording of the questions differs.
 
+<!-- generated:headline -->
 | configuration | original | paraphrased | change | Δ vs base | p (Holm) |
 |---|---|---|---|---|---|
 | `hybrid-plus-rerank` | 0.1869 | **0.1208** | −35% | **+0.0680** | **0.0014** ✓ |
@@ -65,6 +66,7 @@ wording of the questions differs.
 | `chunk-fixed256o32` | 0.1556 | 0.0407 | −74% | −0.0121 | 0.648 |
 | `embed-e5-base` | 0.0367 | 0.0137 | −63% | **−0.0391** | **0.0014** ✓ *(worse)* |
 | `baseline-bm25-fixed512` | 0.1971 | 0.0528 | −73% | — | — |
+<!-- /generated:headline -->
 
 **On the original wording, not one configuration beats the baseline
 significantly.** The only significant results are three doing significantly
@@ -126,14 +128,18 @@ nothing is balanced on the third decimal place any more.
 Splitting queries at 0.4 content-word overlap with the gold passage changes the
 picture completely:
 
+<!-- generated:overlap-split -->
 | configuration | low-overlap nDCG | vs base | high-overlap nDCG | vs base |
 |---|---|---|---|---|
 | `baseline-bm25-fixed512` | 0.0823 | — | 0.2378 | — |
-| `rerank-bm25-100` | **0.1682** | **+104.4%** | 0.2205 | −7.3% |
+| `rerank-bm25-100` | 0.1682 | +104.4% | 0.2205 | −7.3% |
 | `rerank-candidates-50` | 0.1680 | +104.1% | 0.2382 | +0.2% |
 | `rerank-candidates-25` | 0.1664 | +102.3% | 0.2276 | −4.3% |
 | `rerank-candidates-200` | 0.1564 | +90.1% | 0.2051 | −13.7% |
+| `hybrid-plus-rerank` | 0.1604 | +95.0% | 0.1963 | −17.5% |
+| `retrieval-hybrid-rrf` | 0.0921 | +11.9% | 0.2134 | −10.3% |
 | `retrieval-dense-bge` | 0.0676 | −17.8% | 0.1174 | −50.6% |
+<!-- /generated:overlap-split -->
 
 **The cross-encoder roughly doubles performance on queries that do not share
 wording with their answer, and slightly hurts the ones that do.** That is exactly
@@ -153,12 +159,14 @@ which is exactly why paraphrasing reverses its verdict.
 
 ### Candidate depth is non-monotonic, and more is worse
 
+<!-- generated:candidate-depth -->
 | depth | nDCG@10 | recall ceiling |
 |---|---|---|
 | 25 | 0.2116 | 46.8% |
 | 50 | **0.2198** | 56.3% |
 | 100 | 0.2068 | 64.2% |
-| 200 | 0.1924 | **73.7%** |
+| 200 | 0.1924 | 73.7% |
+<!-- /generated:candidate-depth -->
 
 Depth 200 has by far the best ceiling — the answer is in its shortlist 73.7% of
 the time, against 46.8% at depth 25 — and the **worst** nDCG@10, below the
@@ -226,13 +234,18 @@ better gold. It is a bulk quality signal, not a substitute for a person.
 Re-running the whole grid on the 542 accepted labels is the robustness check that
 matters:
 
-| configuration | all 586 | accepted 542 | Δ |
+<!-- generated:accepted-subset -->
+| configuration | all labels | accepted | Δ |
 |---|---|---|---|
 | `rerank-candidates-50` | 0.2198 | 0.2299 | +0.0101 |
+| `chunk-semantic95` | 0.2189 | 0.2258 | +0.0069 |
 | `chunk-struct512` | 0.2135 | 0.2235 | +0.0100 |
 | `retrieval-bm25-struct` | 0.2135 | 0.2235 | +0.0100 |
 | `rerank-candidates-25` | 0.2116 | 0.2199 | +0.0083 |
 | `rerank-bm25-100` | 0.2068 | 0.2157 | +0.0089 |
+| `baseline-bm25-fixed512` | 0.1971 | 0.2050 | +0.0078 |
+| `rerank-candidates-200` | 0.1924 | 0.2000 | +0.0076 |
+<!-- /generated:accepted-subset -->
 
 Three things to take from it. **The differences are tiny** — every configuration
 moves between −0.0015 and +0.0101, far smaller than the effects being measured.
@@ -255,18 +268,18 @@ rather than as a single project-level claim.
 | Retrieval metrics (nDCG/Recall/MRR) | 29 tests against hand-computed values |
 | Statistics (bootstrap CI, paired permutation, Holm) | 25 tests, determinism asserted under fixed seeds |
 | BM25, dense, RRF fusion, reranking wiring | 66 tests, offline with fakes |
-| Eval set, 216 queries | every gold passage verified to contain the value its query asks for |
+| Eval set, 586 queries | every gold passage verified to contain the value its query asks for |
 | Ablation runner, 15 configurations on both wordings | numbers above, on the full corpus |
 | Cross-encoder reranking arms | Kaggle T4: 43,200 pairs scored, 46.6 pairs/s; scores committed |
-| Dense and hybrid arms | Kaggle T4: 42,215 passage + 216 query vectors per model, aligned by id with 0 orphans |
+| Dense and hybrid arms | Kaggle T4: 42,215 passage + 586 query vectors per model per wording, aligned by id with 0 orphans |
 | GPU embeddings (BGE-M3, E5-base) | Kaggle T4: 49.8 and 143.3 chunks/s; model commit hashes recorded |
-| Model-assisted label audit | 216 labels rechecked, 44 rejected; conclusions unchanged on the accepted subset |
+| Model-assisted label audit | 216 of the 586 labels rechecked, 44 rejected; conclusions unchanged on the accepted subset |
 | Learning document + PDF renderer | every page rasterised and round-tripped through a text extractor |
 | Gemini client: cached, quota-tolerant, token-accounted | live run; 19 calls, 15 rate-limited, resumed from cache |
 | Generation + long-context comparison | numbers above, from the API's own reported token counts |
 | FastAPI service, Docker, citation UI | live run: index 31.7 s, /search 1.9 ms, /answer 429 path verified |
 
-**468 tests pass, offline, with no API key and no model download.** `ruff` clean.
+**513 tests pass, offline, with no API key and no model download.** `ruff` clean.
 
 ### Not done
 
@@ -274,7 +287,7 @@ rather than as a single project-level claim.
 |---|---|---|
 | Faithfulness at a usable sample size | measured, but on 5 judged answers — enough to show the pass works, far too few to quote as a rate | free-tier quota for more answers; the judging itself is cheap |
 | Faithfulness of the long-context arm | its context is a whole filing, ~130k tokens per judgement against ~7.5k for a retrieval answer | `--judge-long-context`, on a paid tier |
-| Generation + long-context at full sample | 12 of 216 queries measured; quota-bound | free-tier quota, or re-run tomorrow |
+| Generation + long-context at full sample | 12 queries measured, sampled from the 216-query eval set that existed when the run happened; the set is now 586, so it is 12 of 586 against today's benchmark | free-tier quota, or re-run tomorrow |
 | Human verification of eval labels | requires a person; the model-assisted pass is labelled `MODEL_CHECKED`, never `HUMAN_VERIFIED` | fill in `data/eval/verification_sample.md` |
 
 ### The parse was not reproducible across machines

@@ -70,15 +70,37 @@ _REPLACEMENTS = {
     "√": "sqrt",
     "₂": "2",
     "©": "(c)",
+    # Marks "significant at 0.05" in the results tables. Unmapped, it became a bare
+    # '?' sitting next to a p-value, which reads as doubt about the number rather
+    # than as the flag it is. '*' is the conventional notation and needs no glyph.
+    "✓": "*",
+    "✗": "x",
 }
+
+#: Characters `sanitise` had to destroy because nothing maps them. Collected rather
+#: than ignored: the old code turned them into '?' and only a *run* of two or more
+#: was reported, so a single lost glyph shipped -- which is exactly what happened to
+#: the significance tick. One lost character is already a corrupted document.
+UNMAPPED: set[str] = set()
+
+#: Table cells that did not fit and were shortened. A shortened number or metric
+#: name is a changed fact, so this is reported rather than accepted.
+TRUNCATED: list[tuple[str, str]] = []
+
+
+#: A whole-line HTML comment, which markdown viewers hide and this renderer used
+#: to print. Anchored so a comment sharing a line with prose is left alone rather
+#: than half-removed.
+HTML_COMMENT = re.compile(r"\s*<!--.*?-->\s*")
 
 
 def sanitise(text: str) -> str:
     """Make text Latin-1 safe, mapping known characters and flagging the rest."""
     for source, target in _REPLACEMENTS.items():
         text = text.replace(source, target)
-    # Anything still unencodable becomes '?', which is visible in the output and
-    # caught by verify(), rather than raising deep inside the writer.
+    # Anything still unencodable becomes '?' rather than raising deep inside the
+    # writer, but the character is recorded first so the run can fail naming it.
+    UNMAPPED.update(c for c in text if c.encode("latin-1", "ignore") == b"")
     return text.encode("latin-1", "replace").decode("latin-1")
 
 
@@ -147,14 +169,53 @@ def write_rich(pdf: Renderer, text: str, size: float) -> None:
         if not part:
             continue
         if bold := _BOLD_RE.fullmatch(part):
-            _emit(pdf, sanitise(bold.group(1)), BODY, "B", size)
+            _emit_styled(pdf, bold.group(1), "B", size)
         elif italic := _ITALIC_RE.fullmatch(part):
-            _emit(pdf, sanitise(italic.group(1)), BODY, "I", size)
+            _emit_styled(pdf, italic.group(1), "I", size)
         elif code := _CODE_RE.fullmatch(part):
             _emit(pdf, sanitise(code.group(1)), MONO, "", size - 0.5)
         else:
             _emit(pdf, sanitise(part), BODY, "", size)
     pdf.ln(6)
+
+
+def write_indented(pdf: Renderer, text: str, offset: float) -> None:
+    """Write a block indented by `offset`, keeping wrapped lines aligned with it.
+
+    Setting only the x position indents the first line: `write()` wraps against the
+    page's left margin, so a bullet long enough to wrap put its continuation flush
+    left and the list visibly came apart. Moving the margin for the duration makes
+    the whole item hang together, and it is restored immediately because the page
+    header and footer are drawn with whatever margin is current.
+    """
+    original = pdf.l_margin
+    pdf.set_left_margin(original + offset)
+    pdf.set_x(original + offset)
+    try:
+        write_rich(pdf, text, BODY_STYLE.size)
+    finally:
+        pdf.set_left_margin(original)
+        pdf.set_x(original)
+
+
+def _emit_styled(pdf: Renderer, inner: str, style: str, size: float) -> None:
+    """Emit a bold or italic run that may itself contain `code` spans.
+
+    `_SPAN_RE` finds top-level spans only, so a bold run wrapping inline code was
+    emitted whole and its backticks printed as literal characters -- 22 of them in
+    the document, mostly in the module-by-module list where every entry is a bold
+    filename in backticks. Splitting the inner text one level deeper renders the
+    code in Courier while keeping the outer weight, which is what the markdown
+    means. Courier-Bold and Courier-Oblique are both core-14, so no font is needed.
+    """
+    for index, piece in enumerate(_CODE_RE.split(inner)):
+        if not piece:
+            continue
+        # re.split with one capture group alternates plain, captured, plain, ...
+        if index % 2:
+            _emit(pdf, sanitise(piece), MONO, style, size - 0.5)
+        else:
+            _emit(pdf, sanitise(piece), BODY, style, size)
 
 
 def _emit(pdf: Renderer, text: str, font: str, style: str, size: float) -> None:
@@ -224,11 +285,7 @@ def write_table(pdf: Renderer, rows: list[list[str]]) -> None:
     columns = max(len(r) for r in rows)
     rows = [r + [""] * (columns - len(r)) for r in rows]
 
-    longest = [max(len(row[c]) for row in rows) or 1 for c in range(columns)]
-    total = sum(longest)
-    widths = [max(14.0, width * (n / total)) for n in longest]
-    scale = width / sum(widths)
-    widths = [w * scale for w in widths]
+    widths = _column_widths(pdf, rows, columns, width)
 
     pdf.ln(1)
     for index, row in enumerate(rows):
@@ -241,17 +298,52 @@ def write_table(pdf: Renderer, rows: list[list[str]]) -> None:
             pdf.add_page()
         for cell, cell_width in zip(row, widths, strict=True):
             clean = sanitise(strip_markup(cell))
+            intended = clean
             # Truncate rather than wrap: a wrapped cell would desynchronise this
             # row's height from its neighbours' and stagger the grid.
             while pdf.get_string_width(clean) > cell_width - 2 and len(clean) > 1:
                 clean = clean[:-1]
+            if clean != intended:
+                TRUNCATED.append((intended, clean))
             pdf.cell(cell_width, height, clean, border=1, fill=header)
         pdf.ln(height)
     pdf.ln(2)
 
 
+def _column_widths(pdf: Renderer, rows: list[list[str]], columns: int, width: float) -> list[float]:
+    """Column widths measured in the font each row is actually drawn in.
+
+    The previous version sized columns from `len()`, in characters. The header row
+    is drawn in bold, and bold Helvetica is wider per character than regular, so a
+    header could overflow a column sized for the same number of regular-weight
+    characters and be silently shaved. That is how "nDCG@10" printed as "nDCG@1" --
+    not a clipped label but the name of a different metric, in a document whose
+    whole subject is which metric said what.
+
+    Measuring with `get_string_width` under the correct font removes the
+    approximation rather than padding around it.
+    """
+    pad = 2 * pdf.c_margin + 0.8
+    need = [1.0] * columns
+    for index, row in enumerate(rows):
+        pdf.set_font(BODY, "B" if index == 0 else "", 8)
+        for column, cell in enumerate(row):
+            text = sanitise(strip_markup(cell))
+            need[column] = max(need[column], pdf.get_string_width(text) + pad)
+    total = sum(need)
+    # Scaled to fill the text block exactly. If the content genuinely cannot fit,
+    # this shrinks columns and truncation happens -- which TRUNCATED then reports
+    # instead of letting it pass as it did before.
+    return [w * width / total for w in need]
+
+
 def render(source: Path = SOURCE, output: Path = OUTPUT) -> Path:
     """Convert the markdown source to a PDF."""
+    # Reset the two collectors so a second render in the same process reports its
+    # own problems rather than the previous run's -- otherwise a passing render
+    # could inherit a failure and a failing one could be masked by ordering.
+    UNMAPPED.clear()
+    TRUNCATED.clear()
     lines = source.read_text(encoding="utf-8").splitlines()
 
     pdf = Renderer(orientation="P", unit="mm", format="A4")
@@ -263,6 +355,9 @@ def render(source: Path = SOURCE, output: Path = OUTPUT) -> Path:
     code: list[str] = []
     table: list[list[str]] = []
     paragraph: list[str] = []
+    quote: list[str] = []
+    item: list[str] = []
+    item_offset = 4.0
 
     def flush_table() -> None:
         nonlocal table
@@ -283,11 +378,58 @@ def render(source: Path = SOURCE, output: Path = OUTPUT) -> Path:
             write_rich(pdf, " ".join(paragraph), BODY_STYLE.size)
             paragraph = []
 
+    def flush_quote() -> None:
+        """Emit accumulated blockquote lines as one run, for the same reason.
+
+        Blockquotes were rendered line by line, so the joining fix above never
+        applied to them: the project's central design decision is stated as a
+        two-line blockquote, and its `**` markers printed as literal asterisks
+        because the opening marker's line never contained the closing one.
+        """
+        nonlocal quote
+        if quote:
+            pdf.set_x(pdf.l_margin + 5)
+            pdf.set_text_color(70)
+            write_rich(pdf, " ".join(quote), BODY_STYLE.size)
+            pdf.set_text_color(0)
+            pdf.set_x(pdf.l_margin)
+            quote = []
+
+    def flush_item() -> None:
+        """Emit an accumulated list item, continuation lines included.
+
+        Markdown continues a list item on an indented following line. Those lines
+        used to fall through to the paragraph accumulator and be emitted as a
+        separate, unindented paragraph, so a two-line bullet visibly broke out of
+        its list -- and any emphasis straddling the break lost its markers too. The
+        third bug of this shape: blockquotes, then paragraphs, now list items.
+        """
+        nonlocal item
+        if item:
+            write_indented(pdf, " ".join(item), item_offset)
+            item = []
+
+    def flush_text() -> None:
+        """Close whichever text block is open; only one ever is."""
+        flush_item()
+        flush_quote()
+        flush_paragraph()
+
     for raw in lines:
         line = raw.rstrip()
 
+        # An HTML comment is invisible in every markdown viewer, so a reader who
+        # checked the rendered document would never see one -- but this renderer
+        # printed them verbatim, and the generated-table markers put six of them
+        # into the PDF while its own verification still reported success. The gate
+        # only looks for expected strings and ink, so it cannot see text that should
+        # not be there at all. Stripped only outside code fences: inside one, the
+        # comment is being quoted deliberately.
+        if not in_code and HTML_COMMENT.fullmatch(line):
+            continue
+
         if line.startswith("```"):
-            flush_paragraph()
+            flush_text()
             if in_code:
                 pdf.set_font(MONO, "", 8)
                 pdf.set_fill_color(244, 245, 247)
@@ -307,18 +449,18 @@ def render(source: Path = SOURCE, output: Path = OUTPUT) -> Path:
         # Pipe tables: a row of dashes is the header delimiter and is not content.
         if line.startswith("|") and line.endswith("|"):
             cells = [c.strip() for c in line.strip("|").split("|")]
-            flush_paragraph()
+            flush_text()
             if not all(set(c) <= set("-: ") for c in cells):
                 table.append(cells)
             continue
         flush_table()
 
         if not line:
-            flush_paragraph()
+            flush_text()
             pdf.ln(2)
             continue
         if line.startswith("---") and set(line) <= {"-"}:
-            flush_paragraph()
+            flush_text()
             pdf.ln(1)
             pdf.set_draw_color(200)
             pdf.line(pdf.l_margin, pdf.get_y(), pdf.w - pdf.r_margin, pdf.get_y())
@@ -326,7 +468,7 @@ def render(source: Path = SOURCE, output: Path = OUTPUT) -> Path:
             continue
 
         if heading := re.match(r"^(#{1,4})\s+(.*)", line):
-            flush_paragraph()
+            flush_text()
             level = len(heading.group(1))
             style = HEADINGS[level]
             # Top-level sections start a page so the document has a spine a
@@ -340,42 +482,102 @@ def render(source: Path = SOURCE, output: Path = OUTPUT) -> Path:
             continue
 
         if bullet := re.match(r"^(\s*)[-*]\s+(.*)", line):
-            flush_paragraph()
-            indent = len(bullet.group(1)) // 2
-            pdf.set_x(pdf.l_margin + 4 + indent * 4)
-            write_rich(pdf, "- " + bullet.group(2), 10)
-            pdf.set_x(pdf.l_margin)
+            flush_text()
+            item_offset = 4.0 + (len(bullet.group(1)) // 2) * 4
+            item = ["- " + bullet.group(2)]
             continue
 
         if numbered := re.match(r"^(\s*)(\d+)\.\s+(.*)", line):
-            flush_paragraph()
-            pdf.set_x(pdf.l_margin + 4)
-            write_rich(pdf, f"{numbered.group(2)}. {numbered.group(3)}", 10)
-            pdf.set_x(pdf.l_margin)
+            flush_text()
+            item_offset = 4.0
+            item = [f"{numbered.group(2)}. {numbered.group(3)}"]
+            continue
+
+        # An indented line while a list item is open continues that item.
+        if item and raw[:1].isspace():
+            item.append(line.strip())
             continue
 
         if line.startswith("> "):
+            # Only the paragraph is closed here: the quote being accumulated is
+            # this one, and flushing it per line is the defect.
             flush_paragraph()
-            pdf.set_x(pdf.l_margin + 5)
-            pdf.set_text_color(70)
-            write_rich(pdf, line[2:], 10)
-            pdf.set_text_color(0)
-            pdf.set_x(pdf.l_margin)
+            quote.append(line[2:])
             continue
 
+        flush_quote()
         paragraph.append(line)
 
-    flush_paragraph()
+    flush_text()
     flush_table()
     output.parent.mkdir(parents=True, exist_ok=True)
     pdf.output(str(output))
     return output
 
 
-def verify(pdf_path: Path, expect: list[str], preview: bool = True) -> bool:
+def stripped_comments(source: Path) -> list[str]:
+    """The whole-line HTML comments `render` is expected to remove.
+
+    Checking for the *pattern* `<!--.*?-->` in the rendered text was the obvious
+    approach and it was wrong: the document quotes the marker syntax in prose to
+    explain the mechanism, and a pattern cannot tell a quotation from a leak. The
+    exact strings that were stripped can be read off the source, so the check
+    becomes "did any of these specific lines reach the page" -- which is the
+    question that was actually being asked.
+    """
+    out: list[str] = []
+    in_code = False
+    for raw in source.read_text(encoding="utf-8").splitlines():
+        line = raw.rstrip()
+        if line.startswith("```"):
+            in_code = not in_code
+            continue
+        if not in_code and HTML_COMMENT.fullmatch(line):
+            out.append(line.strip())
+    return out
+
+
+def literal_markup_budget(source: Path) -> dict[str, int]:
+    """How many inline markdown markers the document legitimately prints.
+
+    Two sources, and missing the second cost a false alarm on a correct document
+    for the second time in one sitting. Code fences are rendered verbatim, so
+    everything inside one is meant to reach the page. Inline code spans are too:
+    this document explains the renderer, so it quotes markers deliberately, and a
+    span written as a pair of backticks around two asterisks *should* print two
+    asterisks in Courier. Only a marker outside both means a span was not
+    recognised.
+
+    Counting gives an exact budget rather than a blanket "there must be none".
+    """
+    budget = {"`": 0, "**": 0}
+    in_code = False
+    for raw in source.read_text(encoding="utf-8").splitlines():
+        if raw.rstrip().startswith("```"):
+            in_code = not in_code
+            continue
+        if in_code:
+            for marker in budget:
+                budget[marker] += raw.count(marker)
+            continue
+        # Outside a fence, only the contents of inline code spans are printed
+        # verbatim; the delimiting backticks themselves are consumed.
+        for span in _CODE_RE.findall(raw):
+            for marker in budget:
+                budget[marker] += span.count(marker)
+    return budget
+
+
+def verify(
+    pdf_path: Path,
+    expect: list[str],
+    preview: bool = True,
+    forbidden: list[str] | None = None,
+    markup_budget: dict[str, int] | None = None,
+) -> bool:
     """Rasterise every page and confirm real content landed on it.
 
-    Three checks, because each catches something the others miss:
+    Four checks, because each catches something the others miss:
 
     1.  **Ink coverage per page.** A page whose glyphs failed to render is valid
         but blank. Only rasterising detects that; text extraction would still
@@ -385,9 +587,15 @@ def verify(pdf_path: Path, expect: list[str], preview: bool = True) -> bool:
         during layout.
     3.  **Replacement characters.** `sanitise` maps unencodable characters to '?',
         so any surviving '?' clusters mean a character was lost.
+    4.  **Forbidden markup.** The three checks above all ask whether something
+        expected is present, so none of them could see six lines of raw
+        `<!-- generated:... -->` printed into the document -- this function reported
+        "verified" on that PDF. Asking what must be *absent* is a different question
+        and needs its own check.
     """
     import fitz
 
+    forbidden = list(forbidden or [])
     doc = fitz.open(pdf_path)
     print(f"  pages: {doc.page_count}")
 
@@ -425,6 +633,42 @@ def verify(pdf_path: Path, expect: list[str], preview: bool = True) -> bool:
         ok = False
     else:
         print(f"  all {len(expect)} expected strings survived the round trip")
+
+    if UNMAPPED:
+        print(f"  FAIL characters with no Latin-1 mapping: {sorted(UNMAPPED)}")
+        print("       add each to _REPLACEMENTS -- it printed as '?' in the document")
+        ok = False
+    else:
+        print("  every character had a mapping")
+
+    if TRUNCATED:
+        shown = [f"{a!r} -> {b!r}" for a, b in TRUNCATED[:3]]
+        print(f"  FAIL {len(TRUNCATED)} table cell(s) shortened to fit: {shown}")
+        ok = False
+    else:
+        print("  no table cell was shortened")
+
+    leaked = sorted({c for c in forbidden if c in text})
+    if leaked:
+        print(f"  FAIL raw markup printed into the PDF: {leaked[:3]}")
+        ok = False
+    elif forbidden:
+        print(f"  none of the {len(forbidden)} stripped comment(s) reached the page")
+    else:
+        print("  no comments to strip")
+
+    if markup_budget is not None:
+        over = {
+            marker: (text.count(marker), allowed)
+            for marker, allowed in markup_budget.items()
+            if text.count(marker) > allowed
+        }
+        if over:
+            print(f"  FAIL unrendered markdown markers, found vs allowed: {over}")
+            print("       a span was not recognised, so its markers printed as text")
+            ok = False
+        else:
+            print("  no unrendered markdown markers")
 
     # Isolated '?' is ordinary punctuation; a run of them is a lost glyph.
     runs = re.findall(r"\?{2,}", text)
@@ -478,7 +722,13 @@ def main() -> None:
     print(f"  wrote {path.relative_to(ROOT)} ({size_kb:.0f} KB)\n")
 
     print("verifying by rasterising")
-    if not verify(path, EXPECTED, preview=not args.no_preview):
+    if not verify(
+        path,
+        EXPECTED,
+        preview=not args.no_preview,
+        forbidden=stripped_comments(SOURCE),
+        markup_budget=literal_markup_budget(SOURCE),
+    ):
         print("\nVERIFICATION FAILED")
         sys.exit(1)
     print("\nverified")
