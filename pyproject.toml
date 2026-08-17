@@ -55,6 +55,13 @@ dev = [
     "pytest>=8.3",
     "pytest-cov>=6.0",
     "ruff>=0.8",
+    # The learning document's renderer is part of the tested surface, so its two
+    # dependencies belong here rather than in a separate group. They were declared
+    # nowhere for most of this project's life, which meant `pytest.importorskip`
+    # silently skipped all 24 renderer tests in CI -- a green build that had run
+    # none of them. Both are pure-CPU wheels and neither touches the network.
+    "fpdf2>=2.8",
+    "pymupdf>=1.24",
 ]
 
 [build-system]

@@ -1,11 +1,11 @@
-"""Tests for the PDF renderer, which had no tests and six defects.
+"""Tests for the PDF renderer, which had no tests and nine defects.
 
 Every failure pinned here reached a published PDF and survived that script's own
-verification step. The pattern in all six is the same: the gate asked whether
+verification step. The pattern is the same in all of them: the gate asked whether
 something expected was present, and none of these defects removed anything
 expected -- they added markup, shortened a label, or swapped one character.
 
-Offline: the pure functions need nothing, and the one test that renders writes to
+Offline: the pure functions need nothing, and the tests that render write to
 tmp_path. No network, no fonts to install -- the renderer uses the core-14 fonts
 precisely so it runs anywhere.
 """
@@ -15,12 +15,17 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
+import fitz
 import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
 
-render_pdf = pytest.importorskip("render_pdf")
+# Imported directly, not via `importorskip`. fpdf2 and pymupdf are declared dev
+# dependencies, so their absence is a broken install and must fail loudly. Skipping
+# instead turned a missing declaration into a green build that ran none of these
+# tests -- the same shape as every other guard here that could not fail.
+import render_pdf  # noqa: E402
 
 #: The real header of the results tables. Its width is the thing under test, so it
 #: is written out rather than imported -- a change to the generator should make
@@ -98,7 +103,6 @@ class TestHtmlComments:
         because every expected string was still present. Only extracting the text
         and asking what should *not* be there found it.
         """
-        fitz = pytest.importorskip("fitz")
         source = tmp_path / "doc.md"
         source.write_text(
             "# Title\n\n<!-- generated:headline -->\nA sentence of body text.\n"
@@ -121,7 +125,6 @@ class TestHtmlComments:
         Stripping inside a fence would delete the example that documents the
         mechanism, which is a different kind of wrong document.
         """
-        fitz = pytest.importorskip("fitz")
         source = tmp_path / "doc.md"
         source.write_text(
             "# Title\n\n```\n<!-- generated:headline -->\n```\n\nBody.\n", encoding="utf-8"
@@ -136,7 +139,6 @@ class TestHtmlComments:
 
 def rendered_text(tmp_path: Path, markdown: str) -> str:
     """Render a fragment and read the text back out, which is the only real check."""
-    fitz = pytest.importorskip("fitz")
     source = tmp_path / "doc.md"
     source.write_text(markdown, encoding="utf-8")
     out = render_pdf.render(source, tmp_path / "doc.pdf")

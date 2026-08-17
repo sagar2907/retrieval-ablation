@@ -18,12 +18,12 @@ import subprocess
 import sys
 from pathlib import Path
 
-import pytest
-
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
 
-render_tables = pytest.importorskip("render_tables")
+# Imported directly: a missing generator is a broken repository, not a reason to
+# skip the check that the documentation agrees with results/.
+import render_tables  # noqa: E402
 
 
 def documents() -> list[Path]:

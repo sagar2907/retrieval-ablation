@@ -421,6 +421,19 @@ Rebuild everything from scratch:
 uv run python -m retrieval_ablation.corpus.ingest && uv run python -m retrieval_ablation.evalset.build && uv run python -m retrieval_ablation.ablation.runner
 ```
 
+The results tables in this file and in `docs/learning.md` are generated from
+`results/*.json`, not typed. After a re-run, regenerate them and re-read the prose
+around each one — a regenerated table does not fix a sentence drawing the wrong
+conclusion from it:
+
+```bash
+uv run python scripts/render_tables.py && uv run python scripts/render_pdf.py
+```
+
+CI fails if either is stale: the suite runs `render_tables.py --check`, and a
+workflow step re-renders the PDF and compares its extracted text against the
+committed one.
+
 ## Reproducibility
 
 - Every sampling decision derives from `GLOBAL_SEED` in `config.py`. Nothing that

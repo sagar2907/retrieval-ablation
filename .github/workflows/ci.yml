@@ -43,6 +43,35 @@ jobs:
       - name: Test
         run: uv run --no-project python -m pytest -m "not gpu and not live" --cov=retrieval_ablation
 
+      - name: Render and verify the learning document
+        # The renderer's own gate checks things the suite cannot: that the real
+        # document's headline figures survive into the real PDF, that no page is
+        # blank, that no markup or unmapped character reached a page. It caught a
+        # stale baseline figure once and its printed failure was pushed past
+        # anyway, which is the argument for running it somewhere that can fail the
+        # build rather than somewhere a person has to read.
+        run: uv run --no-project python scripts/render_pdf.py --no-preview
+
+      - name: Confirm the committed PDF is the one this source renders
+        # A source change with a stale committed PDF ships a document that
+        # disagrees with its own markdown. Compared by extracted text, not bytes:
+        # the PDF carries a creation timestamp, so two identical renders differ.
+        run: |
+          uv run --no-project python - <<'EOF'
+          import subprocess, sys, fitz
+          def text(path):
+              with fitz.open(path) as doc:
+                  return "".join(page.get_text() for page in doc)
+          committed = subprocess.run(
+              ["git", "show", "HEAD:docs/retrieval-ablation-learning.pdf"],
+              capture_output=True, check=True).stdout
+          open("/tmp/committed.pdf", "wb").write(committed)
+          if text("/tmp/committed.pdf") != text("docs/retrieval-ablation-learning.pdf"):
+              sys.exit("committed PDF differs from what docs/learning.md renders; "
+                       "run scripts/render_pdf.py and commit the result")
+          print("committed PDF matches the source")
+          EOF
+
       - name: Confirm no secret was needed
         # Belt and braces: if a test started depending on an environment key,
         # this step would still pass, but the Test step above would already have
