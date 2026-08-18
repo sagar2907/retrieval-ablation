@@ -279,7 +279,7 @@ rather than as a single project-level claim.
 | Generation + long-context comparison | numbers above, from the API's own reported token counts; cost only — latency is reported as not measured, because the two arms' timings came from different sessions |
 | FastAPI service, Docker, citation UI | live run: index 31.7 s, /search 1.9 ms, /answer 429 path verified |
 
-**532 tests pass, offline, with no API key and no model download.** `ruff` clean.
+**536 tests pass, offline, with no API key and no model download.** `ruff` clean.
 
 ### Not done
 
@@ -430,9 +430,16 @@ conclusion from it:
 uv run python scripts/render_tables.py && uv run python scripts/render_pdf.py
 ```
 
-CI fails if either is stale: the suite runs `render_tables.py --check`, and a
-workflow step re-renders the PDF and compares its extracted text against the
-committed one.
+The sentences *around* those tables are not generated, so a third check reads every
+figure quoted in prose and confirms it appears somewhere in `results/`:
+
+```bash
+uv run python scripts/audit_figures.py
+```
+
+CI fails if any of them is stale: the suite runs `render_tables.py --check` and the
+figure audit, and a workflow step re-renders the PDF and compares its extracted text
+against the committed one.
 
 ## Reproducibility
 

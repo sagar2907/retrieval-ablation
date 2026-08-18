@@ -721,6 +721,12 @@ them. It found a real omission on its first run -- the hand-written overlap spli
 was missing `hybrid-plus-rerank` and `retrieval-hybrid-rrf`, which are the top two
 configurations in that table.
 
+That still leaves the *sentences*, which is where every one of these errors actually
+lived. `scripts/audit_figures.py` reads every figure quoted in prose and requires it
+to appear somewhere in `results/`; anything legitimately derived needs an entry with
+a written reason. It found three live errors the first time it ran, all in section
+21 and Finding 2, and they are described in 14e.
+
 The PDF renderer has a smaller version of the same idea -- it verifies that known
 strings survive into the rendered document -- and it earned its place late by
 failing on `0.1953`, the baseline nDCG at 216 queries, which is 0.1971 at 586. It
@@ -852,6 +858,23 @@ better to trust. The last honest measurement is kept in `results/archive/` rathe
 than deleted, since it was a real same-session comparison -- and it says 3.7x, where
 the document had been claiming 1.9x by quoting the run's overall p95 as though it
 were one arm's.
+
+**And the limitations list was the most wrong thing in the document.** Asked
+whether the project was finished, the honest answer needed checking rather than
+recalling, and checking found that four of the nine items in section 21 were false.
+It claimed six of fifteen configurations were unmeasured when all fifteen had been
+measured on both wordings; it called query paraphrasing "not done" when paraphrasing
+is the headline finding; it reported generation on 12 of 216 queries; and it said
+faithfulness was "not measured at all" when twelve verdicts existed. A paragraph in
+Finding 2 was worse than stale -- it claimed dense retrieval beat the baseline on
+low-overlap queries, quoting figures from the 216-query set, while a generated table
+forty lines above it showed dense losing by 17.8%. The prose contradicted a table on
+the same page.
+
+A limitations section that understates the work is not more honest than one that
+overstates it, and it is the section a reader trusts most. The lesson is narrow and
+worth stating: generating the tables moved the drift into the sentences around them
+rather than removing it, and only a check that reads the sentences finds that.
 
 **And the guard against losing data had the same shape as the bug it prevented.**
 `publish` refuses to overwrite a file holding more scored answers or more
@@ -1080,15 +1103,25 @@ query reuses the document's wording, and loses nothing when it does not.
 Which means the benchmark is not neutral between the two families. Its queries are
 generated from table rows and reuse the row labels verbatim, handing BM25 an exact
 match on most of them. On the low-overlap subset — the queries that look more like
-something a person would type — `retrieval-dense-bge` (0.1346) beats the baseline
-(0.1091), and `retrieval-hybrid-rrf` (0.1374) beats everything except reranking.
-The defensible claim is "BM25 wins on queries phrased in the filing's own words",
-not "BM25 wins on SEC filings", and the difference between those two sentences is
-the entire value of having measured the split.
+something a person would type — the gap narrows sharply: `retrieval-hybrid-rrf`
+goes from 10.3% *behind* the baseline on high-overlap queries to 11.9% ahead on
+low-overlap ones, and reranking roughly doubles. The defensible claim is "BM25 wins
+on queries phrased in the filing's own words", not "BM25 wins on SEC filings", and
+the difference between those two sentences is the entire value of having measured
+the split.
 
-This is also the clearest argument for query paraphrasing, which is not done. A
-benchmark that systematically advantages one arm will report that arm winning, and
-will do so with tight confidence intervals and a straight face.
+This was the clearest argument for query paraphrasing, and it is the reason
+paraphrasing was built. A benchmark that systematically advantages one arm will
+report that arm winning, and will do so with tight confidence intervals and a
+straight face. Rewording the questions and re-running the whole grid is what turned
+that argument into the measurement in Finding 0.
+
+*(An earlier version of this paragraph claimed dense retrieval beat the baseline on
+the low-overlap subset, quoting 0.1346 against 0.1091. Those were figures from the
+216-query eval set, left in place after the set grew to 586. On the current data
+dense is 0.0676 against the baseline's 0.0823 — it loses by 17.8%, as the generated
+table above states forty lines earlier. The paragraph contradicted a table on the
+same page, which is what hand-maintained prose does eventually.)*
 
 ### Finding 3 — deeper shortlists are worse
 
@@ -1244,16 +1277,25 @@ non-interaction row differs from its reference on exactly one axis.
 
 ## 21. Honest limitations
 
-1. **Queries are templated**, reusing the corpus's own wording. Median overlap
-   0.46. Recorded per query and reported split, but paraphrasing would be better.
-2. **Labels are model-checked, not human-verified.**
+1. **Queries were templated**, reusing the corpus's own wording — median overlap
+   0.46. This is the limitation the paraphrased set was built to remove, and doing
+   so produced the study's headline finding, so it is no longer a caveat but a
+   measured axis. The original wording is still reported beside it because the gap
+   between them *is* the result.
+2. **Labels are model-checked, not human-verified**, and only 216 of the 586 were
+   checked at all. The 370 added when the set was extended are unaudited.
 3. **Single gold passage per query** understates retrieval by ~12% (§13).
-4. **Six of fifteen configurations unmeasured** — dense, hybrid, embedding
-   models, semantic chunking. The GPU run produced passage vectors but not query
-   vectors, and both sides must come from the same model.
-5. **Generation measured on 12 of 216 queries**, quota-bound. Cost ratios are
-   solid; accuracy figures are indicative.
-6. **Faithfulness not measured at all.**
+4. **All fifteen configurations are measured**, on both wordings. This item used to
+   read "six of fifteen unmeasured" and stayed in the list for several commits after
+   the GPU runs closed that gap — a limitations section that understated the work,
+   which is the same drift as one that overstates it and no more honest.
+5. **Generation is measured on 27 retrieval answers and 11 long-context ones**, of
+   586 queries, and the two arms no longer share a sample size. Cost ratios are
+   solid. Accuracy is indicative at this sample. Latency is not measured at all in
+   the published run; §17 says why.
+6. **Faithfulness is measured on the retrieval arm only** — 12 verdicts, all
+   faithful. Too few to quote as a rate. The long-context arm is unjudged because
+   one verdict means sending the whole filing to the judge, about 130,000 tokens.
 7. **Approximate token counting** (characters ÷ 4) rather than a real tokenizer.
    Every configuration uses the same counter, so comparisons are valid, but
    boundaries differ from a model's own.

@@ -23,6 +23,7 @@ sys.path.insert(0, str(ROOT / "scripts"))
 
 # Imported directly: a missing generator is a broken repository, not a reason to
 # skip the check that the documentation agrees with results/.
+import audit_figures  # noqa: E402
 import render_tables  # noqa: E402
 
 
@@ -201,3 +202,60 @@ class TestFormatting:
     def test_a_missing_pvalue_is_not_reported_as_zero(self):
         """The baseline has no p-value, and 0.000 would read as overwhelming."""
         assert render_tables.pvalue(None, False) == "—"
+
+
+class TestProseFigures:
+    """The tables are generated; the sentences around them are not.
+
+    Every drift this project produced was in prose of that kind, and each was found
+    by a script written in the moment and thrown away. This is that script, kept.
+    """
+
+    def test_every_figure_in_prose_appears_in_the_results(self):
+        """Run against the real documents, because those are what is at risk.
+
+        Three live errors were found the first time this ran: a limitations list
+        claiming six of fifteen configurations were unmeasured when all fifteen
+        were, a paragraph calling query paraphrasing "not done" when it is the
+        headline finding, and a sentence claiming dense retrieval beat the baseline
+        on low-overlap queries while a generated table on the same page showed it
+        losing by 17.8%.
+        """
+        missing = audit_figures.unverifiable()
+
+        assert not missing, (
+            "figures in prose that no results file contains: "
+            + "; ".join(f"{doc} {fig}" for doc, fig, _ in missing)
+            + ". Either a re-run moved the number and the sentence was not updated, "
+            "or it is derived and needs an entry in audit_figures.ALLOWED with a reason."
+        )
+
+    def test_the_check_can_actually_fail(self, monkeypatch, tmp_path):
+        """A figure no run produced must be reported.
+
+        Asserted rather than trusted: this repository has produced several guards
+        that could not fail, and each looked exactly like this one.
+        """
+        doc = tmp_path / "made-up.md"
+        doc.write_text("A sentence quoting 0.7431, which no run produced.", encoding="utf-8")
+        monkeypatch.setattr(audit_figures, "DOCS", [doc])
+
+        found = audit_figures.unverifiable()
+
+        assert [figure for _, figure, _ in found] == ["0.7431"]
+
+    def test_generated_blocks_and_code_fences_are_not_scanned(self, monkeypatch, tmp_path):
+        """Those are verified by regenerating them; a fence is a quotation."""
+        doc = tmp_path / "fenced.md"
+        doc.write_text(
+            "<!-- generated:headline -->\n0.7431\n<!-- /generated:headline -->\n```\n0.7431\n```\n",
+            encoding="utf-8",
+        )
+        monkeypatch.setattr(audit_figures, "DOCS", [doc])
+
+        assert audit_figures.unverifiable() == []
+
+    def test_every_allowlist_entry_carries_a_reason(self):
+        """An allowlist without reasons is where failures get quietly filed away."""
+        for figure, reason in audit_figures.ALLOWED.items():
+            assert reason and len(reason) > 30, f"{figure} needs a real justification"
