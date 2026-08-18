@@ -295,15 +295,29 @@ def token_cost(
 
 
 def latency_stats(answers: Sequence[GeneratedAnswer]) -> dict:
-    """Latency over answers that actually hit the API.
+    """Latency over answers that actually hit the API in this run.
 
-    Cached answers are excluded. Their latency is a property of the local disk,
-    and averaging it in would report a number that describes neither the API nor
-    the cache.
+    Filtered on `from_cache`, not on whether a latency value exists. The client
+    stores the measured latency inside the cached response body, so a cache hit
+    carries the timing of whenever that call was first made -- which meant this
+    function's own docstring described an exclusion it did not perform.
+
+    It mattered. A run whose long-context answers all came from cache and whose
+    retrieval answers were made live during a throttled window reported the
+    long-context arm as 2.5x *faster*, comparing a quiet earlier session against a
+    congested current one. The number was real and the comparison was meaningless.
     """
-    live = sorted(a.latency_seconds for a in answers if a.latency_seconds is not None)
+    live = sorted(
+        a.latency_seconds for a in answers if a.latency_seconds is not None and not a.from_cache
+    )
     if not live:
-        return {"n_live": 0, "p50": None, "p95": None, "note": "all answers served from cache"}
+        return {
+            "n_live": 0,
+            "p50": None,
+            "p95": None,
+            "note": "no answers were generated live in this run; cached timings "
+            "describe an earlier session and are not comparable",
+        }
     return {
         "n_live": len(live),
         "p50": round(live[len(live) // 2], 3),
@@ -345,5 +359,14 @@ def compare_arms(
         "long_context_p95_latency_s": lc_latency,
         "latency_ratio": (
             round(lc_latency / rag_latency, 1) if rag_latency and lc_latency else None
+        ),
+        # A null ratio needs a reason, or a reader cannot tell "not measured" from
+        # "measured as nothing". Cost is comparable across sessions because token
+        # counts do not depend on when the call was made; latency is not.
+        "latency_note": (
+            None
+            if rag_latency and lc_latency
+            else "not comparable: an arm produced no live call in this run, so its "
+            "timings would come from a different session under different load"
         ),
     }

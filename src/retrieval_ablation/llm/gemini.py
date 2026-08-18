@@ -186,7 +186,14 @@ class GeminiClient:
         cache_file = self._cache_path(payload, path)
         if cache_file.exists():
             self.usage.cached_calls += 1
-            return json.loads(cache_file.read_text(encoding="utf-8"))
+            data = json.loads(cache_file.read_text(encoding="utf-8"))
+            # Marked on the returned dict, not in the stored file. Callers need to
+            # know a response came from disk, and the only previous signal was a
+            # missing latency -- which never happens, because the measured latency
+            # is written *into* the cached body. `from_cache` was therefore False
+            # on every answer this project ever recorded.
+            data["_from_cache"] = True
+            return data
 
         for attempt in range(1, self._max_attempts + 1):
             started = time.monotonic()
@@ -199,6 +206,7 @@ class GeminiClient:
                 tmp = cache_file.with_suffix(".partial")
                 tmp.write_text(json.dumps(data), encoding="utf-8")
                 tmp.replace(cache_file)
+                data["_from_cache"] = False
                 return data
 
             if response.status_code == 429:
@@ -286,7 +294,7 @@ class GeminiClient:
             output_tokens=metadata.get("candidatesTokenCount", 0) or 0,
             thought_tokens=metadata.get("thoughtsTokenCount", 0) or 0,
             model=model,
-            from_cache=latency is None,
+            from_cache=bool(data.get("_from_cache", latency is None)),
             latency_seconds=latency,
         )
 

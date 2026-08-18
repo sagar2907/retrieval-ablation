@@ -817,6 +817,54 @@ had **no tests at all**. It has them now. That gap existed because the script is
 under your name.
 
 
+## 14e. Three bugs found by re-running the arm that had been stuck
+
+The generation arm sat at twelve queries for weeks, recorded as "quota-bound".
+That was true and it was also hiding three defects, none of which a re-run was
+expected to find.
+
+**The two arms shared one sample size.** A long-context answer costs about 131,000
+prompt tokens; a retrieval answer costs 7,100. Tying both to `--n-queries` meant the
+cheap arm was capped by the expensive one, so a day's allowance bought twelve
+queries of each rather than many of one. Splitting the budget took the retrieval arm
+from 12 answers to 27 and faithfulness verdicts from 5 to 12 on the same allowance.
+The blocker was a design decision wearing a quota's clothing.
+
+**Growing the sample threw away everything already paid for.** The sample was a
+function of `n`, so asking for 40 after a 12-query run drew a different twelve among
+them -- measured: only 4 of the original 12 survived. Every other answer would have
+missed the cache and been bought again. Pinning the previously answered ids makes a
+larger run a superset of the smaller one.
+
+**`from_cache` was False on every answer this project ever recorded.** It was
+inferred as "the response carries no latency", but the client writes the measured
+latency *into* the cached body, so a cache hit always has one and the flag could
+never be true. Nothing depended on it until latency statistics did, and then the
+consequence was immediate: a run whose long-context answers all came from cache and
+whose retrieval answers were made live during a throttled window reported the
+long-context arm as **2.5x faster than retrieval**. Both numbers were real. The
+comparison was between a quiet session and a congested one, and it would have been
+published as a measurement.
+
+The correction is in section 17 and it costs information: latency now reads *not
+measured*, because this run made no live calls at all. That is worse to look at and
+better to trust. The last honest measurement is kept in `results/archive/` rather
+than deleted, since it was a real same-session comparison -- and it says 3.7x, where
+the document had been claiming 1.9x by quoting the run's overall p95 as though it
+were one arm's.
+
+**And the guard against losing data had the same shape as the bug it prevented.**
+`publish` refuses to overwrite a file holding more scored answers or more
+faithfulness verdicts than the current run produced. It compared *totals*. A
+`--skip-long-context` run of 40 retrieval queries has more scores than a file holding
+11 retrieval and 10 long-context, so the totals said "more" and the write would have
+gone through, taking every long-context measurement with it. Verified by running the
+old comparison against the real files: it wrote, and all 10 long-context scores were
+gone. The guard now compares per arm. Its own docstring already explained that
+comparing only totals is how verdicts get destroyed inside a matching score count --
+the same reasoning, one level up, left unapplied.
+
+
 # Part IV — What was measured
 
 ## 15. The retrieval ablation
@@ -1089,29 +1137,51 @@ been the better gold.
 
 ## 17. Retrieval versus long context
 
-`gemini-3.6-flash`, 12 of 216 queries, costs computed from the API's own reported
-token counts.
+`gemini-3.6-flash`, costs computed from the API's own reported token counts. The
+two arms no longer share a sample size: one long-context answer costs about 131,000
+prompt tokens against 7,100 for a retrieval answer, so tying them together capped
+the whole evaluation at what the expensive arm could afford in a day.
 
+<!-- generated:long-context -->
 | | retrieval (top-10) | long context (whole filing) | ratio |
 |---|---|---|---|
-| mean prompt tokens | 7,345 | 130,701 | 17.8× |
-| cost per query | $0.011224 | $0.196322 | **17.5×** |
-| p95 latency | 4.54 s | 8.54 s | 1.9× |
-| accuracy, all queries | 0.273 | **0.600** | — |
-| refusal rate | 5 of 10 | 0 of 9 | — |
+| queries answered | 27 | 11 | — |
+| mean prompt tokens | 7,085 | 130,819 | **18.5×** |
+| cost per query | $0.010806 | $0.196508 | **18.2×** |
+| accuracy, of answered | 0.583 | 0.636 | — |
+| refused | 15 of 27 | 0 of 11 | — |
+| faithfulness | 1.000 (12 judged) | not measured | — |
+| p95 latency | not measured | not measured | — |
+<!-- /generated:long-context -->
 
-**The brief's "roughly 1,250× cheaper" is not reproducible — measured 17.5×.**
-1,250× requires assuming a 1M-token context, an ~800-token retrieval prompt, *and*
-zero output cost.
+**The brief's "roughly 1,250× cheaper" is not reproducible.** 1,250× requires
+assuming a 1M-token context, an ~800-token retrieval prompt, *and* zero output
+cost. The measured ratio is in the table above.
 
-**Long context currently wins on accuracy**, and the refusal column says why:
-retrieval declined half the questions because the answer was not in its top-10.
-When it did answer it was equally accurate (0.600 each) and it cited sources,
-which the long-context arm structurally cannot. Retrieval is cheaper and faster
-and loses on accuracy *because its first stage is weak*.
+**Latency is reported as not measured, and that is a correction.** The number
+previously printed here was wrong twice: it quoted the run's overall p95 as the
+long-context arm's, and the two arms' figures came from different sessions. The
+last run in which both arms made live calls in the same session gave retrieval p95
+4.542 s against long-context 16.908 s -- a 3.7× ratio, not the 1.9× stated here for
+two commits. That run is kept as `results/archive/generation-n12-same-session-latency.json`,
+because re-measuring it costs a fresh long-context pass of roughly 1.4M prompt
+tokens, which is more than a day's free-tier allowance. Cost survives the same
+problem: token counts do not depend on when a call was made.
 
-Two caveats that cut against the result: long context is **handed the correct
-filing** while retrieval must find it among 120, and 12 queries is a small sample.
+**Long context wins on accuracy, and the refusal column says why:** retrieval
+declined 15 of 27 questions because the answer was not in its top-10. When it did
+answer, the two arms were close, and retrieval cited its sources -- which the
+long-context arm structurally cannot, since its whole context is one document. So
+retrieval is far cheaper and loses on accuracy *because its first stage is weak*,
+which is the same finding as Part IV arrived at from the other direction.
+
+Three caveats that cut against the result. Long context is **handed the correct
+filing** while retrieval must find it among 120. The samples are small and no
+longer equal -- 27 retrieval answers against 11 long-context ones -- because the
+arms were separated to stop the expensive one capping the cheap one. And
+faithfulness is measured on the retrieval arm only: judging a long-context answer
+means sending the whole filing to the judge as well, about 130,000 tokens per
+verdict, so that cell reads *not measured* rather than being quietly skipped.
 
 ## 18. Operating findings
 

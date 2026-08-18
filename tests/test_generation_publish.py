@@ -11,7 +11,13 @@ import json
 from retrieval_ablation.generation.run import publish
 
 
-def payload(n_scores: int, reason: str | None = None, n_verdicts: int = 0) -> dict:
+def payload(
+    n_scores: int,
+    reason: str | None = None,
+    n_verdicts: int = 0,
+    arm: str = "retrieval",
+    extra: list[dict] | None = None,
+) -> dict:
     return {
         "model": "m",
         "n_queries_sampled": n_scores,
@@ -30,11 +36,12 @@ def payload(n_scores: int, reason: str | None = None, n_verdicts: int = 0) -> di
         "scores": [
             {
                 "query_id": f"q{i}",
-                "arm": "retrieval",
+                "arm": arm,
                 "faithfulness": 1.0 if i < n_verdicts else None,
             }
             for i in range(n_scores)
-        ],
+        ]
+        + list(extra or []),
     }
 
 
@@ -101,6 +108,50 @@ class TestPublish:
         assert publish(payload(12, n_verdicts=9), results, table) is True
         kept = json.loads(results.read_text(encoding="utf-8"))["scores"]
         assert sum(1 for s in kept if s["faithfulness"] is not None) == 9
+
+
+class TestPerArmProtection:
+    """Totals hide an arm disappearing entirely."""
+
+    @staticmethod
+    def long_context(n: int) -> list[dict]:
+        return [
+            {"query_id": f"lc{i}", "arm": "long_context", "faithfulness": None} for i in range(n)
+        ]
+
+    def test_refuses_a_run_that_drops_an_entire_arm(self, tmp_path):
+        """Regression: a bigger run could delete a whole arm's measurements.
+
+        The guard compared totals. A file holding 11 retrieval and 10
+        long-context scores has 21; a --skip-long-context run of 40 retrieval
+        queries has 40, so the totals said "more" and the write would have gone
+        through, taking every long-context score with it -- including the
+        retrieval-versus-long-context cost ratio quoted in the README. Nothing
+        would have errored, and the file would have looked like a better run.
+        """
+        results, table = tmp_path / "generation.json", tmp_path / "generation.md"
+        publish(payload(11, extra=self.long_context(10)), results, table)
+
+        assert publish(payload(40, "skipped the long-context arm"), results, table) is False
+        kept = json.loads(results.read_text(encoding="utf-8"))["scores"]
+        assert sum(1 for s in kept if s["arm"] == "long_context") == 10
+
+    def test_growing_one_arm_while_keeping_the_other_writes(self, tmp_path):
+        """Otherwise the guard would forbid the very improvement it wants."""
+        results, table = tmp_path / "generation.json", tmp_path / "generation.md"
+        publish(payload(11, extra=self.long_context(10)), results, table)
+
+        assert publish(payload(40, extra=self.long_context(10)), results, table) is True
+        kept = json.loads(results.read_text(encoding="utf-8"))["scores"]
+        assert len(kept) == 50
+
+    def test_refuses_losing_verdicts_within_one_arm(self, tmp_path):
+        """The per-arm counts carry verdicts too, not just totals."""
+        results, table = tmp_path / "generation.json", tmp_path / "generation.md"
+        publish(payload(11, n_verdicts=5, extra=self.long_context(10)), results, table)
+
+        worse = payload(11, "judge rate-limited", n_verdicts=0, extra=self.long_context(30))
+        assert publish(worse, results, table) is False
 
 
 class TestResolveContext:
@@ -171,3 +222,104 @@ class TestResolveContext:
         from retrieval_ablation.generation.run import resolve_context
 
         assert resolve_context(self._answer("retrieval", ()), {}, {}) is None
+
+
+class TestSampleQueries:
+    """A larger run must contain the smaller run's queries, not a fresh draw."""
+
+    @staticmethod
+    def queries(n: int):
+        from retrieval_ablation.corpus.models import GoldPassage, Span
+        from retrieval_ablation.evalset.schema import EvalQuery, QueryKind, Verification
+
+        return [
+            EvalQuery(
+                query_id=f"q{i:03d}",
+                text=f"question {i}",
+                gold=(GoldPassage(passage_id=f"p{i}", doc_id="d1", span=Span(0, 5)),),
+                kind=QueryKind.TABLE_LOOKUP,
+                verification=Verification.GENERATED,
+                lexical_overlap=i / n,
+                metadata={},
+            )
+            for i in range(n)
+        ]
+
+    def test_a_larger_sample_keeps_the_pinned_queries(self):
+        """Regression: growing the sample re-drew it and voided every cached answer.
+
+        The sample was a function of `n`, so asking for 40 after a 12-query run
+        picked a different 12 among them. Every previous answer then missed the
+        cache and the run paid to answer them again -- on an arm where one answer
+        costs 134,000 prompt tokens and the daily allowance is what stops the
+        evaluation. Pinning is what makes this arm growable at all.
+        """
+        from retrieval_ablation.generation.run import sample_queries
+
+        qs = self.queries(100)
+        first = sample_queries(qs, 12)
+        pinned = [q.query_id for q in first]
+
+        larger = sample_queries(qs, 40, pinned=pinned)
+
+        assert len(larger) == 40
+        assert set(pinned) <= {q.query_id for q in larger}
+        # And the pinned ones come first, so a truncated long-context budget
+        # covers exactly the queries already paid for.
+        assert [q.query_id for q in larger[:12]] == pinned
+
+    def test_pinning_more_than_requested_truncates_rather_than_overshooting(self):
+        from retrieval_ablation.generation.run import sample_queries
+
+        qs = self.queries(100)
+        pinned = [q.query_id for q in qs[:20]]
+
+        assert len(sample_queries(qs, 5, pinned=pinned)) == 5
+
+    def test_an_unknown_pinned_id_is_ignored(self):
+        """A results file naming a query the eval set no longer has must not crash."""
+        from retrieval_ablation.generation.run import sample_queries
+
+        got = sample_queries(self.queries(50), 10, pinned=["gone", "q001"])
+
+        assert len(got) == 10
+        assert got[0].query_id == "q001"
+
+    def test_no_duplicates_when_a_pinned_id_would_also_be_drawn(self):
+        from retrieval_ablation.generation.run import sample_queries
+
+        qs = self.queries(30)
+        got = sample_queries(qs, 30, pinned=["q000", "q015"])
+
+        assert len(got) == len({q.query_id for q in got}) == 30
+
+
+class TestPreviouslyAnswered:
+    def test_reads_query_ids_in_order_without_duplicates(self, tmp_path):
+        """Both arms answer the same query, so ids repeat in the answers list."""
+        from retrieval_ablation.generation.run import previously_answered
+
+        path = tmp_path / "generation.json"
+        path.write_text(
+            json.dumps(
+                {
+                    "answers": [
+                        {"query_id": "a", "arm": "retrieval"},
+                        {"query_id": "a", "arm": "long_context"},
+                        {"query_id": "b", "arm": "retrieval"},
+                    ]
+                }
+            ),
+            encoding="utf-8",
+        )
+
+        assert previously_answered(path) == ["a", "b"]
+
+    def test_a_missing_or_corrupt_file_yields_nothing(self, tmp_path):
+        """A first run has nothing to resume, and neither does a broken file."""
+        from retrieval_ablation.generation.run import previously_answered
+
+        assert previously_answered(tmp_path / "absent.json") == []
+        bad = tmp_path / "bad.json"
+        bad.write_text("{ not json", encoding="utf-8")
+        assert previously_answered(bad) == []

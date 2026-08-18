@@ -1,107 +1,109 @@
 {
   "model": "gemini-3.6-flash",
-  "n_queries_sampled": 12,
-  "n_queries_total": 216,
+  "n_queries_sampled": 27,
+  "n_long_context_sampled": 11,
+  "n_queries_total": 586,
   "retrieval_top_k": 10,
   "long_context_budget_chars": 800000,
   "long_context_budget_tokens_approx": 200000,
-  "incomplete_reason": "still rate-limited after 8 attempts on /models/gemini-3.6-flash:generateContent. The daily free-tier quota is likely spent; re-run later. Cached work is preserved, so the run resumes rather than restarts.",
+  "incomplete_reason": null,
   "by_arm": {
     "long_context": {
-      "n_answers": 10,
-      "n_answered": 10,
+      "n_answers": 11,
+      "n_answered": 11,
       "n_refused": 0,
       "refusal_rate": 0.0,
-      "value_accuracy_of_answered": 0.6,
-      "n_value_scored": 10,
-      "value_accuracy_of_all": 0.6,
+      "value_accuracy_of_answered": 0.6363636363636364,
+      "n_value_scored": 11,
+      "value_accuracy_of_all": 0.6363636363636364,
       "citation_precision": null,
       "citation_recall": null,
-      "hallucinated_citation_rate": 0.8,
+      "hallucinated_citation_rate": 0.8181818181818182,
       "faithfulness": null,
       "n_faithfulness_judged": 0
     },
     "retrieval": {
-      "n_answers": 11,
-      "n_answered": 5,
-      "n_refused": 6,
-      "refusal_rate": 0.5454545454545454,
-      "value_accuracy_of_answered": 0.6,
-      "n_value_scored": 5,
-      "value_accuracy_of_all": 0.2727272727272727,
-      "citation_precision": 0.5666666666666667,
-      "citation_recall": 0.8,
+      "n_answers": 27,
+      "n_answered": 12,
+      "n_refused": 15,
+      "refusal_rate": 0.5555555555555556,
+      "value_accuracy_of_answered": 0.5833333333333334,
+      "n_value_scored": 12,
+      "value_accuracy_of_all": 0.25925925925925924,
+      "citation_precision": 0.40277777777777773,
+      "citation_recall": 0.5,
       "hallucinated_citation_rate": 0.0,
       "faithfulness": 1.0,
-      "n_faithfulness_judged": 5
+      "n_faithfulness_judged": 12
     }
   },
   "value_accuracy_ci95": {
     "long_context": {
-      "point": 0.6,
-      "low": 0.3,
-      "high": 0.9,
-      "n": 10
+      "point": 0.6363636363636364,
+      "low": 0.36363636363636365,
+      "high": 0.9090909090909091,
+      "n": 11
     },
     "retrieval": {
-      "point": 0.6,
-      "low": 0.2,
-      "high": 1.0,
-      "n": 5
+      "point": 0.5833333333333334,
+      "low": 0.3333333333333333,
+      "high": 0.8333333333333334,
+      "n": 12
     }
   },
   "cost": {
-    "retrieval": {
-      "n": 11,
-      "prompt_tokens": 80765,
-      "output_tokens": 279,
-      "mean_prompt_tokens": 7342.3,
-      "total_cost_usd": 0.12324,
-      "cost_per_query_usd": 0.01120364
-    },
     "long_context": {
-      "n": 10,
-      "prompt_tokens": 1346967,
-      "output_tokens": 365,
-      "mean_prompt_tokens": 134696.7,
-      "total_cost_usd": 2.023188,
-      "cost_per_query_usd": 0.2023188
+      "n": 11,
+      "prompt_tokens": 1439006,
+      "output_tokens": 410,
+      "mean_prompt_tokens": 130818.7,
+      "total_cost_usd": 2.161584,
+      "cost_per_query_usd": 0.19650764
+    },
+    "retrieval": {
+      "n": 27,
+      "prompt_tokens": 191291,
+      "output_tokens": 644,
+      "mean_prompt_tokens": 7084.9,
+      "total_cost_usd": 0.291766,
+      "cost_per_query_usd": 0.01080617
     }
   },
   "latency": {
-    "retrieval": {
-      "n_live": 11,
-      "p50": 4.101,
-      "p95": 4.542,
-      "max": 4.542
-    },
     "long_context": {
-      "n_live": 10,
-      "p50": 6.188,
-      "p95": 16.908,
-      "max": 16.908
+      "n_live": 0,
+      "p50": null,
+      "p95": null,
+      "note": "no answers were generated live in this run; cached timings describe an earlier session and are not comparable"
+    },
+    "retrieval": {
+      "n_live": 0,
+      "p50": null,
+      "p95": null,
+      "note": "no answers were generated live in this run; cached timings describe an earlier session and are not comparable"
     }
   },
   "comparison": {
     "measured": true,
-    "retrieval_cost_per_query_usd": 0.01120364,
-    "long_context_cost_per_query_usd": 0.2023188,
-    "cost_ratio_long_context_over_retrieval": 18.1,
-    "retrieval_mean_prompt_tokens": 7342.3,
-    "long_context_mean_prompt_tokens": 134696.7,
-    "retrieval_p95_latency_s": 4.542,
-    "long_context_p95_latency_s": 16.908,
-    "latency_ratio": 3.7
+    "retrieval_cost_per_query_usd": 0.01080617,
+    "long_context_cost_per_query_usd": 0.19650764,
+    "cost_ratio_long_context_over_retrieval": 18.2,
+    "retrieval_mean_prompt_tokens": 7084.9,
+    "long_context_mean_prompt_tokens": 130818.7,
+    "retrieval_p95_latency_s": null,
+    "long_context_p95_latency_s": null,
+    "latency_ratio": null,
+    "latency_note": "not comparable: an arm produced no live call in this run, so its timings would come from a different session under different load"
   },
   "api_usage": {
-    "live_calls": 26,
-    "cached_calls": 21,
-    "prompt_tokens": 1462044,
-    "output_tokens": 654,
-    "thought_tokens": 12556,
-    "rate_limited_responses": 8,
-    "seconds_spent_waiting": 382.5,
-    "p95_latency_seconds": 8.543
+    "live_calls": 50,
+    "cached_calls": 50,
+    "prompt_tokens": 1709179,
+    "output_tokens": 1078,
+    "thought_tokens": 23380,
+    "rate_limited_responses": 0,
+    "seconds_spent_waiting": 0.0,
+    "p95_latency_seconds": 42.018
   },
   "answers": [
     {
@@ -128,7 +130,7 @@
       "prompt_tokens": 7453,
       "output_tokens": 36,
       "latency_seconds": 4.1006122000000005,
-      "from_cache": false,
+      "from_cache": true,
       "model": "gemini-3.6-flash",
       "arm": "retrieval"
     },
@@ -147,7 +149,7 @@
       "prompt_tokens": 105450,
       "output_tokens": 51,
       "latency_seconds": 4.830248299999994,
-      "from_cache": false,
+      "from_cache": true,
       "model": "gemini-3.6-flash",
       "arm": "long_context"
     },
@@ -177,7 +179,7 @@
       "prompt_tokens": 5050,
       "output_tokens": 66,
       "latency_seconds": 3.4301029000000085,
-      "from_cache": false,
+      "from_cache": true,
       "model": "gemini-3.6-flash",
       "arm": "retrieval"
     },
@@ -196,7 +198,7 @@
       "prompt_tokens": 208848,
       "output_tokens": 42,
       "latency_seconds": 5.926596700000005,
-      "from_cache": false,
+      "from_cache": true,
       "model": "gemini-3.6-flash",
       "arm": "long_context"
     },
@@ -224,7 +226,7 @@
       "prompt_tokens": 9857,
       "output_tokens": 43,
       "latency_seconds": 4.541858100000013,
-      "from_cache": false,
+      "from_cache": true,
       "model": "gemini-3.6-flash",
       "arm": "retrieval"
     },
@@ -243,7 +245,7 @@
       "prompt_tokens": 145410,
       "output_tokens": 30,
       "latency_seconds": 7.3406564,
-      "from_cache": false,
+      "from_cache": true,
       "model": "gemini-3.6-flash",
       "arm": "long_context"
     },
@@ -269,7 +271,7 @@
       "prompt_tokens": 11703,
       "output_tokens": 4,
       "latency_seconds": 2.787721000000033,
-      "from_cache": false,
+      "from_cache": true,
       "model": "gemini-3.6-flash",
       "arm": "retrieval"
     },
@@ -288,7 +290,7 @@
       "prompt_tokens": 161875,
       "output_tokens": 29,
       "latency_seconds": 4.472391399999992,
-      "from_cache": false,
+      "from_cache": true,
       "model": "gemini-3.6-flash",
       "arm": "long_context"
     },
@@ -317,7 +319,7 @@
       "prompt_tokens": 7953,
       "output_tokens": 50,
       "latency_seconds": 4.285274100000038,
-      "from_cache": false,
+      "from_cache": true,
       "model": "gemini-3.6-flash",
       "arm": "retrieval"
     },
@@ -337,7 +339,7 @@
       "prompt_tokens": 145069,
       "output_tokens": 32,
       "latency_seconds": 8.542618100000027,
-      "from_cache": false,
+      "from_cache": true,
       "model": "gemini-3.6-flash",
       "arm": "long_context"
     },
@@ -363,7 +365,7 @@
       "prompt_tokens": 13586,
       "output_tokens": 4,
       "latency_seconds": 2.785190499999999,
-      "from_cache": false,
+      "from_cache": true,
       "model": "gemini-3.6-flash",
       "arm": "retrieval"
     },
@@ -382,7 +384,7 @@
       "prompt_tokens": 79882,
       "output_tokens": 26,
       "latency_seconds": 3.3372543000000405,
-      "from_cache": false,
+      "from_cache": true,
       "model": "gemini-3.6-flash",
       "arm": "long_context"
     },
@@ -408,7 +410,7 @@
       "prompt_tokens": 5021,
       "output_tokens": 4,
       "latency_seconds": 2.851598899999999,
-      "from_cache": false,
+      "from_cache": true,
       "model": "gemini-3.6-flash",
       "arm": "retrieval"
     },
@@ -427,7 +429,7 @@
       "prompt_tokens": 145644,
       "output_tokens": 57,
       "latency_seconds": 7.558778300000085,
-      "from_cache": false,
+      "from_cache": true,
       "model": "gemini-3.6-flash",
       "arm": "long_context"
     },
@@ -453,7 +455,7 @@
       "prompt_tokens": 4138,
       "output_tokens": 4,
       "latency_seconds": 4.401393199999916,
-      "from_cache": false,
+      "from_cache": true,
       "model": "gemini-3.6-flash",
       "arm": "retrieval"
     },
@@ -472,7 +474,7 @@
       "prompt_tokens": 109854,
       "output_tokens": 22,
       "latency_seconds": 6.187660199999982,
-      "from_cache": false,
+      "from_cache": true,
       "model": "gemini-3.6-flash",
       "arm": "long_context"
     },
@@ -500,7 +502,7 @@
       "prompt_tokens": 4091,
       "output_tokens": 60,
       "latency_seconds": 4.197910999999976,
-      "from_cache": false,
+      "from_cache": true,
       "model": "gemini-3.6-flash",
       "arm": "retrieval"
     },
@@ -520,7 +522,7 @@
       "prompt_tokens": 74277,
       "output_tokens": 36,
       "latency_seconds": 4.006692199999975,
-      "from_cache": false,
+      "from_cache": true,
       "model": "gemini-3.6-flash",
       "arm": "long_context"
     },
@@ -546,7 +548,7 @@
       "prompt_tokens": 4602,
       "output_tokens": 4,
       "latency_seconds": 3.6530762999999524,
-      "from_cache": false,
+      "from_cache": true,
       "model": "gemini-3.6-flash",
       "arm": "retrieval"
     },
@@ -563,7 +565,7 @@
       "prompt_tokens": 170658,
       "output_tokens": 40,
       "latency_seconds": 16.90827280000667,
-      "from_cache": false,
+      "from_cache": true,
       "model": "gemini-3.6-flash",
       "arm": "long_context"
     },
@@ -589,7 +591,451 @@
       "prompt_tokens": 7311,
       "output_tokens": 4,
       "latency_seconds": 4.4366671000025235,
-      "from_cache": false,
+      "from_cache": true,
+      "model": "gemini-3.6-flash",
+      "arm": "retrieval"
+    },
+    {
+      "query_id": "q-17927a0dad02",
+      "question": "Nike, Inc. federal income tax rate 2024",
+      "answer": "For fiscal 2024, NIKE, Inc.'s U.S. statutory federal income tax rate was 21.0%, and its effective income tax rate was 14.9% [7].",
+      "context_ids": [
+        "nke-10-k-2024-05-31#fulldoc"
+      ],
+      "cited_ids": [],
+      "invalid_citations": [
+        7
+      ],
+      "refused": false,
+      "prompt_tokens": 92039,
+      "output_tokens": 45,
+      "latency_seconds": 22.15358550000019,
+      "from_cache": true,
+      "model": "gemini-3.6-flash",
+      "arm": "long_context"
+    },
+    {
+      "query_id": "q-b11ddac823a6",
+      "question": "Report Coca Cola Co's divestitures figure for the 2024 fiscal year.",
+      "answer": "NOT IN CONTEXT",
+      "context_ids": [
+        "ko-10-k-2024-12-31#00000000-00000840",
+        "ko-10-k-2025-12-31#00200471-00202466",
+        "ko-10-k-2025-12-31#00000000-00000841",
+        "ko-10-k-2025-12-31#00598302-00603099",
+        "ko-10-k-2024-12-31#00195400-00197403",
+        "ko-10-k-2024-12-31#00605325-00610196",
+        "ko-10-k-2022-12-31#00602632-00607457",
+        "ko-10-k-2025-12-31#00613537-00618699",
+        "ko-10-k-2023-12-31#00602869-00607557",
+        "ko-10-k-2024-12-31#00615657-00621020"
+      ],
+      "cited_ids": [],
+      "invalid_citations": [],
+      "refused": true,
+      "prompt_tokens": 11321,
+      "output_tokens": 4,
+      "latency_seconds": 16.58059560000038,
+      "from_cache": true,
+      "model": "gemini-3.6-flash",
+      "arm": "retrieval"
+    },
+    {
+      "query_id": "q-d040aae4e1dd",
+      "question": "Goldman Sachs Group Inc non-u.s. operations 2022",
+      "answer": "NOT IN CONTEXT",
+      "context_ids": [
+        "gs-10-k-2022-12-31#01073046-01073376",
+        "gs-10-k-2023-12-31#01097383-01097713",
+        "gs-10-k-2024-12-31#01091026-01091356",
+        "gs-10-k-2022-12-31#00876654-00878013",
+        "gs-10-k-2022-12-31#00981053-00982245",
+        "gs-10-k-2025-12-31#01119195-01121241",
+        "gs-10-k-2023-12-31#00998109-00999301",
+        "gs-10-k-2025-12-31#01074959-01075289",
+        "gs-10-k-2022-12-31#00010020-00011456",
+        "gs-10-k-2023-12-31#00009936-00011384"
+      ],
+      "cited_ids": [],
+      "invalid_citations": [],
+      "refused": true,
+      "prompt_tokens": 2961,
+      "output_tokens": 4,
+      "latency_seconds": 35.857416800000465,
+      "from_cache": true,
+      "model": "gemini-3.6-flash",
+      "arm": "retrieval"
+    },
+    {
+      "query_id": "q-39102b5348a1",
+      "question": "Report Cisco Systems, Inc.'s percentage of revenue figure for the 2025 fiscal year.",
+      "answer": "For fiscal 2025, Cisco Systems, Inc. reported the following figures as a percentage of revenue:\n\n* **Product Revenue:** 73.4% [",
+      "context_ids": [
+        "csco-10-k-2025-07-26#00182070-00183915",
+        "csco-10-k-2024-07-27#00185041-00186842",
+        "csco-10-k-2025-07-26#00183917-00185643",
+        "csco-10-k-2025-07-26#00158256-00160050",
+        "csco-10-k-2025-07-26#00264747-00266040",
+        "csco-10-k-2024-07-27#00163876-00165793",
+        "csco-10-k-2024-07-27#00205616-00207412",
+        "csco-10-k-2024-07-27#00196343-00198345",
+        "csco-10-k-2024-07-27#00186844-00188590",
+        "csco-10-k-2024-07-27#00160804-00162610"
+      ],
+      "cited_ids": [],
+      "invalid_citations": [],
+      "refused": false,
+      "prompt_tokens": 5943,
+      "output_tokens": 36,
+      "latency_seconds": 29.7608582999992,
+      "from_cache": true,
+      "model": "gemini-3.6-flash",
+      "arm": "retrieval"
+    },
+    {
+      "query_id": "q-6d66345a6f13",
+      "question": "Report American Express Co's risk-free interest rate figure for the 2022 fiscal year.",
+      "answer": "NOT IN CONTEXT",
+      "context_ids": [
+        "axp-10-k-2024-12-31#00632402-00636036",
+        "axp-10-k-2022-12-31#00578034-00581851",
+        "axp-10-k-2023-12-31#00614138-00617794",
+        "axp-10-k-2023-12-31#00617820-00621803",
+        "axp-10-k-2022-12-31#00581877-00585724",
+        "axp-10-k-2025-12-31#00631281-00635282",
+        "axp-10-k-2022-12-31#00585750-00590347",
+        "axp-10-k-2025-12-31#00627207-00631255",
+        "axp-10-k-2022-12-31#00263668-00265355",
+        "axp-10-k-2022-12-31#00573465-00575295"
+      ],
+      "cited_ids": [],
+      "invalid_citations": [],
+      "refused": true,
+      "prompt_tokens": 11088,
+      "output_tokens": 4,
+      "latency_seconds": 27.98703569999998,
+      "from_cache": true,
+      "model": "gemini-3.6-flash",
+      "arm": "retrieval"
+    },
+    {
+      "query_id": "q-9d979d2fd86c",
+      "question": "Report Nvidia Corp's research and development figure for the 2024 fiscal year.",
+      "answer": "For the 2024 fiscal year ended January 28, 2024, NVIDIA's research and development expense was 14.2% of total",
+      "context_ids": [
+        "nvda-10-k-2023-01-29#00050278-00052178",
+        "nvda-10-k-2024-01-28#00191549-00193523",
+        "nvda-10-k-2023-01-29#00160626-00162355",
+        "nvda-10-k-2024-01-28#00049418-00051334",
+        "nvda-10-k-2024-01-28#00202763-00204810",
+        "nvda-10-k-2025-01-26#00208611-00210437",
+        "nvda-10-k-2023-01-29#00274312-00275692",
+        "nvda-10-k-2023-01-29#00070018-00072044",
+        "nvda-10-k-2024-01-28#00291501-00292892",
+        "msft-10-k-2024-06-30#00185979-00186978"
+      ],
+      "cited_ids": [],
+      "invalid_citations": [],
+      "refused": false,
+      "prompt_tokens": 4555,
+      "output_tokens": 37,
+      "latency_seconds": 9.063670000000457,
+      "from_cache": true,
+      "model": "gemini-3.6-flash",
+      "arm": "retrieval"
+    },
+    {
+      "query_id": "q-c693826e90f2",
+      "question": "Report Apple Inc.'s net deferred tax assets figure for the 2022 fiscal year.",
+      "answer": "For fiscal year 2022, Apple Inc.'s net deferred tax assets were $14,537 million [5].",
+      "context_ids": [
+        "jnj-10-k-2023-12-31#00249401-00251360",
+        "jnj-10-k-2023-01-01#00255693-00257477",
+        "aapl-10-k-2022-09-24#00197135-00198781",
+        "aapl-10-k-2022-09-24#00099859-00101921",
+        "aapl-10-k-2022-09-24#00167251-00168972",
+        "msft-10-k-2023-06-30#00289525-00290513",
+        "jnj-10-k-2024-12-29#00252035-00253740",
+        "cost-10-k-2023-09-03#00173903-00175881",
+        "csco-10-k-2022-07-30#00414447-00416333",
+        "cost-10-k-2022-08-28#00176985-00179003"
+      ],
+      "cited_ids": [
+        "aapl-10-k-2022-09-24#00167251-00168972"
+      ],
+      "invalid_citations": [],
+      "refused": false,
+      "prompt_tokens": 5139,
+      "output_tokens": 29,
+      "latency_seconds": 65.1964024000008,
+      "from_cache": true,
+      "model": "gemini-3.6-flash",
+      "arm": "retrieval"
+    },
+    {
+      "query_id": "q-8f99635ecffb",
+      "question": "American Express Co dividend yield 2022",
+      "answer": "NOT IN CONTEXT",
+      "context_ids": [
+        "axp-10-k-2022-12-31#00551025-00552067",
+        "axp-10-k-2022-12-31#00263668-00265355",
+        "axp-10-k-2023-12-31#00587401-00588443",
+        "axp-10-k-2022-12-31#00548986-00551023",
+        "axp-10-k-2023-12-31#00585364-00587399",
+        "axp-10-k-2025-12-31#00370520-00372499",
+        "axp-10-k-2025-12-31#00293884-00295802",
+        "axp-10-k-2023-12-31#00296961-00298645",
+        "axp-10-k-2024-12-31#00291989-00293953",
+        "axp-10-k-2024-12-31#00302796-00304475"
+      ],
+      "cited_ids": [],
+      "invalid_citations": [],
+      "refused": true,
+      "prompt_tokens": 5215,
+      "output_tokens": 4,
+      "latency_seconds": 4.562869499999579,
+      "from_cache": true,
+      "model": "gemini-3.6-flash",
+      "arm": "retrieval"
+    },
+    {
+      "query_id": "q-d74ca5498574",
+      "question": "What was Goldman Sachs Group Inc's investment for 2026?",
+      "answer": "NOT IN CONTEXT",
+      "context_ids": [
+        "gs-10-k-2024-12-31#00906963-00908522",
+        "gs-10-k-2025-12-31#01119195-01121241",
+        "gs-10-k-2023-12-31#00147585-00148824",
+        "gs-10-k-2025-12-31#01083155-01083662",
+        "gs-10-k-2022-12-31#00981053-00982245",
+        "gs-10-k-2023-12-31#00998109-00999301",
+        "gs-10-k-2023-12-31#01110160-01111076",
+        "gs-10-k-2024-12-31#01103812-01104727",
+        "gs-10-k-2022-12-31#01085831-01086761",
+        "gs-10-k-2023-12-31#00911713-00912863"
+      ],
+      "cited_ids": [],
+      "invalid_citations": [],
+      "refused": true,
+      "prompt_tokens": 3095,
+      "output_tokens": 4,
+      "latency_seconds": 23.13728160000028,
+      "from_cache": true,
+      "model": "gemini-3.6-flash",
+      "arm": "retrieval"
+    },
+    {
+      "query_id": "q-02fd7823d110",
+      "question": "Unitedhealth Group Inc expected life in years 2025",
+      "answer": "NOT IN CONTEXT",
+      "context_ids": [
+        "unh-10-k-2025-12-31#00330721-00334371",
+        "unh-10-k-2023-12-31#00307179-00312466",
+        "unh-10-k-2024-12-31#00312357-00317888",
+        "unh-10-k-2022-12-31#00300499-00305730",
+        "unh-10-k-2025-12-31#00326067-00330696",
+        "unh-10-k-2025-12-31#00050923-00052734",
+        "unh-10-k-2023-12-31#00312491-00315224",
+        "unh-10-k-2024-12-31#00049223-00051091",
+        "unh-10-k-2024-12-31#00051093-00052672",
+        "unh-10-k-2025-12-31#00343388-00344639"
+      ],
+      "cited_ids": [],
+      "invalid_citations": [],
+      "refused": true,
+      "prompt_tokens": 9742,
+      "output_tokens": 4,
+      "latency_seconds": 5.9854889999996885,
+      "from_cache": true,
+      "model": "gemini-3.6-flash",
+      "arm": "retrieval"
+    },
+    {
+      "query_id": "q-5a429aad9f0a",
+      "question": "How much did American Express Co report for expected volatility in 2023?",
+      "answer": "NOT IN CONTEXT",
+      "context_ids": [
+        "axp-10-k-2025-12-31#00631281-00635282",
+        "axp-10-k-2022-12-31#00581877-00585724",
+        "axp-10-k-2024-12-31#00632402-00636036",
+        "axp-10-k-2023-12-31#00617820-00621803",
+        "axp-10-k-2022-12-31#00578034-00581851",
+        "axp-10-k-2024-12-31#00636062-00639717",
+        "axp-10-k-2022-12-31#00008174-00008726",
+        "axp-10-k-2023-12-31#00614138-00617794",
+        "axp-10-k-2023-12-31#00008203-00008762",
+        "axp-10-k-2024-12-31#00008207-00008765"
+      ],
+      "cited_ids": [],
+      "invalid_citations": [],
+      "refused": true,
+      "prompt_tokens": 8949,
+      "output_tokens": 3,
+      "latency_seconds": 18.067648199999894,
+      "from_cache": true,
+      "model": "gemini-3.6-flash",
+      "arm": "retrieval"
+    },
+    {
+      "query_id": "q-a2ed65894664",
+      "question": "How much did Coca Cola Co report for net foreign currency translation adjustments in 2024?",
+      "answer": "For the year ended December 31, 2024, total consolidated net foreign currency translation adjustments were $(2,893) million, of which $(2,884) million was attributable to shareowners of The Coca-Cola Company and $(9) million to noncontrolling interests [1], [6]. As of December 31, 2024, accumulated net foreign currency translation adjustments were $(15,610) million [1].",
+      "context_ids": [
+        "ko-10-k-2024-12-31#00495968-00497943",
+        "ko-10-k-2025-12-31#00499514-00501386",
+        "ko-10-k-2023-12-31#00490360-00492341",
+        "ko-10-k-2022-12-31#00494999-00496967",
+        "ko-10-k-2024-12-31#00497945-00499986",
+        "ko-10-k-2024-12-31#00321843-00322915",
+        "ko-10-k-2025-12-31#00321551-00322627",
+        "ko-10-k-2023-12-31#00492343-00494361",
+        "ko-10-k-2022-12-31#00496969-00499006",
+        "ko-10-k-2025-12-31#00503812-00505499"
+      ],
+      "cited_ids": [
+        "ko-10-k-2024-12-31#00495968-00497943",
+        "ko-10-k-2024-12-31#00321843-00322915"
+      ],
+      "invalid_citations": [],
+      "refused": false,
+      "prompt_tokens": 5969,
+      "output_tokens": 100,
+      "latency_seconds": 5.316773000000467,
+      "from_cache": true,
+      "model": "gemini-3.6-flash",
+      "arm": "retrieval"
+    },
+    {
+      "query_id": "q-3d13c2344da8",
+      "question": "Cisco Systems, Inc. income taxes payable 2025",
+      "answer": "As of July 26, 2025, Cisco Systems, Inc. reported current income taxes payable of $1,857 and long-term income taxes payable of $2,165 [1].",
+      "context_ids": [
+        "csco-10-k-2025-07-26#00252647-00254681",
+        "csco-10-k-2022-07-30#00265384-00267415",
+        "csco-10-k-2024-07-27#00264715-00266755",
+        "csco-10-k-2023-07-29#00255158-00257215",
+        "csco-10-k-2025-07-26#00412057-00415322",
+        "csco-10-k-2025-07-26#00415348-00418176",
+        "csco-10-k-2025-07-26#00256712-00258462",
+        "csco-10-k-2025-07-26#00387383-00389080",
+        "csco-10-k-2024-07-27#00426518-00429867",
+        "csco-10-k-2023-07-29#00406473-00409486"
+      ],
+      "cited_ids": [
+        "csco-10-k-2025-07-26#00252647-00254681"
+      ],
+      "invalid_citations": [],
+      "refused": false,
+      "prompt_tokens": 10335,
+      "output_tokens": 47,
+      "latency_seconds": 42.018219300000055,
+      "from_cache": true,
+      "model": "gemini-3.6-flash",
+      "arm": "retrieval"
+    },
+    {
+      "query_id": "q-bf1951123d90",
+      "question": "How much did Boeing Co report for mortgage backed and asset backed in 2024?",
+      "answer": "NOT IN CONTEXT",
+      "context_ids": [
+        "ba-10-k-2025-12-31#00340284-00342330",
+        "ba-10-k-2024-12-31#00335311-00337083",
+        "cat-10-k-2024-12-31#00365070-00367095",
+        "cat-10-k-2025-12-31#00366007-00368047",
+        "ba-10-k-2023-12-31#00312373-00314187",
+        "gs-10-k-2025-12-31#00918362-00920355",
+        "gs-10-k-2024-12-31#00914851-00916900",
+        "ba-10-k-2022-12-31#00316031-00318086",
+        "gs-10-k-2022-12-31#00896725-00898330",
+        "gs-10-k-2023-12-31#00920279-00921886"
+      ],
+      "cited_ids": [],
+      "invalid_citations": [],
+      "refused": true,
+      "prompt_tokens": 6974,
+      "output_tokens": 4,
+      "latency_seconds": 60.945314300000064,
+      "from_cache": true,
+      "model": "gemini-3.6-flash",
+      "arm": "retrieval"
+    },
+    {
+      "query_id": "q-20a5ee265671",
+      "question": "Blackrock, Inc. january 31, 2027 2024",
+      "answer": "NOT IN CONTEXT",
+      "context_ids": [
+        "blk-10-k-2025-12-31#00367519-00368438",
+        "blk-10-k-2025-12-31#00437888-00439902",
+        "blk-10-k-2024-12-31#00417170-00419252",
+        "blk-10-k-2024-12-31#00351769-00352685",
+        "blk-10-k-2025-12-31#00601254-00603301",
+        "blk-10-k-2024-12-31#00354066-00356081",
+        "blk-10-k-2025-12-31#00596316-00597784",
+        "blk-10-k-2025-12-31#00433787-00435808",
+        "blk-10-k-2024-12-31#00566563-00568604",
+        "blk-10-k-2025-12-31#00423112-00426568"
+      ],
+      "cited_ids": [],
+      "invalid_citations": [],
+      "refused": true,
+      "prompt_tokens": 6457,
+      "output_tokens": 4,
+      "latency_seconds": 25.535382899999604,
+      "from_cache": true,
+      "model": "gemini-3.6-flash",
+      "arm": "retrieval"
+    },
+    {
+      "query_id": "q-ed51cfbc0e78",
+      "question": "What was Amgen Inc's trade receivables, net for 2025?",
+      "answer": "As of December 31, 2025, Amgen Inc.'s net trade receivables were $9,570 million [10].",
+      "context_ids": [
+        "amgn-10-k-2025-12-31#00495176-00496797",
+        "amgn-10-k-2023-12-31#00492938-00494776",
+        "aapl-10-k-2025-09-27#00155963-00157248",
+        "amgn-10-k-2022-12-31#00493176-00494883",
+        "amgn-10-k-2023-12-31#00520365-00522238",
+        "cvx-10-k-2025-12-31#00438943-00439800",
+        "ko-10-k-2025-12-31#00346701-00348475",
+        "pfe-10-k-2025-12-31#00404780-00406830",
+        "cat-10-k-2025-12-31#00332025-00333432",
+        "amgn-10-k-2025-12-31#00455203-00456981"
+      ],
+      "cited_ids": [
+        "amgn-10-k-2025-12-31#00455203-00456981"
+      ],
+      "invalid_citations": [],
+      "refused": false,
+      "prompt_tokens": 4374,
+      "output_tokens": 33,
+      "latency_seconds": 2.671231499996793,
+      "from_cache": true,
+      "model": "gemini-3.6-flash",
+      "arm": "retrieval"
+    },
+    {
+      "query_id": "q-e59ec21877d2",
+      "question": "How much did Pfizer Inc report for income taxes in 2022?",
+      "answer": "In 2022, Pfizer Inc. reported cash paid for income taxes of $7,867 million [1, 2, 3] and a provision/(benefit) for taxes on income of $3,3",
+      "context_ids": [
+        "pfe-10-k-2022-12-31#00340621-00341358",
+        "pfe-10-k-2024-12-31#00371833-00372586",
+        "pfe-10-k-2023-12-31#00372969-00373749",
+        "pfe-10-k-2022-12-31#00325837-00327933",
+        "pfe-10-k-2023-12-31#00358109-00360348",
+        "pfe-10-k-2024-12-31#00357464-00359727",
+        "pfe-10-k-2024-12-31#00639608-00641477",
+        "pfe-10-k-2025-12-31#00667248-00672353",
+        "pfe-10-k-2022-12-31#00446339-00448410",
+        "pfe-10-k-2024-12-31#00672535-00677842"
+      ],
+      "cited_ids": [],
+      "invalid_citations": [],
+      "refused": false,
+      "prompt_tokens": 8409,
+      "output_tokens": 48,
+      "latency_seconds": 7.59054500000002,
+      "from_cache": true,
       "model": "gemini-3.6-flash",
       "arm": "retrieval"
     }
@@ -804,6 +1250,176 @@
       "citation_recall": null,
       "cited_a_hallucinated_passage": false,
       "faithfulness": null
+    },
+    {
+      "query_id": "q-17927a0dad02",
+      "arm": "long_context",
+      "refused": false,
+      "value_correct": true,
+      "citation_precision": null,
+      "citation_recall": null,
+      "cited_a_hallucinated_passage": true,
+      "faithfulness": null
+    },
+    {
+      "query_id": "q-b11ddac823a6",
+      "arm": "retrieval",
+      "refused": true,
+      "value_correct": null,
+      "citation_precision": null,
+      "citation_recall": null,
+      "cited_a_hallucinated_passage": false,
+      "faithfulness": null
+    },
+    {
+      "query_id": "q-d040aae4e1dd",
+      "arm": "retrieval",
+      "refused": true,
+      "value_correct": null,
+      "citation_precision": null,
+      "citation_recall": null,
+      "cited_a_hallucinated_passage": false,
+      "faithfulness": null
+    },
+    {
+      "query_id": "q-39102b5348a1",
+      "arm": "retrieval",
+      "refused": false,
+      "value_correct": false,
+      "citation_precision": 0.0,
+      "citation_recall": false,
+      "cited_a_hallucinated_passage": false,
+      "faithfulness": 1.0
+    },
+    {
+      "query_id": "q-6d66345a6f13",
+      "arm": "retrieval",
+      "refused": true,
+      "value_correct": null,
+      "citation_precision": null,
+      "citation_recall": null,
+      "cited_a_hallucinated_passage": false,
+      "faithfulness": null
+    },
+    {
+      "query_id": "q-9d979d2fd86c",
+      "arm": "retrieval",
+      "refused": false,
+      "value_correct": false,
+      "citation_precision": 0.0,
+      "citation_recall": false,
+      "cited_a_hallucinated_passage": false,
+      "faithfulness": 1.0
+    },
+    {
+      "query_id": "q-c693826e90f2",
+      "arm": "retrieval",
+      "refused": false,
+      "value_correct": true,
+      "citation_precision": 1.0,
+      "citation_recall": true,
+      "cited_a_hallucinated_passage": false,
+      "faithfulness": 1.0
+    },
+    {
+      "query_id": "q-8f99635ecffb",
+      "arm": "retrieval",
+      "refused": true,
+      "value_correct": null,
+      "citation_precision": null,
+      "citation_recall": null,
+      "cited_a_hallucinated_passage": false,
+      "faithfulness": null
+    },
+    {
+      "query_id": "q-d74ca5498574",
+      "arm": "retrieval",
+      "refused": true,
+      "value_correct": null,
+      "citation_precision": null,
+      "citation_recall": null,
+      "cited_a_hallucinated_passage": false,
+      "faithfulness": null
+    },
+    {
+      "query_id": "q-02fd7823d110",
+      "arm": "retrieval",
+      "refused": true,
+      "value_correct": null,
+      "citation_precision": null,
+      "citation_recall": null,
+      "cited_a_hallucinated_passage": false,
+      "faithfulness": null
+    },
+    {
+      "query_id": "q-5a429aad9f0a",
+      "arm": "retrieval",
+      "refused": true,
+      "value_correct": null,
+      "citation_precision": null,
+      "citation_recall": null,
+      "cited_a_hallucinated_passage": false,
+      "faithfulness": null
+    },
+    {
+      "query_id": "q-a2ed65894664",
+      "arm": "retrieval",
+      "refused": false,
+      "value_correct": true,
+      "citation_precision": 0.0,
+      "citation_recall": false,
+      "cited_a_hallucinated_passage": false,
+      "faithfulness": 1.0
+    },
+    {
+      "query_id": "q-3d13c2344da8",
+      "arm": "retrieval",
+      "refused": false,
+      "value_correct": true,
+      "citation_precision": 1.0,
+      "citation_recall": true,
+      "cited_a_hallucinated_passage": false,
+      "faithfulness": 1.0
+    },
+    {
+      "query_id": "q-bf1951123d90",
+      "arm": "retrieval",
+      "refused": true,
+      "value_correct": null,
+      "citation_precision": null,
+      "citation_recall": null,
+      "cited_a_hallucinated_passage": false,
+      "faithfulness": null
+    },
+    {
+      "query_id": "q-20a5ee265671",
+      "arm": "retrieval",
+      "refused": true,
+      "value_correct": null,
+      "citation_precision": null,
+      "citation_recall": null,
+      "cited_a_hallucinated_passage": false,
+      "faithfulness": null
+    },
+    {
+      "query_id": "q-ed51cfbc0e78",
+      "arm": "retrieval",
+      "refused": false,
+      "value_correct": false,
+      "citation_precision": 0.0,
+      "citation_recall": false,
+      "cited_a_hallucinated_passage": false,
+      "faithfulness": 1.0
+    },
+    {
+      "query_id": "q-e59ec21877d2",
+      "arm": "retrieval",
+      "refused": false,
+      "value_correct": true,
+      "citation_precision": 0.0,
+      "citation_recall": false,
+      "cited_a_hallucinated_passage": false,
+      "faithfulness": 1.0
     }
   ]
 }

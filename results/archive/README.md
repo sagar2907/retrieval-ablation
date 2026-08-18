@@ -25,3 +25,17 @@ The headline finding is in both, at two sample sizes:
 The n=390 paraphrased figures were produced before the coverage rule existed and
 are not reproducible from the current code; they are described here rather than
 committed as results, because a number nobody can regenerate is not evidence.
+
+## `generation-n12-same-session-latency.json`
+
+The generation run of 12 sampled queries in which **both arms made live calls in
+the same session** — 11 retrieval and 10 long-context. It is kept because that is
+the only condition under which the two arms' latencies are comparable, and the
+current run cannot reproduce it: its answers come from cache, so re-measuring
+latency would need a fresh long-context pass at roughly 1.4M prompt tokens, which
+is more than a day's free-tier allowance.
+
+Retrieval p95 4.542 s, long-context p95 16.908 s, ratio 3.7×. Cost figures here are
+superseded by the current run, which measures the same thing on more queries; token
+counts do not depend on when a call was made, so cost stays comparable across
+sessions in a way latency does not.

@@ -276,18 +276,18 @@ rather than as a single project-level claim.
 | Model-assisted label audit | 216 of the 586 labels rechecked, 44 rejected; conclusions unchanged on the accepted subset |
 | Learning document + PDF renderer | every page rasterised and round-tripped through a text extractor |
 | Gemini client: cached, quota-tolerant, token-accounted | live run; 19 calls, 15 rate-limited, resumed from cache |
-| Generation + long-context comparison | numbers above, from the API's own reported token counts |
+| Generation + long-context comparison | numbers above, from the API's own reported token counts; cost only — latency is reported as not measured, because the two arms' timings came from different sessions |
 | FastAPI service, Docker, citation UI | live run: index 31.7 s, /search 1.9 ms, /answer 429 path verified |
 
-**513 tests pass, offline, with no API key and no model download.** `ruff` clean.
+**532 tests pass, offline, with no API key and no model download.** `ruff` clean.
 
 ### Not done
 
 | Missing | Why | What unblocks it |
 |---|---|---|
-| Faithfulness at a usable sample size | measured, but on 5 judged answers — enough to show the pass works, far too few to quote as a rate | free-tier quota for more answers; the judging itself is cheap |
+| Faithfulness at a usable sample size | 12 judged answers, all faithful — enough to show the pass works, still too few to quote as a rate | free-tier quota for more answers; the judging itself is cheap |
 | Faithfulness of the long-context arm | its context is a whole filing, ~130k tokens per judgement against ~7.5k for a retrieval answer | `--judge-long-context`, on a paid tier |
-| Generation + long-context at full sample | 12 queries measured, sampled from the 216-query eval set that existed when the run happened; the set is now 586, so it is 12 of 586 against today's benchmark | free-tier quota, or re-run tomorrow |
+| Generation + long-context at full sample | 27 retrieval answers and 11 long-context ones, of 586 queries. The arms have separate budgets now, so the cheap one is no longer capped by the expensive one, but both are still quota-bound | free-tier quota, or re-run tomorrow; the run resumes from cache rather than restarting |
 | Human verification of eval labels | requires a person; the model-assisted pass is labelled `MODEL_CHECKED`, never `HUMAN_VERIFIED` | fill in `data/eval/verification_sample.md` |
 
 ### The parse was not reproducible across machines

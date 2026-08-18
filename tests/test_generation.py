@@ -327,3 +327,82 @@ class TestCompareArms:
         out = compare_arms({"retrieval": {"cost_per_query_usd": 0.01}}, {})
         assert out["measured"] is False
         assert "reason" in out
+
+
+class TestLatencyExcludesCache:
+    """Regression: cached timings were averaged in as if freshly measured."""
+
+    @staticmethod
+    def answer(latency: float | None, from_cache: bool):
+        from retrieval_ablation.generation.answer import GeneratedAnswer
+
+        return GeneratedAnswer(
+            query_id="q",
+            question="?",
+            answer="a",
+            context_ids=("c",),
+            cited_ids=(),
+            invalid_citations=(),
+            refused=False,
+            prompt_tokens=1,
+            output_tokens=1,
+            latency_seconds=latency,
+            from_cache=from_cache,
+            model="m",
+            arm="retrieval",
+        )
+
+    def test_a_cached_answer_is_not_counted(self):
+        """The client writes the measured latency into the cached body.
+
+        So a cache hit carries a real, non-None number from whenever that call was
+        first made. Filtering on "has a latency" therefore excluded nothing, while
+        the docstring claimed cached answers were dropped -- a documented behaviour
+        the code never had.
+        """
+        from retrieval_ablation.generation.score import latency_stats
+
+        stats = latency_stats([self.answer(99.0, from_cache=True)])
+
+        assert stats["n_live"] == 0
+        assert stats["p95"] is None
+        assert "not comparable" in stats["note"] or "earlier session" in stats["note"]
+
+    def test_live_answers_are_counted(self):
+        from retrieval_ablation.generation.score import latency_stats
+
+        stats = latency_stats([self.answer(2.0, False), self.answer(4.0, False)])
+
+        assert stats["n_live"] == 2
+        assert stats["p95"] is not None
+
+    def test_a_mixed_set_uses_only_the_live_answers(self):
+        from retrieval_ablation.generation.score import latency_stats
+
+        stats = latency_stats([self.answer(2.0, False), self.answer(500.0, True)])
+
+        assert stats["n_live"] == 1
+        assert stats["max"] == 2.0
+
+    def test_an_arm_without_live_calls_yields_no_ratio_and_says_why(self):
+        """Never report a comparison the data cannot support.
+
+        A run whose long-context answers were all cached and whose retrieval
+        answers were made live under throttling reported long context as 2.5x
+        faster. Both numbers were real; the comparison was between a quiet session
+        and a congested one.
+        """
+        from retrieval_ablation.generation.score import compare_arms
+
+        got = compare_arms(
+            {
+                "retrieval": {"cost_per_query_usd": 0.01},
+                "long_context": {"cost_per_query_usd": 0.2},
+            },
+            {"retrieval": {"p95": 3.0}, "long_context": {"p95": None}},
+        )
+
+        assert got["measured"] is True  # cost is still comparable
+        assert got["cost_ratio_long_context_over_retrieval"] == 20.0
+        assert got["latency_ratio"] is None
+        assert got["latency_note"]

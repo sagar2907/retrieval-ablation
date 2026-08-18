@@ -54,6 +54,10 @@ DOCS = [ROOT / "README.md", ROOT / "docs" / "learning.md"]
 #: must not be a hyphen, so the rule is suppressed here rather than obeyed.
 MINUS = "−"  # noqa: RUF001
 
+#: Multiplication sign, for the same reason: the documents use it and the
+#: linter's ambiguity warning is the property being relied on, not a defect.
+TIMES = "×"  # noqa: RUF001
+
 
 def label_for(doc: Path) -> str:
     """A readable name for a document, without assuming it lives under the repo.
@@ -222,6 +226,63 @@ def accepted() -> str:
     return "\n".join(lines)
 
 
+def generation() -> str:
+    """Retrieval versus long context, from results/generation.json.
+
+    Added after this table drifted the same way the ablation tables did: the
+    committed results said a cost ratio of 18.1x while the documents said 17.5x,
+    and the latency row quoted the run's overall p95 as if it were the
+    long-context arm's, giving a ratio of 1.9x where the arm figures gave 3.7x.
+    Every number in it was hand-copied, which is the property that matters.
+    """
+    payload = json.loads((RESULTS / "generation.json").read_text(encoding="utf-8"))
+    comparison = payload["comparison"]
+    arms = payload["by_arm"]
+    rag, lc = arms["retrieval"], arms["long_context"]
+
+    def ratio(a: float, b: float) -> str:
+        return f"**{b / a:.1f}{TIMES}**" if a else "—"
+
+    rag_tokens = comparison["retrieval_mean_prompt_tokens"]
+    lc_tokens = comparison["long_context_mean_prompt_tokens"]
+    lines = [
+        "| | retrieval (top-10) | long context (whole filing) | ratio |",
+        "|---|---|---|---|",
+        f"| queries answered | {rag['n_answers']} | {lc['n_answers']} | — |",
+        f"| mean prompt tokens | {rag_tokens:,.0f} | {lc_tokens:,.0f} | "
+        f"{ratio(rag_tokens, lc_tokens)} |",
+        f"| cost per query | ${comparison['retrieval_cost_per_query_usd']:.6f} | "
+        f"${comparison['long_context_cost_per_query_usd']:.6f} | "
+        f"**{comparison['cost_ratio_long_context_over_retrieval']}{TIMES}** |",
+        f"| accuracy, of answered | {rag['value_accuracy_of_answered']:.3f} | "
+        f"{lc['value_accuracy_of_answered']:.3f} | — |",
+        f"| refused | {rag['n_refused']} of {rag['n_answers']} | "
+        f"{lc['n_refused']} of {lc['n_answers']} | — |",
+        f"| faithfulness | {_faith(rag)} | {_faith(lc)} | — |",
+    ]
+
+    p95_rag = comparison.get("retrieval_p95_latency_s")
+    p95_lc = comparison.get("long_context_p95_latency_s")
+    if p95_rag and p95_lc:
+        lines.append(
+            f"| p95 latency | {p95_rag} s | {p95_lc} s | **{comparison['latency_ratio']}{TIMES}** |"
+        )
+    else:
+        # Never a dash with no explanation: a reader cannot tell "not measured"
+        # from "measured as nothing", and this project has published the second
+        # while meaning the first.
+        lines.append("| p95 latency | not measured | not measured | — |")
+    return "\n".join(lines)
+
+
+def _faith(arm: dict) -> str:
+    """Faithfulness, with the number of verdicts behind it."""
+    value, judged = arm.get("faithfulness"), arm.get("n_faithfulness_judged", 0)
+    if value is None or not judged:
+        return "not measured"
+    return f"{value:.3f} ({judged} judged)"
+
+
 BLOCKS = {
     "headline": headline,
     "full-original": lambda: full("original"),
@@ -229,6 +290,7 @@ BLOCKS = {
     "overlap-split": overlap,
     "candidate-depth": depth,
     "accepted-subset": accepted,
+    "long-context": generation,
 }
 
 

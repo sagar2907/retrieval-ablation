@@ -136,21 +136,58 @@ def resolve_context(
 
 
 def sample_queries(
-    queries: Sequence[EvalQuery], n: int, seed: int = GLOBAL_SEED
+    queries: Sequence[EvalQuery],
+    n: int,
+    seed: int = GLOBAL_SEED,
+    pinned: Sequence[str] = (),
 ) -> list[EvalQuery]:
     """Seeded stratified sample across the lexical-overlap range.
 
     Stratified rather than uniform so the sample spans easy string-match queries
     and genuinely hard ones in the same proportion as the full set; a uniform
     draw of 20 could easily land mostly in one regime and misrepresent both.
+
+    `pinned` query ids are placed first and the stratified draw fills the rest.
+    Without it the sample is a function of `n`: asking for 40 queries after a
+    12-query run picks a different 12 among them, so every previous answer misses
+    the cache and the run pays to re-answer questions it has already answered --
+    on an arm where one long-context answer costs 134,000 prompt tokens and the
+    daily allowance is the binding constraint. Pinning makes a larger run a
+    superset of the smaller one, which is what lets this arm grow at all.
     """
-    ordered = sorted(queries, key=lambda q: (q.lexical_overlap or 0.0, q.query_id))
-    if n >= len(ordered):
-        return list(ordered)
-    step = len(ordered) / n
-    picked = [ordered[min(len(ordered) - 1, int(i * step))] for i in range(n)]
+    by_id = {q.query_id: q for q in queries}
+    kept = [by_id[qid] for qid in dict.fromkeys(pinned) if qid in by_id]
+    if len(kept) >= n:
+        return kept[:n]
+
+    remaining = [q for q in queries if q.query_id not in {q2.query_id for q2 in kept}]
+    ordered = sorted(remaining, key=lambda q: (q.lexical_overlap or 0.0, q.query_id))
+    wanted = n - len(kept)
+    if wanted >= len(ordered):
+        picked = list(ordered)
+    else:
+        step = len(ordered) / wanted
+        picked = [ordered[min(len(ordered) - 1, int(i * step))] for i in range(wanted)]
     random.Random(seed).shuffle(picked)
-    return picked
+    return kept + picked
+
+
+def previously_answered(results_path: Path) -> list[str]:
+    """Query ids an earlier run already paid for, in a stable order.
+
+    Read from the published results rather than from the response cache: the cache
+    is keyed by request body, so asking it "which queries are done" would mean
+    reconstructing every prompt. The results file already records exactly this.
+    """
+    if not results_path.exists():
+        return []
+    try:
+        payload = json.loads(results_path.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return []
+    return list(
+        dict.fromkeys(a.get("query_id") for a in payload.get("answers", []) if a.get("query_id"))
+    )
 
 
 def main() -> None:  # noqa: PLR0912,PLR0915 - a linear pipeline; splitting it would hide the order
@@ -160,6 +197,18 @@ def main() -> None:  # noqa: PLR0912,PLR0915 - a linear pipeline; splitting it w
     parser.add_argument("--model", default=DEFAULT_MODEL)
     parser.add_argument("--top-k", type=int, default=RETRIEVAL_TOP_K)
     parser.add_argument("--skip-long-context", action="store_true")
+    parser.add_argument(
+        "--n-long-context",
+        type=int,
+        default=None,
+        help="how many of the sampled queries also get a long-context answer. "
+        "Defaults to all of them. One long-context answer costs 134,000 prompt "
+        "tokens against 7,300 for a retrieval answer -- 18x -- so tying the two "
+        "arms to one sample size capped the whole evaluation at whatever the "
+        "expensive arm could afford. Separating them lets the retrieval arm and "
+        "its faithfulness judging grow while the comparison arm stays where the "
+        "daily allowance leaves it.",
+    )
     parser.add_argument(
         "--judge-long-context",
         action="store_true",
@@ -180,8 +229,18 @@ def main() -> None:  # noqa: PLR0912,PLR0915 - a linear pipeline; splitting it w
     docs = load_corpus()
     by_id = {d.doc_id: d for d in docs}
     queries = read_eval_set(QUERIES_PATH)
-    chosen = sample_queries(queries, args.n_queries)
-    log.info("sampled %d of %d queries", len(chosen), len(queries))
+    pinned = previously_answered(RESULTS_PATH)
+    chosen = sample_queries(queries, args.n_queries, pinned=pinned)
+    log.info(
+        "sampled %d of %d queries (%d carried over from the published run)",
+        len(chosen),
+        len(queries),
+        sum(1 for q in chosen if q.query_id in set(pinned)),
+    )
+    long_context_ids = {
+        q.query_id
+        for q in (chosen if args.n_long_context is None else chosen[: args.n_long_context])
+    }
 
     # Best first stage currently measured: structure-aware chunking with BM25.
     chunker = make_chunker("struct512")
@@ -214,7 +273,7 @@ def main() -> None:  # noqa: PLR0912,PLR0915 - a linear pipeline; splitting it w
                     answers.append(answer)
                     scores.append(score_answer(answer, query, gold_ids))
 
-                if not args.skip_long_context:
+                if not args.skip_long_context and query.query_id in long_context_ids:
                     gold_doc = by_id.get(query.gold[0].doc_id)
                     if gold_doc is not None:
                         stuffed = stuff_document(gold_doc)
@@ -313,6 +372,10 @@ def main() -> None:  # noqa: PLR0912,PLR0915 - a linear pipeline; splitting it w
     payload = {
         "model": args.model,
         "n_queries_sampled": len(chosen),
+        # Recorded separately because the two arms no longer have to share a
+        # sample size. Reporting one number for both would overstate the arm
+        # that ran on fewer queries, which is the comparison arm.
+        "n_long_context_sampled": len(long_context_ids) if not args.skip_long_context else 0,
         "n_queries_total": len(queries),
         "retrieval_top_k": args.top_k,
         "long_context_budget_chars": LONG_CONTEXT_CHARS,
@@ -358,25 +421,55 @@ def publish(payload: dict, results_path: Path, table_path: Path) -> bool:
     Returns whether it wrote.
     """
 
-    def _counts(payload: dict) -> tuple[int, int]:
-        scores = payload.get("scores", [])
-        return len(scores), sum(1 for s in scores if s.get("faithfulness") is not None)
+    def _counts(payload: dict) -> dict[str, tuple[int, int]]:
+        """Scored answers and faithfulness verdicts, per arm and in total.
 
-    previous = (0, 0)
+        Per arm, because comparing only the totals lets a run that drops an entire
+        arm through: skipping the long-context arm and asking for forty retrieval
+        queries yields more scores than a file holding eleven of each, so a
+        total-only guard writes and the long-context measurements are gone --
+        including the cost ratio this project quotes as a headline. That is the
+        same defect this guard already fixed once for verdicts hiding inside a
+        matching score count, left unfixed one level up.
+        """
+        per_arm: dict[str, tuple[int, int]] = {}
+        for score in payload.get("scores", []):
+            arm = score.get("arm") or "unknown"
+            scored, verdicts = per_arm.get(arm, (0, 0))
+            per_arm[arm] = (scored + 1, verdicts + (score.get("faithfulness") is not None))
+        # The empty key is the total, so a shrinking overall run is refused even
+        # when every individual arm happens to be absent from the previous file.
+        return {
+            **per_arm,
+            "": (
+                sum(v[0] for v in per_arm.values()),
+                sum(v[1] for v in per_arm.values()),
+            ),
+        }
+
+    previous: dict[str, tuple[int, int]] = {}
     if results_path.exists():
         try:
             previous = _counts(json.loads(results_path.read_text(encoding="utf-8")))
         except (OSError, ValueError):
             # An unreadable file is not evidence of anything worth protecting.
-            previous = (0, 0)
+            previous = {}
 
     current = _counts(payload)
-    if current[0] < previous[0] or current[1] < previous[1]:
+    lost = {
+        arm: (was, current.get(arm, (0, 0)))
+        for arm, was in previous.items()
+        if current.get(arm, (0, 0))[0] < was[0] or current.get(arm, (0, 0))[1] < was[1]
+    }
+    if lost:
+        detail = "; ".join(
+            f"{arm or 'total'} {was[0]} scored/{was[1]} judged -> {now[0]}/{now[1]}"
+            for arm, (was, now) in sorted(lost.items())
+        )
+        reason = payload.get("incomplete_reason") or "This run stopped early."
         print(
-            f"\nREFUSING TO OVERWRITE {results_path.name}: it holds {previous[0]} scored "
-            f"answers and {previous[1]} faithfulness verdicts; this run produced "
-            f"{current[0]} and {current[1]}. "
-            f"{payload.get('incomplete_reason') or 'This run stopped early.'}\n"
+            f"\nREFUSING TO OVERWRITE {results_path.name}: this run holds fewer "
+            f"measurements than the file does. {detail}. {reason}\n"
             f"Re-run when quota allows, or delete the file to replace it deliberately."
         )
         return False
@@ -392,7 +485,9 @@ def render(payload: dict) -> str:
         "",
         f"Model `{payload['model']}`, "
         f"{payload['n_queries_sampled']} of {payload['n_queries_total']} queries "
-        f"(seeded stratified sample across the lexical-overlap range).",
+        f"(seeded stratified sample across the lexical-overlap range), of which "
+        f"{payload.get('n_long_context_sampled', payload['n_queries_sampled'])} also "
+        f"received a long-context answer.",
         "",
         "The **long-context arm is handed the correct filing**, while the retrieval",
         "arm must find it among 120. That makes long-context a deliberately",
