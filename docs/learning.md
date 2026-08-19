@@ -876,6 +876,28 @@ point survives in the form the data supports -- the baseline gains 2.89x from a
 question quoting the document, reranking 1.31x, the embedding arms 1.16x -- but the
 sentence as written was false, and it had been read past many times.
 
+**And CI had never passed.** Asked what was left, the honest answer included "I
+have not seen the workflow run", and checking found the badge reading *failing* --
+not from a recent change, but across every run in the repository's history. The
+durations gave it away before the badge did: nine to fourteen seconds, for a job
+that is supposed to install a project, run five hundred tests on two Python
+versions, and render a PDF.
+
+Two causes, both the same shape. The matrix declared `python-version: ["3.12",
+"3.14"]` and nothing consumed it -- there was no `setup-python` step and the value
+was never passed to `setup-uv`, so the version list was decoration. And the install
+step used `uv pip install --system` while every later step ran `uv run
+--no-project`, which does not see what `--system` installed. Locally both work,
+because a project virtualenv exists here for `uv run` to find; on a clean runner
+neither does. The fix is `uv sync --extra dev --extra service` and plain `uv run`,
+which is what the lockfile is for.
+
+The lesson is the one this document keeps arriving at from different directions. A
+green checkmark nobody looked at is worth exactly as much as a gate whose failure
+nobody read, and this repository had been carrying both while its author -- me --
+described the suite as passing. It was: locally, in an environment the workflow
+never reproduced.
+
 **The guard was extended again, for the field it had just failed to protect.**
 `publish` counted scored answers and faithfulness verdicts per arm. It did not count
 live latency samples, and latency is the one figure here that a cached re-run

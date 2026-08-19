@@ -30,18 +30,27 @@ jobs:
         uses: astral-sh/setup-uv@v5
         with:
           enable-cache: true
+          # The matrix declared a Python version and nothing consumed it: there was
+          # no setup-python step and this input was absent, so every job ran against
+          # whatever interpreter the runner happened to have. Together with the
+          # --system install below, that is why this workflow had never passed.
+          python-version: ${{ matrix.python-version }}
 
       - name: Install project (CPU only, no model weights, no GPU extra)
-        run: uv pip install --system -e ".[dev,service]"
+        # `uv sync` builds the project's own environment from uv.lock, which is the
+        # thing the lockfile exists for. The previous `uv pip install --system`
+        # installed into an ambient interpreter that the later `uv run --no-project`
+        # calls could not see.
+        run: uv sync --extra dev --extra service
 
       - name: Lint
-        run: uv run --no-project python -m ruff check .
+        run: uv run ruff check .
 
       - name: Format check
-        run: uv run --no-project python -m ruff format --check .
+        run: uv run ruff format --check .
 
       - name: Test
-        run: uv run --no-project python -m pytest -m "not gpu and not live" --cov=retrieval_ablation
+        run: uv run python -m pytest -m "not gpu and not live" --cov=retrieval_ablation
 
       - name: Render and verify the learning document
         # The renderer's own gate checks things the suite cannot: that the real
@@ -50,14 +59,14 @@ jobs:
         # stale baseline figure once and its printed failure was pushed past
         # anyway, which is the argument for running it somewhere that can fail the
         # build rather than somewhere a person has to read.
-        run: uv run --no-project python scripts/render_pdf.py --no-preview
+        run: uv run python scripts/render_pdf.py --no-preview
 
       - name: Confirm the committed PDF is the one this source renders
         # A source change with a stale committed PDF ships a document that
         # disagrees with its own markdown. Compared by extracted text, not bytes:
         # the PDF carries a creation timestamp, so two identical renders differ.
         run: |
-          uv run --no-project python - <<'EOF'
+          uv run python - <<'EOF'
           import subprocess, sys, fitz
           def text(path):
               with fitz.open(path) as doc:
