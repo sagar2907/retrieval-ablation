@@ -876,6 +876,21 @@ point survives in the form the data supports -- the baseline gains 2.89x from a
 question quoting the document, reranking 1.31x, the embedding arms 1.16x -- but the
 sentence as written was false, and it had been read past many times.
 
+**The guard was extended again, for the field it had just failed to protect.**
+`publish` counted scored answers and faithfulness verdicts per arm. It did not count
+live latency samples, and latency is the one figure here that a cached re-run
+destroys while looking entirely successful: every answer comes back from disk, the
+score count matches, the verdicts match, and no call is timed. Replaying the real
+files through the old guard confirms it -- the run that replaced a valid 11-and-10
+same-session comparison with "not measured" was allowed through, and the new one
+refuses it.
+
+Refusing alone would have been the wrong fix. That run also gained sixteen scores
+and seven verdicts, so "delete the file to replace it deliberately" would have
+thrown away the gain to keep the smaller thing. When latency is the only field that
+regressed the message now says to archive first, which is what was actually done
+here by hand.
+
 **And the limitations list was the most wrong thing in the document.** Asked
 whether the project was finished, the honest answer needed checking rather than
 recalling, and checking found that four of the nine items in section 21 were false.

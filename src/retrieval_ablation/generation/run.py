@@ -421,22 +421,36 @@ def publish(payload: dict, results_path: Path, table_path: Path) -> bool:
     Returns whether it wrote.
     """
 
-    def _counts(payload: dict) -> dict[str, tuple[int, int]]:
-        """Scored answers and faithfulness verdicts, per arm and in total.
+    def _counts(payload: dict) -> dict[str, tuple[int, int, int]]:
+        """Scored answers, faithfulness verdicts and live latency samples, per arm.
 
         Per arm, because comparing only the totals lets a run that drops an entire
         arm through: skipping the long-context arm and asking for forty retrieval
         queries yields more scores than a file holding eleven of each, so a
         total-only guard writes and the long-context measurements are gone --
-        including the cost ratio this project quotes as a headline. That is the
-        same defect this guard already fixed once for verdicts hiding inside a
-        matching score count, left unfixed one level up.
+        including the cost ratio this project quotes as a headline.
+
+        Live latency samples are counted for a reason learned the hard way. Every
+        answer can come from cache, so a re-run reproduces the same score count and
+        the same verdicts while measuring no latency at all -- and that is exactly
+        what happened: a valid same-session comparison of 11 and 10 live calls was
+        replaced by a file reporting latency as unmeasured, and it was noticed only
+        afterwards. Cost survives a cached re-run because token counts do not depend
+        on when a call was made. Latency does not, which makes it the one field here
+        that a successful-looking run can silently destroy.
         """
-        per_arm: dict[str, tuple[int, int]] = {}
+        per_arm: dict[str, tuple[int, int, int]] = {}
         for score in payload.get("scores", []):
             arm = score.get("arm") or "unknown"
-            scored, verdicts = per_arm.get(arm, (0, 0))
-            per_arm[arm] = (scored + 1, verdicts + (score.get("faithfulness") is not None))
+            scored, verdicts, live = per_arm.get(arm, (0, 0, 0))
+            per_arm[arm] = (scored + 1, verdicts + (score.get("faithfulness") is not None), live)
+
+        latency = payload.get("latency") or {}
+        for arm, stats in latency.items():
+            scored, verdicts, _ = per_arm.get(arm, (0, 0, 0))
+            n_live = int((stats or {}).get("n_live") or 0)
+            per_arm[arm] = (scored, verdicts, n_live)
+
         # The empty key is the total, so a shrinking overall run is refused even
         # when every individual arm happens to be absent from the previous file.
         return {
@@ -444,10 +458,11 @@ def publish(payload: dict, results_path: Path, table_path: Path) -> bool:
             "": (
                 sum(v[0] for v in per_arm.values()),
                 sum(v[1] for v in per_arm.values()),
+                sum(v[2] for v in per_arm.values()),
             ),
         }
 
-    previous: dict[str, tuple[int, int]] = {}
+    previous: dict[str, tuple[int, int, int]] = {}
     if results_path.exists():
         try:
             previous = _counts(json.loads(results_path.read_text(encoding="utf-8")))
@@ -456,21 +471,37 @@ def publish(payload: dict, results_path: Path, table_path: Path) -> bool:
             previous = {}
 
     current = _counts(payload)
+    empty = (0, 0, 0)
     lost = {
-        arm: (was, current.get(arm, (0, 0)))
+        arm: (was, current.get(arm, empty))
         for arm, was in previous.items()
-        if current.get(arm, (0, 0))[0] < was[0] or current.get(arm, (0, 0))[1] < was[1]
+        if any(now < before for now, before in zip(current.get(arm, empty), was, strict=True))
     }
     if lost:
         detail = "; ".join(
-            f"{arm or 'total'} {was[0]} scored/{was[1]} judged -> {now[0]}/{now[1]}"
+            f"{arm or 'total'} {was[0]}/{was[1]}/{was[2]} -> {now[0]}/{now[1]}/{now[2]}"
             for arm, (was, now) in sorted(lost.items())
         )
         reason = payload.get("incomplete_reason") or "This run stopped early."
+        # A run that gains scores and verdicts but loses only latency is the common
+        # case, and deleting the file would throw away the gain to keep the smaller
+        # thing. Archiving keeps both, which is what was actually done the first
+        # time this happened.
+        latency_only = all(
+            now[0] >= was[0] and now[1] >= was[1] and now[2] < was[2] for was, now in lost.values()
+        )
+        advice = (
+            "Only the live latency samples regressed. Copy the current file into "
+            "results/archive/ first -- latency measured in one session is the only "
+            "figure here that a cached re-run cannot reproduce -- then delete it to "
+            "let this run through."
+            if latency_only
+            else "Re-run when quota allows, or delete the file to replace it deliberately."
+        )
         print(
             f"\nREFUSING TO OVERWRITE {results_path.name}: this run holds fewer "
-            f"measurements than the file does. {detail}. {reason}\n"
-            f"Re-run when quota allows, or delete the file to replace it deliberately."
+            f"measurements than the file does, as scored/judged/live-latency per arm. "
+            f"{detail}. {reason}\n{advice}"
         )
         return False
 

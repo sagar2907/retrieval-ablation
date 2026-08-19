@@ -323,3 +323,81 @@ class TestPreviouslyAnswered:
         bad = tmp_path / "bad.json"
         bad.write_text("{ not json", encoding="utf-8")
         assert previously_answered(bad) == []
+
+
+class TestLatencyProtection:
+    """Latency is the one field a successful-looking re-run can silently destroy."""
+
+    @staticmethod
+    def with_latency(scores: int, retrieval_live: int, lc_live: int) -> dict:
+        out = payload(
+            scores,
+            extra=[
+                {"query_id": f"lc{i}", "arm": "long_context", "faithfulness": None}
+                for i in range(10)
+            ],
+        )
+        out["latency"] = {
+            "retrieval": {"n_live": retrieval_live, "p95": 4.542 if retrieval_live else None},
+            "long_context": {"n_live": lc_live, "p95": 16.908 if lc_live else None},
+        }
+        return out
+
+    def test_a_cached_rerun_cannot_erase_a_live_latency_measurement(self, tmp_path):
+        """Regression: a valid same-session comparison was replaced by "not measured".
+
+        Every answer can come from cache, so a re-run reproduces the same score
+        count and the same verdicts while making no live call at all. Cost survives
+        that, because token counts do not depend on when a call was made; latency
+        does not. An 11-and-10 live measurement was overwritten by a file reporting
+        latency as unmeasured, and it was noticed only afterwards.
+        """
+        results, table = tmp_path / "generation.json", tmp_path / "generation.md"
+        publish(self.with_latency(11, retrieval_live=11, lc_live=10), results, table)
+
+        cached = self.with_latency(11, retrieval_live=0, lc_live=0)
+        cached["incomplete_reason"] = "every answer served from cache"
+
+        assert publish(cached, results, table) is False
+        kept = json.loads(results.read_text(encoding="utf-8"))
+        assert kept["latency"]["long_context"]["n_live"] == 10
+
+    def test_a_run_with_more_live_calls_still_writes(self, tmp_path):
+        """Otherwise re-measuring latency could never be recorded."""
+        results, table = tmp_path / "generation.json", tmp_path / "generation.md"
+        publish(self.with_latency(11, retrieval_live=5, lc_live=5), results, table)
+
+        assert publish(self.with_latency(11, retrieval_live=11, lc_live=10), results, table) is True
+
+    def test_a_payload_without_latency_at_all_is_still_handled(self, tmp_path):
+        """The field is optional; its absence must not crash the guard."""
+        results, table = tmp_path / "generation.json", tmp_path / "generation.md"
+
+        assert publish(payload(3), results, table) is True
+
+    def test_the_advice_names_archiving_when_only_latency_regressed(self, tmp_path, capsys):
+        """A run that gains scores and loses only latency must not be told to delete.
+
+        That is the common case -- it is what happened the first time -- and
+        deleting the file to let the better run through would throw away the gain in
+        order to keep the smaller thing. Archiving keeps both.
+        """
+        results, table = tmp_path / "generation.json", tmp_path / "generation.md"
+        publish(self.with_latency(11, retrieval_live=11, lc_live=10), results, table)
+
+        better = self.with_latency(30, retrieval_live=0, lc_live=0)
+        assert publish(better, results, table) is False
+
+        printed = capsys.readouterr().out
+        assert "archive" in printed
+        assert "Only the live latency samples regressed" in printed
+
+    def test_a_genuinely_smaller_run_is_told_to_re_run(self, tmp_path, capsys):
+        """The other branch: fewer scores is not an archiving problem."""
+        results, table = tmp_path / "generation.json", tmp_path / "generation.md"
+        publish(self.with_latency(20, retrieval_live=5, lc_live=5), results, table)
+
+        assert publish(self.with_latency(2, retrieval_live=5, lc_live=5), results, table) is False
+
+        printed = capsys.readouterr().out
+        assert "Re-run when quota allows" in printed
