@@ -24,6 +24,19 @@ weak check by design: it does not know which number belongs in which sentence, o
 that the figure exists somewhere in the measurements. It still catches a figure left
 behind by a re-run, which is the failure that actually happens.
 
+WHAT THIS CANNOT CATCH
+
+`results/archive/` holds the earlier 216-query runs, and those are results files
+too, so a decimal left behind from the smaller benchmark is still "found somewhere"
+and passes. That is deliberate -- the archive is quoted on purpose in several
+places -- but it means a stale decimal from a superseded run can survive this check.
+Percentages are what caught the one real instance, because a *relative* change
+between two values rarely coincides across two different benchmarks.
+
+The check also cannot tell whether a figure is in the right sentence. It only knows
+the number exists in some measurement. Both limits are the price of a check simple
+enough that its output is believed.
+
 Numbers that legitimately do not appear in the results need an entry in `ALLOWED`
 with a reason. Two kinds qualify: a historical value quoted deliberately, and a
 difference derived from two results files. Requiring the reason in writing is the
@@ -61,11 +74,47 @@ ALLOWED = {
         "derived: the largest positive difference between the same two files "
         "(rerank-candidates-50). Verified against both files"
     ),
+    "50.6%": (
+        "derived: dense retrieval's high-overlap score against the baseline's. "
+        "The generated overlap table computes the same figure; the prose repeats it"
+    ),
+    "31.7%": (
+        "a parsing diagnostic -- hidden inline-XBRL as a share of one filing's "
+        "characters. Measured during the corpus build, not part of any ablation"
+    ),
+    "111.7%": (
+        "the stale reranking figure from the 216-query overlap table, quoted in "
+        "section 14e as the example this check was extended to catch"
+    ),
+    "104.4%": (
+        "its corrected counterpart, quoted in the same sentence so the comparison "
+        "is legible. The live value is in the generated overlap-split table"
+    ),
+    "76%": (
+        "the wrong BM25 loss figure that stood in two places, quoted in 14e beside the correct one"
+    ),
+    "73.2%": (
+        "derived: the baseline's relative nDCG loss under paraphrasing, computed "
+        "from ablation.json and ablation-paraphrased.json. Rounded to 73% elsewhere"
+    ),
+    "71.8%": (
+        "from a one-off retrieval-depth diagnostic that was never written to "
+        "results/, so it cannot be re-checked here. Weaker evidence than anything "
+        "else in this document, and flagged as such rather than silently trusted"
+    ),
 }
 
 #: Three or four decimal places. Two is too noisy -- versions, section numbers and
 #: ordinary prose are full of them -- and this project reports its metrics at four.
 FIGURE = re.compile(r"\b\d+\.\d{3,4}\b")
+
+#: Percentages are the most drift-prone figures here, because nearly every one is
+#: derived from two results values, so a re-run moves it while the sentence stays
+#: put. Adding this pattern found a whole stale table in docs/learning.md still
+#: carrying the 216-query numbers, and a claim that dense retrieval scored higher
+#: on low-overlap queries than high-overlap ones -- true of the smaller benchmark,
+#: false on this one, and never re-checked.
+PERCENT = re.compile(r"\b(\d+(?:\.\d)?)%")
 
 
 def prose(path: Path) -> str:
@@ -110,20 +159,62 @@ def figures_in_results() -> set[str]:
     return found
 
 
+def percentages_in_results() -> set[str]:
+    """Every results value expressed as a percentage, at the precisions prose uses.
+
+    A percentage in the documents is almost always a value scaled by 100 or a
+    relative change between two of them. Only the first is reconstructed here; a
+    relative change that no single value explains has to be justified in ALLOWED,
+    which is the cost of keeping the check simple enough to trust.
+    """
+    found: set[str] = set()
+
+    def walk(node: object) -> None:
+        if isinstance(node, dict):
+            for value in node.values():
+                walk(value)
+        elif isinstance(node, list):
+            for value in node:
+                walk(value)
+        elif isinstance(node, (int, float)) and not isinstance(node, bool):
+            for value in (float(node) * 100, abs(float(node)) * 100, float(node)):
+                found.add(f"{value:.0f}")
+                found.add(f"{value:.1f}")
+
+    for path in sorted(RESULTS.rglob("*.json")):
+        try:
+            walk(json.loads(path.read_text(encoding="utf-8")))
+        except (OSError, ValueError):
+            continue
+    return found
+
+
 def unverifiable() -> list[tuple[str, str, str]]:
-    """Figures in prose that no results file contains: (document, figure, context)."""
-    known = figures_in_results()
+    """Figures in prose that no results file contains: (document, figure, context).
+
+    Two patterns, because they fail differently. A decimal is usually copied from a
+    results file and goes stale when that file changes. A percentage is usually
+    computed from two of them and goes stale the same way, but is far easier to miss
+    by eye -- which is how a whole table of 216-query percentages survived in
+    docs/learning.md next to a generated table contradicting it.
+    """
+    decimals = figures_in_results()
+    percents = percentages_in_results()
     out: list[tuple[str, str, str]] = []
     for doc in DOCS:
         if not doc.exists():
             continue
         text = prose(doc)
-        for match in FIGURE.finditer(text):
-            figure = match.group(0)
-            if figure in known or figure in ALLOWED:
-                continue
-            context = text[max(0, match.start() - 70) : match.start() + 40]
-            out.append((doc.name, figure, " ".join(context.split())))
+        for pattern, known, suffix in (
+            (FIGURE, decimals, ""),
+            (PERCENT, percents, "%"),
+        ):
+            for match in pattern.finditer(text):
+                figure = match.group(1) if suffix else match.group(0)
+                if figure in known or figure + suffix in ALLOWED:
+                    continue
+                context = text[max(0, match.start() - 70) : match.start() + 40]
+                out.append((doc.name, figure + suffix, " ".join(context.split())))
     return out
 
 

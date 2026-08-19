@@ -259,3 +259,32 @@ class TestProseFigures:
         """An allowlist without reasons is where failures get quietly filed away."""
         for figure, reason in audit_figures.ALLOWED.items():
             assert reason and len(reason) > 30, f"{figure} needs a real justification"
+
+    def test_a_stale_percentage_is_reported(self, monkeypatch, tmp_path):
+        """Regression: a whole table of 216-query percentages survived a re-run.
+
+        docs/learning.md carried a second, hand-maintained copy of the overlap-split
+        table showing the baseline at 0.1091 and reranking at +111.7%, forty lines
+        from a generated table showing 0.0823 and +104.4%. The decimals in it are
+        still findable in results/archive/, so only the percentage exposed it --
+        a relative change between two values rarely coincides across benchmarks.
+        """
+        doc = tmp_path / "stale.md"
+        doc.write_text("| rerank-bm25-100 | 0.2309 | +111.7% |", encoding="utf-8")
+        monkeypatch.setattr(audit_figures, "DOCS", [doc])
+        # Emptied deliberately: 14e now quotes this very figure while explaining the
+        # defect, so it sits in the live allowlist. The mechanism is what is under
+        # test, not the current contents of ALLOWED.
+        monkeypatch.setattr(audit_figures, "ALLOWED", {})
+
+        assert "111.7%" in [figure for _, figure, _ in audit_figures.unverifiable()]
+
+    def test_a_percentage_that_matches_a_measurement_passes(self, monkeypatch, tmp_path):
+        """Otherwise the check would flag every correct figure too."""
+        doc = tmp_path / "fine.md"
+        pct = audit_figures.percentages_in_results()
+        assert "20.4" in pct, "expected the label-audit rejection rate to be reconstructible"
+        doc.write_text("The audit rejected 20.4% of the labels.", encoding="utf-8")
+        monkeypatch.setattr(audit_figures, "DOCS", [doc])
+
+        assert audit_figures.unverifiable() == []

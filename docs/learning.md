@@ -859,6 +859,23 @@ than deleted, since it was a real same-session comparison -- and it says 3.7x, w
 the document had been claiming 1.9x by quoting the run's overall p95 as though it
 were one arm's.
 
+**Then the check found a whole table.** Extending the figure audit to percentages
+-- because a percentage is derived from two values and moves whenever either does --
+turned up a second, hand-maintained copy of the overlap-split table in this
+document, still carrying the 216-query numbers: the baseline at 0.1091 and reranking
+at +111.7%, forty lines from the generated table showing 0.0823 and +104.4%. Its
+decimals passed the audit, because `results/archive/` legitimately still contains
+them. Only the percentages exposed it. The table is now a generated block, and the
+same sentence's claim that "BM25 loses 76% of its score" was 73% in the README and
+73.2% in the results.
+
+The passage under it made a claim that had simply stopped being true: dense
+retrieval was described as the only configuration whose low-overlap score exceeded
+its high-overlap score. On the 586-query set no configuration does. The underlying
+point survives in the form the data supports -- the baseline gains 2.89x from a
+question quoting the document, reranking 1.31x, the embedding arms 1.16x -- but the
+sentence as written was false, and it had been read past many times.
+
 **And the limitations list was the most wrong thing in the document.** Asked
 whether the project was finished, the honest answer needed checking rather than
 recalling, and checking found that four of the nine items in section 21 were false.
@@ -986,7 +1003,7 @@ entirely. The defensible reading is that both sit on the boundary — 0.050 and
 0.059 are not meaningfully different from 0.05, and calling one a finding and the
 other nothing would be reading the third decimal place as if it meant something.
 
-The `change` column is the mechanism. BM25 loses 76% of its score once questions
+The `change` column is the mechanism. BM25 loses 73% of its score once questions
 stop quoting their answers; dense loses 17%, because it was never using the
 overlap. About three quarters of the baseline's score was the benchmark handing it
 back its own words — and every semantic method was being compared against that.
@@ -1001,7 +1018,7 @@ One thing does not move: chunking and table rendering stay null on both wordings
 The confound was specific, not a haze over everything, and that is precisely why
 it survived so long. Most of the table looked stable.
 
-The middle column is the mechanism. BM25 loses 76% of its score once the questions
+The middle column is the mechanism. BM25 loses 73% of its score once the questions
 stop quoting their answers; dense loses 17%. Dense was never using the overlap, so
 it had almost nothing to lose. About three quarters of what BM25 was scoring was
 the benchmark handing it back its own words.
@@ -1076,29 +1093,39 @@ just worse here — and the next section explains most of what "here" is doing.
 
 Splitting queries at 0.4 content-word overlap with their gold passage:
 
-| configuration | low-overlap | vs base | high-overlap | vs base |
+<!-- generated:overlap-split -->
+| configuration | low-overlap nDCG | vs base | high-overlap nDCG | vs base |
 |---|---|---|---|---|
-| baseline | 0.1091 | — | 0.2254 | — |
-| `rerank-bm25-100` | **0.2309** | **+111.7%** | 0.1969 | −12.6% |
-| `rerank-candidates-200` | 0.2104 | +92.9% | 0.1767 | −21.6% |
-| `rerank-candidates-50` | 0.1937 | +77.6% | 0.2218 | −1.6% |
-| `retrieval-hybrid-rrf` | 0.1374 | +25.9% | 0.2207 | −2.1% |
-| `retrieval-dense-bge` | 0.1346 | +23.4% | 0.1143 | −49.3% |
-| `embed-e5-base` | 0.0467 | −57.2% | 0.0394 | −82.5% |
+| `baseline-bm25-fixed512` | 0.0823 | — | 0.2378 | — |
+| `rerank-bm25-100` | 0.1682 | +104.4% | 0.2205 | −7.3% |
+| `rerank-candidates-50` | 0.1680 | +104.1% | 0.2382 | +0.2% |
+| `rerank-candidates-25` | 0.1664 | +102.3% | 0.2276 | −4.3% |
+| `rerank-candidates-200` | 0.1564 | +90.1% | 0.2051 | −13.7% |
+| `hybrid-plus-rerank` | 0.1604 | +95.0% | 0.1963 | −17.5% |
+| `retrieval-hybrid-rrf` | 0.0921 | +11.9% | 0.2134 | −10.3% |
+| `retrieval-dense-bge` | 0.0676 | −17.8% | 0.1174 | −50.6% |
+<!-- /generated:overlap-split -->
 
 **The cross-encoder roughly doubles performance where the question does not share
 wording with its answer, and slightly hurts where it does.** Exactly the right
 shape: where BM25 already has an exact string match there is nothing to fix, and
-reordering can only push a correct top hit down. The +0.019 average is a large
+reordering can only push a correct top hit down. The +0.0097 average is a large
 positive on half the queries cancelled by a small negative on the other half.
 
 The dense rows make the same point from the other direction, and they are the
 reason the overall dense numbers should not be read as "embeddings are bad at
-finance". `retrieval-dense-bge` is the **only** configuration in the whole grid
-whose low-overlap score *exceeds* its high-overlap score — 0.1346 against 0.1143.
-Every lexical configuration roughly doubles in the other direction. That is the
-signature of a method that does not match on strings: it gains nothing when the
-query reuses the document's wording, and loses nothing when it does not.
+finance". Read the ratio of each configuration's high-overlap score to its
+low-overlap one — how much it gains from the question quoting the document. The
+baseline gains the most, at 2.89×. Reranking cuts that to 1.31×. The embedding arms
+sit lowest at 1.16×, and dense at 1.74×. That is the signature of a method that does
+not match on strings: it benefits least when the query reuses the document's
+wording, which is also why it looks worst on a benchmark built out of that wording.
+
+*(This passage previously said dense was the only configuration whose low-overlap
+score exceeded its high-overlap score, quoting 0.1346 against 0.1143. On the
+586-query set no configuration does — dense scores 0.0676 low against 0.1174 high.
+The claim was true of the smaller benchmark and was never re-checked. The ratio form
+above survives the change because it was the actual point.)*
 
 Which means the benchmark is not neutral between the two families. Its queries are
 generated from table rows and reuse the row labels verbatim, handing BM25 an exact
