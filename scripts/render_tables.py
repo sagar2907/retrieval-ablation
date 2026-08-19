@@ -263,15 +263,17 @@ def generation() -> str:
 
     p95_rag = comparison.get("retrieval_p95_latency_s")
     p95_lc = comparison.get("long_context_p95_latency_s")
+    # Each arm reports its own measurement; the ratio appears only when both were
+    # measured live in the same run. Printing "not measured" for an arm that was
+    # measured, merely because its counterpart was not, understates the work -- and
+    # a dash with no explanation reads as zero rather than as absent.
+    cell_rag = f"{p95_rag} s" if p95_rag else "not measured"
+    cell_lc = f"{p95_lc} s" if p95_lc else "not measured"
     if p95_rag and p95_lc:
-        lines.append(
-            f"| p95 latency | {p95_rag} s | {p95_lc} s | **{comparison['latency_ratio']}{TIMES}** |"
-        )
+        ratio_cell = f"**{comparison['latency_ratio']}{TIMES}**"
     else:
-        # Never a dash with no explanation: a reader cannot tell "not measured"
-        # from "measured as nothing", and this project has published the second
-        # while meaning the first.
-        lines.append("| p95 latency | not measured | not measured | — |")
+        ratio_cell = "not comparable"
+    lines.append(f"| p95 latency | {cell_rag} | {cell_lc} | {ratio_cell} |")
     return "\n".join(lines)
 
 
