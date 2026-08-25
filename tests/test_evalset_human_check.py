@@ -201,3 +201,51 @@ class TestApplyVerdicts:
         assert after.gold == original.gold
         assert after.text == original.text
         assert after.lexical_overlap == original.lexical_overlap
+
+
+class TestVerificationSampleSpread:
+    """The sample claims to span the overlap range, so it has to."""
+
+    @staticmethod
+    def spread(total: int, n: int) -> list[int]:
+        """The indices the sampler now selects, as a pure calculation."""
+        if n >= total:
+            return list(range(total))
+        stride = total / n
+        return [min(total - 1, int(i * stride)) for i in range(n)]
+
+    def test_the_highest_overlap_queries_are_reachable(self):
+        """Regression: the top 39 queries could never be sampled.
+
+        `ordered[::step][:n]` strides and then truncates. At 586 queries and 40
+        wanted the stride is 14, so the last index taken was 546 of 585 and the
+        highest-overlap end of the range was unreachable -- while the file's own
+        header told the reader it was "spread across the lexical-overlap range".
+
+        It survived because the bias ran towards the queries this project cares
+        about least: low-overlap queries are the interesting ones, so nobody missed
+        the high-overlap tail.
+        """
+        old = list(range(0, 586, max(1, 586 // 40)))[:40]
+        new = self.spread(586, 40)
+
+        assert old[-1] == 546
+        assert new[-1] > old[-1]
+        assert new[-1] >= 585 - 40
+
+    def test_the_sample_is_the_requested_size(self):
+        assert len(self.spread(586, 40)) == 40
+
+    def test_indices_are_strictly_increasing(self):
+        """A repeated index would silently shrink the sample."""
+        got = self.spread(586, 40)
+
+        assert got == sorted(got)
+        assert len(set(got)) == len(got)
+
+    def test_asking_for_more_than_exists_returns_everything(self):
+        assert self.spread(5, 40) == [0, 1, 2, 3, 4]
+
+    def test_the_low_end_is_still_included(self):
+        """The fix must not trade one end of the range for the other."""
+        assert self.spread(586, 40)[0] == 0

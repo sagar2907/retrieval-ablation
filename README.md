@@ -279,7 +279,7 @@ rather than as a single project-level claim.
 | Generation + long-context comparison | numbers above, from the API's own reported token counts; cost only — latency is reported as not measured, because the two arms' timings came from different sessions |
 | FastAPI service, Docker, citation UI | live run: index 31.7 s, /search 1.9 ms, /answer 429 path verified |
 
-**563 tests pass, offline, with no API key and no model download.** `ruff` clean.
+**568 tests pass, offline, with no API key and no model download.** `ruff` clean.
 
 ### Not done
 

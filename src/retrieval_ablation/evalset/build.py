@@ -47,8 +47,17 @@ def write_verification_sample(
     """
     target = SAMPLE_PATH if path is None else path
     ordered = sorted(queries, key=lambda q: q.lexical_overlap or 0.0)
-    step = max(1, len(ordered) // n)
-    chosen = ordered[::step][:n]
+    # Evenly spaced across the whole list, not `ordered[::step][:n]`. Striding and
+    # then truncating stops short of the end: at 586 queries and 40 wanted, the
+    # stride is 14 and the last index taken is 546, so the 39 highest-overlap
+    # queries could never be sampled -- while the file's own header claimed the
+    # sample was spread across the overlap range. The bias ran towards the queries
+    # this project already considers least interesting, which is why it survived.
+    if n >= len(ordered):
+        chosen = list(ordered)
+    else:
+        stride = len(ordered) / n
+        chosen = [ordered[min(len(ordered) - 1, int(i * stride))] for i in range(n)]
 
     lines = [
         "# Verification sample",
