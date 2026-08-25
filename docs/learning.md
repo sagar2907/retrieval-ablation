@@ -833,7 +833,7 @@ expected to find.
 prompt tokens; a retrieval answer costs 7,300. Tying both to `--n-queries` meant the
 cheap arm was capped by the expensive one, so a day's allowance bought twelve
 queries of each rather than many of one. Splitting the budget took the retrieval arm
-from 12 answers to 46 across two days, and faithfulness verdicts from 5 to 23.
+from 12 answers to 66 across two days, and faithfulness verdicts from 5 to 32.
 The blocker was a design decision wearing a quota's clothing.
 
 **Growing the sample threw away everything already paid for.** The sample was a
@@ -1260,13 +1260,13 @@ the whole evaluation at what the expensive arm could afford in a day.
 <!-- generated:long-context -->
 | | retrieval (top-10) | long context (whole filing) | ratio |
 |---|---|---|---|
-| queries answered | 46 | 11 | — |
-| mean prompt tokens | 7,316 | 130,819 | **17.9×** |
-| cost per query | $0.011155 | $0.196508 | **17.6×** |
-| accuracy, of answered | 0.609 | 0.636 | — |
-| refused | 23 of 46 | 0 of 11 | — |
-| faithfulness | 1.000 (23 judged) | not measured | — |
-| p95 latency | 63.149 s | not measured | not comparable |
+| queries answered | 66 | 11 | — |
+| mean prompt tokens | 7,147 | 130,819 | **18.3×** |
+| cost per query | $0.010895 | $0.196508 | **18.0×** |
+| accuracy, of answered | 0.656 | 0.636 | — |
+| refused | 34 of 66 | 0 of 11 | — |
+| faithfulness | 1.000 (32 judged) | not measured | — |
+| p95 latency | 15.489 s | not measured | not comparable |
 <!-- /generated:long-context -->
 
 **The brief's "roughly 1,250× cheaper" is not reproducible.** 1,250× requires
@@ -1283,16 +1283,24 @@ because re-measuring it costs a fresh long-context pass of roughly 1.4M prompt
 tokens, which is more than a day's free-tier allowance. Cost survives the same
 problem: token counts do not depend on when a call was made.
 
-**Long context wins on accuracy, and the refusal column says why:** retrieval
-declined 23 of 46 questions because the answer was not in its top-10. When it did
-answer, the two arms were close, and retrieval cited its sources -- which the
-long-context arm structurally cannot, since its whole context is one document. So
-retrieval is far cheaper and loses on accuracy *because its first stage is weak*,
-which is the same finding as Part IV arrived at from the other direction.
+**Retrieval refuses half the questions, and that is the whole story:** it declined
+34 of 66 because the answer was not in its top-10. On the ones it did answer it is
+now marginally *more* accurate than long context, 0.656 against 0.636, and it cites
+its sources -- which the long-context arm structurally cannot, since its entire
+context is one document. So the honest summary is that retrieval is eighteen times
+cheaper and answers half as often, and the gap is created by its first stage, not by
+the model writing the answer. That is Part IV's finding reached from the other
+direction.
+
+**This paragraph used to say long context wins on accuracy.** It did, at 11 and 27
+answers. The ordering reversed once the retrieval arm reached 66, which is a useful
+demonstration of how little a two-decimal accuracy gap means at these sample sizes:
+neither arm has a confidence interval narrow enough to call this, and the refusal
+rate is the difference that survives.
 
 Three caveats that cut against the result. Long context is **handed the correct
 filing** while retrieval must find it among 120. The samples are small and no
-longer equal -- 46 retrieval answers against 11 long-context ones -- because the
+longer equal -- 66 retrieval answers against 11 long-context ones -- because the
 arms were separated to stop the expensive one capping the cheap one. And
 faithfulness is measured on the retrieval arm only: judging a long-context answer
 means sending the whole filing to the judge as well, about 130,000 tokens per
@@ -1371,11 +1379,11 @@ non-interaction row differs from its reference on exactly one axis.
    read "six of fifteen unmeasured" and stayed in the list for several commits after
    the GPU runs closed that gap — a limitations section that understated the work,
    which is the same drift as one that overstates it and no more honest.
-5. **Generation is measured on 46 retrieval answers and 11 long-context ones**, of
+5. **Generation is measured on 66 retrieval answers and 11 long-context ones**, of
    586 queries, and the two arms no longer share a sample size. Cost ratios are
    solid. Accuracy is indicative at this sample. Latency is not measured at all in
    the published run; §17 says why.
-6. **Faithfulness is measured on the retrieval arm only** — 23 verdicts, all
+6. **Faithfulness is measured on the retrieval arm only** — 32 verdicts, all
    faithful. Too few to quote as a rate. The long-context arm is unjudged because
    one verdict means sending the whole filing to the judge, about 130,000 tokens.
 7. **Approximate token counting** (characters ÷ 4) rather than a real tokenizer.

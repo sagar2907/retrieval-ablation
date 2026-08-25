@@ -285,9 +285,9 @@ rather than as a single project-level claim.
 
 | Missing | Why | What unblocks it |
 |---|---|---|
-| Faithfulness at a usable sample size | 23 judged answers, all faithful — enough to show the pass works, still too few to quote as a rate | free-tier quota for more answers; the judging itself is cheap |
+| Faithfulness at a usable sample size | 32 judged answers, all faithful — enough to show the pass works, still too few to quote as a rate | free-tier quota for more answers; the judging itself is cheap |
 | Faithfulness of the long-context arm | its context is a whole filing, ~130k tokens per judgement against ~7.5k for a retrieval answer | `--judge-long-context`, on a paid tier |
-| Generation + long-context at full sample | 46 retrieval answers and 11 long-context ones, of 586 queries. The arms have separate budgets now, so the cheap one is no longer capped by the expensive one, but both are still quota-bound | free-tier quota, or re-run tomorrow; the run resumes from cache rather than restarting |
+| Generation + long-context at full sample | 66 retrieval answers and 11 long-context ones, of 586 queries. The arms have separate budgets now, so the cheap one is no longer capped by the expensive one, but both are still quota-bound | free-tier quota, or re-run tomorrow; the run resumes from cache rather than restarting |
 | Human verification of eval labels | requires a person; the model-assisted pass is labelled `MODEL_CHECKED`, never `HUMAN_VERIFIED` | tick the boxes in `data/eval/verification_sample.md` (40 queries, spread across the overlap range), then run `python -m retrieval_ablation.evalset.human_check` to read them back, and add `--apply` to write the verdicts into the eval set |
 
 ### The parse was not reproducible across machines
