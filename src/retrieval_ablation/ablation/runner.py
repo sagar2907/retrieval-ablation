@@ -54,10 +54,12 @@ from ..evalset.schema import EvalQuery, Verification, gold_by_query, read_eval_s
 from ..evalset.synthesize import _query_id, extract_table_facts
 from ..index.artifacts import (
     PrecomputedReranker,
+    covers_every_query,
     dense_index_from_artifact,
     load_query_vectors,
     load_rerank_scores,
     load_vectors,
+    query_vector_coverage,
 )
 from ..index.bm25 import BM25Index
 from ..index.dense import DenseIndex
@@ -438,7 +440,7 @@ def _prepare(
                 key,
                 embedding_key,
             )
-        elif len(query_vectors) < len({q.text for q in queries}):
+        elif not covers_every_query(query_vectors, queries):
             # Partial coverage is not a usable dense arm, and must not be
             # discovered mid-search. PrecomputedEmbedder raises KeyError on a query
             # it has no vector for, and that exception escapes the retriever and
@@ -453,13 +455,13 @@ def _prepare(
             # query text, so two queries wording the same question collapse to one
             # entry, and comparing against the query count reported a shortfall for
             # a complete artifact -- 582 of 586 when all 586 were present.
-            wanted = len({q.text for q in queries})
+            covered, wanted = query_vector_coverage(query_vectors, queries)
             log.warning(
                 "group %s: queryvectors-%s covers %d of %d distinct query texts. "
                 "Skipping rather than scoring a subset.",
                 key,
                 embedding_key,
-                len(query_vectors),
+                covered,
                 wanted,
             )
             return _Prepared(
@@ -469,8 +471,8 @@ def _prepare(
                 None,
                 skipped_reason=(
                     f"query vectors for {embedding_key} cover only "
-                    f"{len(query_vectors)} of {len({q.text for q in queries})} distinct "
-                    f"query texts. Re-run the GPU notebook against the current eval set."
+                    f"{covered} of {wanted} distinct query texts. "
+                    f"Re-run the GPU notebook against the current eval set."
                 ),
             )
         dense = dense_index_from_artifact(artifact, chunks, query_vectors)

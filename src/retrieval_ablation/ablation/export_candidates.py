@@ -38,7 +38,11 @@ from ..corpus.ingest import load_corpus
 from ..evalset.build import QUERIES_PATH
 from ..evalset.paraphrase import PARAPHRASED_PATH
 from ..evalset.schema import read_eval_set
-from ..index.artifacts import dense_index_from_artifact, load_query_vectors
+from ..index.artifacts import (
+    dense_index_from_artifact,
+    load_query_vectors,
+    query_vector_coverage,
+)
 from ..index.base import Retriever
 from ..index.bm25 import BM25Index
 from ..index.fusion import HybridRetriever
@@ -131,8 +135,7 @@ def main() -> None:
             # -- and skipped the arm. Both mistakes were made twice, here and in the
             # runner, which is what happens when two places ask the same question
             # of the same artifact and each answers it separately.
-            covered = len(query_vectors or {})
-            wanted = len({q.text for q in queries})
+            covered, wanted = query_vector_coverage(query_vectors, queries)
             if not vectors.exists() or covered < wanted:
                 log.warning(
                     "skipping %s: a %s first stage needs vectors for %s covering all "

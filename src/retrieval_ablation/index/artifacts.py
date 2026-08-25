@@ -233,6 +233,45 @@ def load_query_vectors(
     return best
 
 
+def query_vector_coverage(
+    query_vectors: Mapping[str, object] | None,
+    queries: Sequence[object],
+) -> tuple[int, int]:
+    """How many distinct query texts an artifact covers, and how many exist.
+
+    Counted in distinct *texts*, not queries. `load_query_vectors` returns a mapping
+    keyed by query text, because text is what a Retriever is handed, so two queries
+    wording the same question collapse to one entry. Comparing the mapping's size
+    against the query count therefore reports a shortfall for a complete artifact --
+    "582 of 586" when all 586 were present -- and skips a measurable arm.
+
+    That mistake was made twice, in the runner and in the candidate export, because
+    each place asked the same question of the same artifact and answered it
+    separately. This function exists so there is one answer. Returns (covered,
+    wanted) rather than a bool so callers can report both numbers, which is what
+    makes the warning actionable.
+    """
+    covered = len(query_vectors or {})
+    wanted = len({getattr(q, "text", q) for q in queries})
+    return covered, wanted
+
+
+def covers_every_query(
+    query_vectors: Mapping[str, object] | None,
+    queries: Sequence[object],
+) -> bool:
+    """Whether the artifact can serve every query, not merely some of them.
+
+    Partial coverage is not a usable dense arm and must not be discovered mid-search:
+    `PrecomputedEmbedder` raises KeyError for a query it has no vector for, and that
+    exception escapes the retriever and aborts the whole grid. Reachable simply by
+    growing the eval set, since the artifacts cover the queries that existed when the
+    GPU last ran.
+    """
+    covered, wanted = query_vector_coverage(query_vectors, queries)
+    return covered >= wanted
+
+
 def dense_index_from_artifact(
     path: Path,
     chunks: Sequence[Chunk],

@@ -200,3 +200,82 @@ class TestLoadQueryVectors:
 
         assert got is not None
         assert set(got) == {"ask a"}
+
+
+class TestQueryVectorCoverage:
+    """One answer to "does this artifact cover these queries", shared by two callers.
+
+    The same mistake was made twice -- once in the ablation runner, once in the
+    candidate export -- because each place asked that question of the same artifact
+    and answered it separately. Both compared the mapping's size against the number
+    of queries, and the mapping is keyed by query *text*.
+    """
+
+    @staticmethod
+    def queries(texts):
+        from types import SimpleNamespace
+
+        return [SimpleNamespace(text=t, query_id=f"q{i}") for i, t in enumerate(texts)]
+
+    def test_duplicate_query_texts_do_not_look_like_missing_vectors(self):
+        """Regression: a complete artifact was reported as "582 of 586".
+
+        Two queries wording the same question collapse to one entry, because text is
+        what a Retriever is handed. Comparing against the query count therefore
+        showed a shortfall for an artifact covering everything, and the arm was
+        skipped -- a measurable configuration reported as unmeasured, twice.
+        """
+        from retrieval_ablation.index.artifacts import (
+            covers_every_query,
+            query_vector_coverage,
+        )
+
+        queries = self.queries(["what was revenue?", "what was revenue?", "and profit?"])
+        vectors = {"what was revenue?": object(), "and profit?": object()}
+
+        covered, wanted = query_vector_coverage(vectors, queries)
+
+        assert (covered, wanted) == (2, 2)
+        assert covers_every_query(vectors, queries) is True
+
+    def test_a_genuinely_partial_artifact_is_still_refused(self):
+        """The check must not become permissive in fixing the false alarm.
+
+        Growing the eval set reaches this: the artifact covers the queries that
+        existed when the GPU last ran, and every query added since has no vector.
+        """
+        from retrieval_ablation.index.artifacts import (
+            covers_every_query,
+            query_vector_coverage,
+        )
+
+        queries = self.queries(["a", "b", "c"])
+        vectors = {"a": object(), "b": object()}
+
+        assert query_vector_coverage(vectors, queries) == (2, 3)
+        assert covers_every_query(vectors, queries) is False
+
+    def test_a_missing_artifact_covers_nothing(self):
+        from retrieval_ablation.index.artifacts import (
+            covers_every_query,
+            query_vector_coverage,
+        )
+
+        queries = self.queries(["a", "b"])
+
+        assert query_vector_coverage(None, queries) == (0, 2)
+        assert covers_every_query(None, queries) is False
+
+    def test_an_empty_query_set_is_covered_by_anything(self):
+        """Nothing to serve is not a shortfall, and must not read as one."""
+        from retrieval_ablation.index.artifacts import covers_every_query
+
+        assert covers_every_query({}, []) is True
+
+    def test_extra_vectors_are_not_a_problem(self):
+        """An artifact built against a larger eval set still serves a smaller one."""
+        from retrieval_ablation.index.artifacts import covers_every_query
+
+        queries = self.queries(["a"])
+
+        assert covers_every_query({"a": object(), "b": object()}, queries) is True
