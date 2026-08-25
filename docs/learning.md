@@ -1306,6 +1306,16 @@ faithfulness is measured on the retrieval arm only: judging a long-context answe
 means sending the whole filing to the judge as well, about 130,000 tokens per
 verdict, so that cell reads *not measured* rather than being quietly skipped.
 
+On that last point, the earlier claim that it "requires a paid tier" was an
+assumption rather than a measurement, and it was wrong. A verdict costs about 131,000
+prompt tokens because the judge must see the filing too, and a single day of this
+project has spent 2.1M prompt tokens -- about sixteen verdicts, if a day were given
+over to them. That is a small sample and still a measurement rather than a blank
+cell. What it competes with is exact and is already in the table above: one
+long-context verdict costs what 18.3 retrieval answers cost. So the real question is
+never free against paid, it is one judged long-context answer against eighteen more
+retrieval ones, and so far the second has been worth more.
+
 ## 18. Operating findings
 
 **GPU throughput, Tesla T4, 42,215 chunks each:** BGE-M3 13.9 min (51 chunks/sec);
