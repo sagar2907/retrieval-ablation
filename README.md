@@ -279,7 +279,7 @@ rather than as a single project-level claim.
 | Generation + long-context comparison | numbers above, from the API's own reported token counts; cost only — latency is reported as not measured, because the two arms' timings came from different sessions |
 | FastAPI service, Docker, citation UI | live run: index 31.7 s, /search 1.9 ms, /answer 429 path verified |
 
-**543 tests pass, offline, with no API key and no model download.** `ruff` clean.
+**554 tests pass, offline, with no API key and no model download.** `ruff` clean.
 
 ### Not done
 
@@ -288,7 +288,7 @@ rather than as a single project-level claim.
 | Faithfulness at a usable sample size | 23 judged answers, all faithful — enough to show the pass works, still too few to quote as a rate | free-tier quota for more answers; the judging itself is cheap |
 | Faithfulness of the long-context arm | its context is a whole filing, ~130k tokens per judgement against ~7.5k for a retrieval answer | `--judge-long-context`, on a paid tier |
 | Generation + long-context at full sample | 46 retrieval answers and 11 long-context ones, of 586 queries. The arms have separate budgets now, so the cheap one is no longer capped by the expensive one, but both are still quota-bound | free-tier quota, or re-run tomorrow; the run resumes from cache rather than restarting |
-| Human verification of eval labels | requires a person; the model-assisted pass is labelled `MODEL_CHECKED`, never `HUMAN_VERIFIED` | fill in `data/eval/verification_sample.md` |
+| Human verification of eval labels | requires a person; the model-assisted pass is labelled `MODEL_CHECKED`, never `HUMAN_VERIFIED` | tick the boxes in `data/eval/verification_sample.md` (40 queries, spread across the overlap range), then run `python -m retrieval_ablation.evalset.human_check` to read them back, and add `--apply` to write the verdicts into the eval set |
 
 ### The parse was not reproducible across machines
 

@@ -876,6 +876,24 @@ point survives in the form the data supports -- the baseline gains 2.89x from a
 question quoting the document, reranking 1.31x, the embedding arms 1.16x -- but the
 sentence as written was false, and it had been read past many times.
 
+**A mechanism the documentation described and the code did not have.**
+`build.py` writes `verification_sample.md` for a person to mark, and its docstring
+said "a reader marks each entry, the marks are fed back, and the verified subset
+becomes reportable on its own terms". Nothing fed them back. There was no code that
+could read a tick, so the file could have been filled in completely and the project
+would still have reported its labels as unverified.
+
+That is the `latency_stats` defect again -- a docstring describing behaviour its
+function never performed -- and the cost here is somebody's afternoon. The reader
+exists now, and it refuses the obvious temptation: an unmarked sample reports the
+rejection rate as *not measured* rather than as zero, a partly marked one reports a
+rate over the marked subset and says so in the same sentence, and an entry with both
+boxes ticked is skipped rather than resolved in whichever direction seemed likely.
+Applying the verdicts is a separate flag, because reading a file and changing a
+benchmark are different acts, and only the queries a person actually marked are
+touched -- treating "absent from the sample" as a verdict would relabel 546 of 586
+queries from one afternoon's work.
+
 **And CI had never passed.** Asked what was left, the honest answer included "I
 have not seen the workflow run", and checking found the badge reading *failing* --
 not from a recent change, but across every run in the repository's history. The
