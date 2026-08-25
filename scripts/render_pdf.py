@@ -593,10 +593,10 @@ def verify(
         "verified" on that PDF. Asking what must be *absent* is a different question
         and needs its own check.
     """
-    import fitz
+    import pymupdf
 
     forbidden = list(forbidden or [])
-    doc = fitz.open(pdf_path)
+    doc = pymupdf.open(pdf_path)
     print(f"  pages: {doc.page_count}")
 
     if preview:

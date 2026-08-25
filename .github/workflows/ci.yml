@@ -67,9 +67,9 @@ jobs:
         # the PDF carries a creation timestamp, so two identical renders differ.
         run: |
           uv run python - <<'EOF'
-          import subprocess, sys, fitz
+          import subprocess, sys, pymupdf
           def text(path):
-              with fitz.open(path) as doc:
+              with pymupdf.open(path) as doc:
                   return "".join(page.get_text() for page in doc)
           committed = subprocess.run(
               ["git", "show", "HEAD:docs/retrieval-ablation-learning.pdf"],

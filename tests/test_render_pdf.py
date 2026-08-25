@@ -15,7 +15,7 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
-import fitz
+import pymupdf
 import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -111,7 +111,7 @@ class TestHtmlComments:
         )
 
         out = render_pdf.render(source, tmp_path / "doc.pdf")
-        with fitz.open(out) as doc:
+        with pymupdf.open(out) as doc:
             text = "".join(page.get_text() for page in doc)
 
         assert "generated:headline" not in text
@@ -131,7 +131,7 @@ class TestHtmlComments:
         )
 
         out = render_pdf.render(source, tmp_path / "doc.pdf")
-        with fitz.open(out) as doc:
+        with pymupdf.open(out) as doc:
             text = "".join(page.get_text() for page in doc)
 
         assert "generated:headline" in text
@@ -142,7 +142,7 @@ def rendered_text(tmp_path: Path, markdown: str) -> str:
     source = tmp_path / "doc.md"
     source.write_text(markdown, encoding="utf-8")
     out = render_pdf.render(source, tmp_path / "doc.pdf")
-    with fitz.open(out) as doc:
+    with pymupdf.open(out) as doc:
         return "".join(page.get_text() for page in doc)
 
 
