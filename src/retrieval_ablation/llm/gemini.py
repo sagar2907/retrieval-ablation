@@ -213,10 +213,16 @@ class GeminiClient:
                 self.usage.rate_limited += 1
                 delay = self._retry_delay(response, attempt)
                 if attempt == self._max_attempts:
+                    violation = self._quota_violation(response)
+                    named = (
+                        f"The server names the exceeded quota as {violation}. "
+                        if violation
+                        else "The response named no specific quota. "
+                    )
                     raise QuotaExhaustedError(
                         f"still rate-limited after {attempt} attempts on {path}. "
-                        f"The daily free-tier quota is likely spent; re-run later. "
-                        f"Cached work is preserved, so the run resumes rather than restarts."
+                        f"{named}Re-run later; cached work is preserved, so the run "
+                        f"resumes rather than restarts."
                     )
                 log.warning(
                     "429 on %s (attempt %d/%d), waiting %.1fs",
@@ -241,6 +247,37 @@ class GeminiClient:
             raise RuntimeError(f"{response.status_code} from {path}: {response.text[:400]}")
 
         raise QuotaExhaustedError(f"exhausted retries on {path}")
+
+    @staticmethod
+    def _quota_violation(response: httpx.Response) -> str:
+        """Describe which quota the server says was exceeded.
+
+        A 429 body carries a QuotaFailure detail naming the exact limit -- for this
+        project, `GenerateRequestsPerDayPerProjectPerModel-FreeTier` with a value of
+        20. The previous message guessed instead: "the daily free-tier quota is
+        likely spent". It was hedged, and it was still a guess about a fact the
+        response states outright, which meant every run's stopping reason was an
+        inference rather than a quotation.
+
+        It matters beyond tidiness. The guess encouraged reasoning about token
+        budgets, and the limit the server actually names is counted in *requests*.
+        A cheap call and an expensive one cost the same against it.
+
+        Returns an empty string when the body carries no such detail, because
+        inventing a reason is what this replaces.
+        """
+        try:
+            details = response.json().get("error", {}).get("details", [])
+        except ValueError:
+            return ""
+        for detail in details:
+            for violation in detail.get("violations", []) or []:
+                quota_id = violation.get("quotaId")
+                if not quota_id:
+                    continue
+                value = violation.get("quotaValue")
+                return f"{quota_id}" + (f" (limit {value})" if value else "")
+        return ""
 
     def _retry_delay(self, response: httpx.Response, attempt: int) -> float:
         """Honour the server's RetryInfo when present, else exponential backoff."""

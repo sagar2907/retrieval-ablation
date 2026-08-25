@@ -143,3 +143,63 @@ class TestConstruction:
         """Failing at construction beats failing halfway through a paid run."""
         with pytest.raises(Exception, match=r"(?i)gemini_api_key|required|missing"):
             GeminiClient(settings=Settings(gemini_api_key=None))
+
+
+class TestQuotaViolation:
+    """The stopping reason should be quoted from the server, not guessed."""
+
+    class Fake:
+        def __init__(self, payload):
+            self._payload = payload
+
+        def json(self):
+            if self._payload is None:
+                raise ValueError("not json")
+            return self._payload
+
+    def test_the_named_quota_is_extracted(self):
+        """Regression in kind: the run reported an inference as its reason.
+
+        The old message said "the daily free-tier quota is likely spent". Hedged,
+        and still a guess about something the 429 body states outright. Worse, it
+        pointed at the wrong unit -- it invited reasoning about token budgets, while
+        the limit the server names is counted in requests, where a 131,000-token
+        call and a 7,000-token one cost exactly the same.
+        """
+        response = self.Fake(
+            {
+                "error": {
+                    "details": [
+                        {"@type": "...Help", "links": []},
+                        {
+                            "@type": "...QuotaFailure",
+                            "violations": [
+                                {
+                                    "quotaId": "GenerateRequestsPerDayPerProjectPerModel-FreeTier",
+                                    "quotaValue": "20",
+                                }
+                            ],
+                        },
+                    ]
+                }
+            }
+        )
+
+        got = GeminiClient._quota_violation(response)
+
+        assert got == "GenerateRequestsPerDayPerProjectPerModel-FreeTier (limit 20)"
+
+    def test_a_violation_without_a_value_still_names_the_quota(self):
+        response = self.Fake({"error": {"details": [{"violations": [{"quotaId": "SomeQuota"}]}]}})
+
+        assert GeminiClient._quota_violation(response) == "SomeQuota"
+
+    def test_a_body_with_no_quota_detail_yields_nothing(self):
+        """Empty, not invented: producing a reason here is what this replaced."""
+        response = self.Fake({"error": {"details": [{"@type": "...RetryInfo"}]}})
+
+        assert GeminiClient._quota_violation(response) == ""
+
+    def test_an_unparseable_body_is_not_an_error(self):
+        """A 429 from a proxy may not be JSON at all, and must not mask the 429."""
+        assert GeminiClient._quota_violation(self.Fake(None)) == ""

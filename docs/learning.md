@@ -1306,15 +1306,33 @@ faithfulness is measured on the retrieval arm only: judging a long-context answe
 means sending the whole filing to the judge as well, about 130,000 tokens per
 verdict, so that cell reads *not measured* rather than being quietly skipped.
 
-On that last point, the earlier claim that it "requires a paid tier" was an
-assumption rather than a measurement, and it was wrong. A verdict costs about 131,000
-prompt tokens because the judge must see the filing too, and a single day of this
-project has spent 2.1M prompt tokens -- about sixteen verdicts, if a day were given
-over to them. That is a small sample and still a measurement rather than a blank
-cell. What it competes with is exact and is already in the table above: one
-long-context verdict costs what 18.3 retrieval answers cost. So the real question is
-never free against paid, it is one judged long-context answer against eighteen more
-retrieval ones, and so far the second has been worth more.
+That cell has now had two wrong explanations attached to it, and the second was
+mine from a few hours ago.
+
+The first was "requires a paid tier", written before anything was measured. The
+second replaced it with arithmetic: a verdict costs about 131,000 prompt tokens
+because the judge must see the filing too, a day of this project has spent 2.1M
+prompt tokens, so about sixteen verdicts fit in a day -- and one verdict therefore
+costs what 18.3 retrieval answers cost. Every number in that is real. The reasoning
+is still wrong, because it assumes tokens are what runs out.
+
+Reading the 429 body instead of guessing at it says otherwise. The server names the
+quota it enforced: `GenerateRequestsPerDayPerProjectPerModel-FreeTier`, with a value
+of 20. That is counted in **requests**, and against a request limit a
+131,000-token judgement and a 7,000-token answer cost exactly the same. The
+eighteen-to-one trade-off I had just written down does not exist.
+
+**And the picture still does not close.** The same day's run recorded 109 live calls
+against a limit the server reports as 20. Both of those are observations, and they
+cannot both be the whole story, so the constraint is not characterised here and this
+document will not pretend otherwise. What is established is narrower and still
+useful: the enforced limit is expressed in requests, so reasoning about token cost
+does not predict what a day buys, and the client now quotes the quota the server
+names instead of inferring one.
+
+The general lesson is the one this section keeps producing. The first explanation was
+an assumption. The second was an assumption wearing arithmetic, which is harder to
+notice and took a deliberate look at an error body to dislodge.
 
 ## 18. Operating findings
 
