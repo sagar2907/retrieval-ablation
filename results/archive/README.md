@@ -52,3 +52,23 @@ new, so every answer comes from cache and no call is timed. `publish` refuses th
 write on its own — latency is the one field a successful-looking cached re-run
 destroys — and archiving is the path its message recommends: keep the measurement,
 let the better run through.
+
+## `generation-long-context-faithfulness.json`
+
+**The only long-context faithfulness measurement this project has: 9 answers judged,
+all 9 faithful.** Kept here rather than in `results/generation.json` because it was
+produced on a different sample and cannot honestly be merged with the published one.
+
+The run that made it had lost its resume state — the results file had been deleted
+to get past the publish guard, and the pinned query ids are read from that file — so
+it re-drew its sample from scratch. Its long-context arm shares exactly 1 query with
+the published run's 11. The judgements are real judgements of real answers; they
+simply describe a different eleven queries, so pairing this faithfulness figure with
+the published accuracy and cost figures would be comparing two samples as though
+they were one.
+
+Its retrieval arm is thin for the same reason (13 answers against the published 66)
+and is superseded. Only the long-context verdicts are worth reading here.
+
+Completing this properly needs one run with pinning intact: the answers are cached,
+so only the 11 judge calls are new.

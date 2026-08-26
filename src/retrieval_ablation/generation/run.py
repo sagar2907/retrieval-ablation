@@ -214,12 +214,25 @@ def main() -> None:  # noqa: PLR0912,PLR0915 - a linear pipeline; splitting it w
         action="store_true",
         help=(
             "also judge faithfulness of long-context answers. Off by default "
-            "because their context is a whole filing (~130k tokens per judgement, "
-            "against ~7.5k for a retrieval answer), which exhausts a free-tier "
-            "allowance in a handful of calls. Off means that arm reports "
-            "faithfulness as not measured, which is true, rather than skipping it "
-            "silently."
+            "because each judgement sends a whole filing to the judge, ~131k prompt "
+            "tokens against ~7.1k for a retrieval answer. Note that the quota the "
+            "API reports enforcing is counted in requests rather than tokens, so "
+            "that ratio describes the work done and not necessarily what a day "
+            "affords -- an earlier version of this text asserted it exhausts an "
+            "allowance in a handful of calls, which was an inference. Off means the "
+            "arm reports faithfulness as not measured, which is true, rather than "
+            "skipping it silently."
         ),
+    )
+    parser.add_argument(
+        "--force-publish",
+        action="store_true",
+        help="write the results even though this run holds fewer measurements "
+        "than the file does. Exists so that overriding the guard does not require "
+        "deleting the results file: deleting it also erases the resume state, "
+        "because the pinned query ids are read from that same file, and a run "
+        "with nothing to pin re-draws its sample and pays for answers it already "
+        "had.",
     )
     args = parser.parse_args()
 
@@ -390,14 +403,14 @@ def main() -> None:  # noqa: PLR0912,PLR0915 - a linear pipeline; splitting it w
         "answers": [a.to_json() for a in answers],
         "scores": [s.to_json() for s in scores],
     }
-    if not publish(payload, RESULTS_PATH, TABLE_PATH):
+    if not publish(payload, RESULTS_PATH, TABLE_PATH, force=args.force_publish):
         return
 
     print(f"\nwrote {RESULTS_PATH}\nwrote {TABLE_PATH}\n")
     print(json.dumps({"by_arm": by_arm, "comparison": comparison, "usage": usage}, indent=2))
 
 
-def publish(payload: dict, results_path: Path, table_path: Path) -> bool:
+def publish(payload: dict, results_path: Path, table_path: Path, force: bool = False) -> bool:
     """Write the results, unless doing so would lose a more complete run.
 
     This arm is quota-bound, and how far it gets is decided by whatever is left of
@@ -477,7 +490,12 @@ def publish(payload: dict, results_path: Path, table_path: Path) -> bool:
         for arm, was in previous.items()
         if any(now < before for now, before in zip(current.get(arm, empty), was, strict=True))
     }
-    if lost:
+    if lost and force:
+        print(
+            f"\n--force-publish: overwriting {results_path.name} even though this "
+            f"run holds fewer measurements. The previous file is not recoverable."
+        )
+    elif lost:
         detail = "; ".join(
             f"{arm or 'total'} {was[0]}/{was[1]}/{was[2]} -> {now[0]}/{now[1]}/{now[2]}"
             for arm, (was, now) in sorted(lost.items())
@@ -493,11 +511,18 @@ def publish(payload: dict, results_path: Path, table_path: Path) -> bool:
         advice = (
             "Only the live latency samples regressed. Copy the current file into "
             "results/archive/ first -- latency measured in one session is the only "
-            "figure here that a cached re-run cannot reproduce -- then delete it to "
-            "let this run through."
+            "figure here that a cached re-run cannot reproduce -- then re-run with "
+            "--force-publish."
             if latency_only
-            else "Re-run when quota allows, or delete the file to replace it deliberately."
+            else "Re-run when quota allows, or use --force-publish deliberately."
         )
+        # Deliberately not "delete the file". Deleting it does let the write
+        # through, and it also destroys the resume state: `previously_answered`
+        # reads this same file, so the next run has nothing to pin and re-draws its
+        # sample from scratch. That happened here -- a judge-only run answered 13
+        # fresh queries instead of reusing 66, spent the day's quota doing it, and
+        # published a file with a third of the measurements. The guard would have
+        # refused that write; the advice had removed the thing doing the guarding.
         print(
             f"\nREFUSING TO OVERWRITE {results_path.name}: this run holds fewer "
             f"measurements than the file does, as scored/judged/live-latency per arm. "

@@ -279,14 +279,14 @@ rather than as a single project-level claim.
 | Generation + long-context comparison | numbers above, from the API's own reported token counts; cost only — latency is reported as not measured, because the two arms' timings came from different sessions |
 | FastAPI service, Docker, citation UI | live run: index 31.7 s, /search 1.9 ms, /answer 429 path verified |
 
-**568 tests pass, offline, with no API key and no model download.** `ruff` clean.
+**570 tests pass, offline, with no API key and no model download.** `ruff` clean.
 
 ### Not done
 
 | Missing | Why | What unblocks it |
 |---|---|---|
 | Faithfulness at a usable sample size | 32 judged answers, all faithful — enough to show the pass works, still too few to quote as a rate | free-tier quota for more answers; the judging itself is cheap |
-| Faithfulness of the long-context arm | judging one means sending the whole filing to the judge as well, ~131k prompt tokens against ~7.1k for a retrieval answer — but see §17: the quota the server actually enforces is counted in requests, not tokens | `--judge-long-context` on a fresh daily allowance. How many verdicts that buys is not established: the API names a limit of 20 requests per day for this model while a single run recorded 109 live calls, and this project will not guess between two observations it cannot reconcile |
+| Faithfulness of the long-context arm | judging one sends a whole filing to the judge, ~131k prompt tokens against ~7.1k for a retrieval answer | **Measured once, on a different sample:** 9 answers judged, all faithful, archived as `results/archive/generation-long-context-faithfulness.json`. It shares 1 query with the published run's 11, so it is not merged into the table — that would pair two samples as though they were one. Completing it needs a single run with pinning intact: the answers are cached, only the 11 judge calls are new |
 | Generation + long-context at full sample | 66 retrieval answers and 11 long-context ones, of 586 queries. The arms have separate budgets now, so the cheap one is no longer capped by the expensive one, but both are still quota-bound | free-tier quota, or re-run tomorrow; the run resumes from cache rather than restarting |
 | Human verification of eval labels | requires a person; the model-assisted pass is labelled `MODEL_CHECKED`, never `HUMAN_VERIFIED` | tick the boxes in `data/eval/verification_sample.md` (40 queries, spread across the overlap range), then run `python -m retrieval_ablation.evalset.human_check` to read them back, and add `--apply` to write the verdicts into the eval set |
 

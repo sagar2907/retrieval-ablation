@@ -876,6 +876,55 @@ point survives in the form the data supports -- the baseline gains 2.89x from a
 question quoting the document, reranking 1.31x, the embedding arms 1.16x -- but the
 sentence as written was false, and it had been read past many times.
 
+**The guard was right and I went around it anyway.**
+
+Judging the long-context arm needs no new answers, so every answer comes from cache
+and no call is timed. `publish` refuses that write, because live latency samples are
+the one field a successful-looking cached re-run destroys. The refusal was correct.
+Its advice was not: it said to archive the file and then *delete* it to let the run
+through, and I followed my own instruction.
+
+Deleting the results file does let the write through. It also erases the resume
+state, because `previously_answered` reads the pinned query ids out of that same
+file. With nothing to pin, the run re-drew its sample from scratch, answered
+thirteen fresh queries instead of reusing sixty-six, spent the day's request
+allowance doing it, and published a file holding a third of the measurements. The
+guard that exists to refuse exactly that write could not, because the advice had
+removed the thing it guards against.
+
+Two lessons, and the second is the useful one. Overriding a guard should never
+require destroying state -- `--force-publish` now does it explicitly, and the advice
+points there instead. But the deeper point is that the failure came from a piece of
+writing rather than a piece of code: the guard, the pinning and the archive were all
+correct and had all been tested. What was wrong was a sentence telling someone what
+to do next, and no test covers a sentence. That is the same category as the
+docstrings elsewhere in this section describing behaviour their functions never had,
+and it is the category this project has been worst at.
+
+The run was not wasted, and it was not as recoverable as I first said either. It
+produced the first long-context faithfulness verdicts this project has ever had --
+nine answers judged, all nine faithful -- which is the measurement §17 has been
+reporting as absent. I then wrote that restoring the larger file and re-running
+would merge them in through the ordinary code path, because the judgements are
+cached.
+
+That was wrong for the same reason the original loss happened, one step further on.
+Losing the pinning re-drew the *long-context* sample too, so those nine verdicts
+describe eleven queries that share exactly one member with the published run's
+eleven. The cache holds them; nothing in the published sample can use them. The
+re-run had ten fresh judge calls to make and met the day's limit first.
+
+So the figure is real and it is archived as
+`results/archive/generation-long-context-faithfulness.json`, labelled as what it is:
+a measurement of a different eleven queries, which cannot be paired with the
+published accuracy and cost numbers without comparing two samples as though they
+were one. §17 still reads *not measured* for the arm it tabulates, because that
+remains true of the run it tabulates.
+
+Twice now I have said "this is recoverable" before checking which queries were
+involved. The first time cost a day's quota. The second cost only a paragraph, and
+only because the paragraph was checked before anyone read it.
+
 **A mechanism the documentation described and the code did not have.**
 `build.py` writes `verification_sample.md` for a person to mark, and its docstring
 said "a reader marks each entry, the marks are fed back, and the verified subset

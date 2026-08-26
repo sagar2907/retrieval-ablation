@@ -401,3 +401,35 @@ class TestLatencyProtection:
 
         printed = capsys.readouterr().out
         assert "Re-run when quota allows" in printed
+
+    def test_force_writes_through_the_guard(self, tmp_path, capsys):
+        """Overriding must not require deleting the file.
+
+        Deleting it does let the write through, and it also erases the resume
+        state: the pinned query ids are read from that same file, so the next run
+        re-draws its sample and pays again for answers it already had. That is not
+        hypothetical -- a judge-only run did exactly this, answered 13 fresh queries
+        instead of reusing 66, spent the day's quota on it, and published a third of
+        the measurements. The guard would have refused; deleting the file had
+        removed the thing doing the guarding.
+        """
+        results, table = tmp_path / "generation.json", tmp_path / "generation.md"
+        publish(self.with_latency(11, retrieval_live=11, lc_live=10), results, table)
+
+        thin = self.with_latency(2, retrieval_live=0, lc_live=0)
+
+        assert publish(thin, results, table, force=True) is True
+        assert "not recoverable" in capsys.readouterr().out
+        kept = json.loads(results.read_text(encoding="utf-8"))["scores"]
+        assert len([s for s in kept if s["arm"] == "retrieval"]) == 2
+
+    def test_the_advice_no_longer_tells_anyone_to_delete_the_file(self, tmp_path, capsys):
+        """The old wording caused the loss it was written to prevent."""
+        results, table = tmp_path / "generation.json", tmp_path / "generation.md"
+        publish(self.with_latency(11, retrieval_live=11, lc_live=10), results, table)
+
+        publish(self.with_latency(11, retrieval_live=0, lc_live=0), results, table)
+
+        printed = capsys.readouterr().out
+        assert "--force-publish" in printed
+        assert "delete it" not in printed

@@ -1,0 +1,914 @@
+{
+  "model": "gemini-3.6-flash",
+  "n_queries_sampled": 66,
+  "n_long_context_sampled": 11,
+  "n_queries_total": 586,
+  "retrieval_top_k": 10,
+  "long_context_budget_chars": 800000,
+  "long_context_budget_tokens_approx": 200000,
+  "incomplete_reason": "still rate-limited after 8 attempts on /models/gemini-3.6-flash:generateContent. The server names the exceeded quota as GenerateRequestsPerDayPerProjectPerModel-FreeTier (limit 20). Re-run later; cached work is preserved, so the run resumes rather than restarts.",
+  "by_arm": {
+    "long_context": {
+      "n_answers": 11,
+      "n_answered": 9,
+      "n_refused": 2,
+      "refusal_rate": 0.18181818181818182,
+      "value_accuracy_of_answered": 0.6666666666666666,
+      "n_value_scored": 9,
+      "value_accuracy_of_all": 0.5454545454545454,
+      "citation_precision": null,
+      "citation_recall": null,
+      "hallucinated_citation_rate": 0.7272727272727273,
+      "faithfulness": 1.0,
+      "n_faithfulness_judged": 9
+    },
+    "retrieval": {
+      "n_answers": 13,
+      "n_answered": 8,
+      "n_refused": 5,
+      "refusal_rate": 0.38461538461538464,
+      "value_accuracy_of_answered": 1.0,
+      "n_value_scored": 8,
+      "value_accuracy_of_all": 0.6153846153846154,
+      "citation_precision": 0.3541666666666667,
+      "citation_recall": 0.625,
+      "hallucinated_citation_rate": 0.0,
+      "faithfulness": 0.875,
+      "n_faithfulness_judged": 8
+    }
+  },
+  "value_accuracy_ci95": {
+    "long_context": {
+      "point": 0.6666666666666666,
+      "low": 0.3333333333333333,
+      "high": 1.0,
+      "n": 9
+    },
+    "retrieval": {
+      "point": 1.0,
+      "low": 1.0,
+      "high": 1.0,
+      "n": 8
+    }
+  },
+  "cost": {
+    "retrieval": {
+      "n": 13,
+      "prompt_tokens": 75600,
+      "output_tokens": 511,
+      "mean_prompt_tokens": 5815.4,
+      "total_cost_usd": 0.117233,
+      "cost_per_query_usd": 0.00901788
+    },
+    "long_context": {
+      "n": 11,
+      "prompt_tokens": 1447559,
+      "output_tokens": 497,
+      "mean_prompt_tokens": 131596.3,
+      "total_cost_usd": 2.175066,
+      "cost_per_query_usd": 0.19773327
+    }
+  },
+  "latency": {
+    "retrieval": {
+      "n_live": 11,
+      "p50": 9.158,
+      "p95": 51.923,
+      "max": 51.923
+    },
+    "long_context": {
+      "n_live": 10,
+      "p50": 19.107,
+      "p95": 60.566,
+      "max": 60.566
+    }
+  },
+  "comparison": {
+    "measured": true,
+    "retrieval_cost_per_query_usd": 0.00901788,
+    "long_context_cost_per_query_usd": 0.19773327,
+    "cost_ratio_long_context_over_retrieval": 21.9,
+    "retrieval_mean_prompt_tokens": 5815.4,
+    "long_context_mean_prompt_tokens": 131596.3,
+    "retrieval_p95_latency_s": 51.923,
+    "long_context_p95_latency_s": 60.566,
+    "latency_ratio": 1.2,
+    "latency_note": null
+  },
+  "api_usage": {
+    "live_calls": 41,
+    "cached_calls": 4,
+    "prompt_tokens": 2764954,
+    "output_tokens": 1043,
+    "thought_tokens": 16203,
+    "rate_limited_responses": 26,
+    "seconds_spent_waiting": 1359.8,
+    "p95_latency_seconds": 50.189
+  },
+  "answers": [
+    {
+      "query_id": "q-d6e7b22bac1e",
+      "question": "What was Verizon Communications Inc's balance at december 31, for 2022?",
+      "answer": "NOT IN CONTEXT",
+      "context_ids": [
+        "vz-10-k-2022-12-31#00237093-00239084",
+        "vz-10-k-2022-12-31#00240932-00242917",
+        "vz-10-k-2023-12-31#00234175-00236158",
+        "vz-10-k-2023-12-31#00230337-00232327",
+        "vz-10-k-2023-12-31#00460559-00465921",
+        "vz-10-k-2025-12-31#00458832-00462717",
+        "vz-10-k-2024-12-31#00465528-00470813",
+        "vz-10-k-2024-12-31#00232609-00234595",
+        "vz-10-k-2025-12-31#00222249-00224235",
+        "vz-10-k-2024-12-31#00236443-00238423"
+      ],
+      "cited_ids": [],
+      "invalid_citations": [],
+      "refused": true,
+      "prompt_tokens": 7088,
+      "output_tokens": 4,
+      "latency_seconds": 51.92280480000045,
+      "from_cache": false,
+      "model": "gemini-3.6-flash",
+      "arm": "retrieval"
+    },
+    {
+      "query_id": "q-d6e7b22bac1e",
+      "question": "What was Verizon Communications Inc's balance at december 31, for 2022?",
+      "answer": "NOT IN CONTEXT",
+      "context_ids": [
+        "vz-10-k-2022-12-31#fulldoc"
+      ],
+      "cited_ids": [],
+      "invalid_citations": [],
+      "refused": true,
+      "prompt_tokens": 113255,
+      "output_tokens": 4,
+      "latency_seconds": 35.90332810000109,
+      "from_cache": false,
+      "model": "gemini-3.6-flash",
+      "arm": "long_context"
+    },
+    {
+      "query_id": "q-af076cc0cc00",
+      "question": "What was Goldman Sachs Group Inc's tlac to rwas for 2025?",
+      "answer": "As of December 2025, Goldman Sachs's TLAC to RWAs ratio was 41.3% [7], and its TLAC to RWAs requirement was 22.0% [1].",
+      "context_ids": [
+        "gs-10-k-2025-12-31#00467965-00469943",
+        "gs-10-k-2023-12-31#00447576-00449604",
+        "gs-10-k-2022-12-31#00444769-00446734",
+        "gs-10-k-2024-12-31#00454493-00456543",
+        "gs-10-k-2024-12-31#00088333-00089872",
+        "gs-10-k-2022-12-31#00093601-00095444",
+        "gs-10-k-2025-12-31#00469945-00471916",
+        "gs-10-k-2025-12-31#00463329-00464794",
+        "gs-10-k-2024-12-31#00452518-00454491",
+        "gs-10-k-2023-12-31#00986121-00987599"
+      ],
+      "cited_ids": [
+        "gs-10-k-2025-12-31#00469945-00471916",
+        "gs-10-k-2025-12-31#00467965-00469943"
+      ],
+      "invalid_citations": [],
+      "refused": false,
+      "prompt_tokens": 5313,
+      "output_tokens": 47,
+      "latency_seconds": 4.623959199998353,
+      "from_cache": false,
+      "model": "gemini-3.6-flash",
+      "arm": "retrieval"
+    },
+    {
+      "query_id": "q-af076cc0cc00",
+      "question": "What was Goldman Sachs Group Inc's tlac to rwas for 2025?",
+      "answer": "As of December 2025, The Goldman Sachs Group, Inc.'s TLAC to RWAs ratio was 41.3 %, compared to a regulatory requirement of 22.0 % [2].",
+      "context_ids": [
+        "gs-10-k-2025-12-31#fulldoc"
+      ],
+      "cited_ids": [],
+      "invalid_citations": [
+        2
+      ],
+      "refused": false,
+      "prompt_tokens": 184918,
+      "output_tokens": 45,
+      "latency_seconds": 12.951527199998964,
+      "from_cache": false,
+      "model": "gemini-3.6-flash",
+      "arm": "long_context"
+    },
+    {
+      "query_id": "q-6d89273660f6",
+      "question": "What was Exxon Mobil Corp's united states for 2025?",
+      "answer": "NOT IN CONTEXT",
+      "context_ids": [
+        "xom-10-k-2023-12-31#00006273-00007862",
+        "xom-10-k-2022-12-31#00005721-00007458",
+        "xom-10-k-2024-12-31#00006212-00007965",
+        "xom-10-k-2025-12-31#00006214-00008044",
+        "xom-10-k-2025-12-31#00096818-00097509",
+        "xom-10-k-2025-12-31#00262757-00264408",
+        "xom-10-k-2025-12-31#00077273-00079237",
+        "xom-10-k-2024-12-31#00107969-00108612",
+        "xom-10-k-2023-12-31#00107557-00108204",
+        "cvx-10-k-2023-12-31#00348002-00350518"
+      ],
+      "cited_ids": [],
+      "invalid_citations": [],
+      "refused": true,
+      "prompt_tokens": 4430,
+      "output_tokens": 4,
+      "latency_seconds": 25.711135500001546,
+      "from_cache": false,
+      "model": "gemini-3.6-flash",
+      "arm": "retrieval"
+    },
+    {
+      "query_id": "q-6d89273660f6",
+      "question": "What was Exxon Mobil Corp's united states for 2025?",
+      "answer": "NOT IN CONTEXT",
+      "context_ids": [
+        "xom-10-k-2025-12-31#fulldoc"
+      ],
+      "cited_ids": [],
+      "invalid_citations": [],
+      "refused": true,
+      "prompt_tokens": 136836,
+      "output_tokens": 4,
+      "latency_seconds": 13.360652299998037,
+      "from_cache": false,
+      "model": "gemini-3.6-flash",
+      "arm": "long_context"
+    },
+    {
+      "query_id": "q-c9d23c01389a",
+      "question": "What was Jpmorgan Chase & Co's tangible common equity for 2023?",
+      "answer": "At period-end December 31, 2023, JPMorgan Chase & Co.\u2019s tangible common equity was $247,611 million, and the average tangible common",
+      "context_ids": [
+        "jpm-10-k-2024-12-31#00284697-00286655",
+        "jpm-10-k-2023-12-31#00282995-00284935",
+        "jpm-10-k-2022-12-31#00217157-00219075",
+        "jpm-10-k-2023-12-31#00231045-00233072",
+        "jpm-10-k-2023-12-31#00281048-00282993",
+        "jpm-10-k-2022-12-31#00265928-00267864",
+        "jpm-10-k-2025-12-31#00259419-00261293",
+        "jpm-10-k-2024-12-31#00224370-00226328",
+        "jpm-10-k-2023-12-31#00185555-00187138",
+        "jpm-10-k-2025-12-31#00257412-00259417"
+      ],
+      "cited_ids": [],
+      "invalid_citations": [],
+      "refused": false,
+      "prompt_tokens": 6216,
+      "output_tokens": 40,
+      "latency_seconds": 10.169342300003336,
+      "from_cache": false,
+      "model": "gemini-3.6-flash",
+      "arm": "retrieval"
+    },
+    {
+      "query_id": "q-c9d23c01389a",
+      "question": "What was Jpmorgan Chase & Co's tangible common equity for 2023?",
+      "answer": "As of December 31, 2023, JPMorgan Chase & Co.'s period-end tangible common equity was $247,611 million, while the average tangible common equity for the year ended December 31, 2023, was $230,109 million [64].",
+      "context_ids": [
+        "jpm-10-k-2023-12-31#fulldoc"
+      ],
+      "cited_ids": [],
+      "invalid_citations": [
+        64
+      ],
+      "refused": false,
+      "prompt_tokens": 211193,
+      "output_tokens": 71,
+      "latency_seconds": 30.516236900002696,
+      "from_cache": false,
+      "model": "gemini-3.6-flash",
+      "arm": "long_context"
+    },
+    {
+      "query_id": "q-6a778420782a",
+      "question": "Apple Inc. ending balances 2024",
+      "answer": "For fiscal year 2024 (ended September 28, 2024), Apple Inc. reported an ending balance of $56,950 million for total shareholders' equity, $83,276 million for common stock and additional paid-in capital, $(19,154) million for accumulated deficit, and $(7,172) million for accumulated other comprehensive loss [1, 3]. Additionally, common stock outstanding was 15,116,786 thousand shares [5], and gross unrecognized tax benefits ended at $22,038 million [8].",
+      "context_ids": [
+        "aapl-10-k-2024-09-28#00129699-00131266",
+        "aapl-10-k-2023-09-30#00125224-00126779",
+        "aapl-10-k-2025-09-27#00133010-00134554",
+        "aapl-10-k-2022-09-24#00131268-00132954",
+        "aapl-10-k-2025-09-27#00171697-00172676",
+        "aapl-10-k-2023-09-30#00165478-00166526",
+        "aapl-10-k-2023-09-30#00155275-00156471",
+        "aapl-10-k-2024-09-28#00158988-00160785",
+        "aapl-10-k-2024-09-28#00133756-00133906",
+        "aapl-10-k-2023-09-30#00181368-00183014"
+      ],
+      "cited_ids": [
+        "aapl-10-k-2025-09-27#00171697-00172676",
+        "aapl-10-k-2024-09-28#00158988-00160785"
+      ],
+      "invalid_citations": [],
+      "refused": false,
+      "prompt_tokens": 5013,
+      "output_tokens": 134,
+      "latency_seconds": 9.157569599999988,
+      "from_cache": false,
+      "model": "gemini-3.6-flash",
+      "arm": "retrieval"
+    },
+    {
+      "query_id": "q-6a778420782a",
+      "question": "Apple Inc. ending balances 2024",
+      "answer": "For the fiscal year ended September 28, 2024, Apple Inc. reported ending balances of $56,950 million for total shareholders' equity [1] and $29,943 million for cash, cash equivalents, and restricted cash and cash equivalents [1]. Within shareholders' equity, ending balances included $83,276 million in common stock and additional paid-in capital, $(19,154) million in accumulated deficit, and $(7,172) million in accumulated other comprehensive loss [1].",
+      "context_ids": [
+        "aapl-10-k-2024-09-28#fulldoc"
+      ],
+      "cited_ids": [
+        "aapl-10-k-2024-09-28#fulldoc"
+      ],
+      "invalid_citations": [],
+      "refused": false,
+      "prompt_tokens": 53521,
+      "output_tokens": 119,
+      "latency_seconds": 19.107425299996976,
+      "from_cache": false,
+      "model": "gemini-3.6-flash",
+      "arm": "long_context"
+    },
+    {
+      "query_id": "q-9dd2108ecdd7",
+      "question": "Report Chevron Corp's finance lease costs figure for the 2022 fiscal year.",
+      "answer": "Chevron Corp's finance lease costs for the 2022 fiscal year were $57 million [4], [6], [7].",
+      "context_ids": [
+        "cvx-10-k-2022-12-31#00188312-00189837",
+        "wmt-10-k-2023-01-31#00304395-00306016",
+        "wmt-10-k-2024-01-31#00320565-00322191",
+        "cvx-10-k-2022-12-31#00293384-00295080",
+        "nke-10-k-2023-05-31#00358690-00360647",
+        "cvx-10-k-2023-12-31#00310499-00312214",
+        "cvx-10-k-2024-12-31#00315862-00317626",
+        "msft-10-k-2024-06-30#00310774-00311716",
+        "nke-10-k-2024-05-31#00365248-00367068",
+        "wmt-10-k-2026-01-31#00303326-00304954"
+      ],
+      "cited_ids": [
+        "cvx-10-k-2022-12-31#00293384-00295080",
+        "cvx-10-k-2023-12-31#00310499-00312214",
+        "cvx-10-k-2024-12-31#00315862-00317626"
+      ],
+      "invalid_citations": [],
+      "refused": false,
+      "prompt_tokens": 5782,
+      "output_tokens": 30,
+      "latency_seconds": 6.122101000000839,
+      "from_cache": false,
+      "model": "gemini-3.6-flash",
+      "arm": "retrieval"
+    },
+    {
+      "query_id": "q-9dd2108ecdd7",
+      "question": "Report Chevron Corp's finance lease costs figure for the 2022 fiscal year.",
+      "answer": "In the 2022 fiscal year, Chevron Corp's finance lease costs were $57 million [5].",
+      "context_ids": [
+        "cvx-10-k-2022-12-31#fulldoc"
+      ],
+      "cited_ids": [],
+      "invalid_citations": [
+        5
+      ],
+      "refused": false,
+      "prompt_tokens": 140961,
+      "output_tokens": 25,
+      "latency_seconds": 12.527758999996877,
+      "from_cache": false,
+      "model": "gemini-3.6-flash",
+      "arm": "long_context"
+    },
+    {
+      "query_id": "q-ac40bbda1cb6",
+      "question": "Cisco Systems, Inc. secure, agile networks 2022",
+      "answer": "In fiscal 2022 (year ended July 30, 2022), Cisco's Secure, Agile Networks product revenue was $23,829 million, representing a 5% or $1,107 million increase compared to fiscal 2021 [1].",
+      "context_ids": [
+        "csco-10-k-2022-07-30#00196758-00198456",
+        "csco-10-k-2022-07-30#00016991-00018920",
+        "csco-10-k-2023-07-29#00007841-00009360",
+        "csco-10-k-2023-07-29#00020772-00022675",
+        "csco-10-k-2022-07-30#00007388-00008813",
+        "csco-10-k-2022-07-30#00312679-00314291",
+        "csco-10-k-2023-07-29#00189736-00191788",
+        "csco-10-k-2022-07-30#00020979-00022313",
+        "csco-10-k-2023-07-29#00024451-00026398",
+        "csco-10-k-2022-07-30#00419672-00421731"
+      ],
+      "cited_ids": [
+        "csco-10-k-2022-07-30#00196758-00198456"
+      ],
+      "invalid_citations": [],
+      "refused": false,
+      "prompt_tokens": 4314,
+      "output_tokens": 65,
+      "latency_seconds": 50.18930669999827,
+      "from_cache": false,
+      "model": "gemini-3.6-flash",
+      "arm": "retrieval"
+    },
+    {
+      "query_id": "q-ac40bbda1cb6",
+      "question": "Cisco Systems, Inc. secure, agile networks 2022",
+      "answer": "In fiscal 2022, Cisco's Secure, Agile Networks product revenue was $23,829 million [40], [70].",
+      "context_ids": [
+        "csco-10-k-2022-07-30#fulldoc"
+      ],
+      "cited_ids": [],
+      "invalid_citations": [
+        40,
+        70
+      ],
+      "refused": false,
+      "prompt_tokens": 106092,
+      "output_tokens": 34,
+      "latency_seconds": 10.049788900003477,
+      "from_cache": false,
+      "model": "gemini-3.6-flash",
+      "arm": "long_context"
+    },
+    {
+      "query_id": "q-68515ec4c774",
+      "question": "In 2024, what amount did Coca Cola Co record as purchase obligations?",
+      "answer": "NOT IN CONTEXT",
+      "context_ids": [
+        "ko-10-k-2024-12-31#00415463-00417463",
+        "ko-10-k-2024-12-31#00419045-00420611",
+        "ko-10-k-2025-12-31#00420858-00422868",
+        "ko-10-k-2024-12-31#00022679-00024677",
+        "ko-10-k-2025-12-31#00022504-00024506",
+        "ko-10-k-2025-12-31#00200471-00202466",
+        "ko-10-k-2024-12-31#00195400-00197403",
+        "ko-10-k-2023-12-31#00408340-00410313",
+        "ko-10-k-2024-12-31#00000000-00000840",
+        "ko-10-k-2022-12-31#00410610-00412637"
+      ],
+      "cited_ids": [],
+      "invalid_citations": [],
+      "refused": true,
+      "prompt_tokens": 5021,
+      "output_tokens": 4,
+      "latency_seconds": 2.851598899999999,
+      "from_cache": true,
+      "model": "gemini-3.6-flash",
+      "arm": "retrieval"
+    },
+    {
+      "query_id": "q-68515ec4c774",
+      "question": "In 2024, what amount did Coca Cola Co record as purchase obligations?",
+      "answer": "As of December 31, 2023, The Coca-Cola Company recorded $13,701 million in purchase obligations due in 2024, out of a total $23,392 million in purchase obligations [56].",
+      "context_ids": [
+        "ko-10-k-2023-12-31#fulldoc"
+      ],
+      "cited_ids": [],
+      "invalid_citations": [
+        56
+      ],
+      "refused": false,
+      "prompt_tokens": 145644,
+      "output_tokens": 57,
+      "latency_seconds": 7.558778300000085,
+      "from_cache": true,
+      "model": "gemini-3.6-flash",
+      "arm": "long_context"
+    },
+    {
+      "query_id": "q-a2ed65894664",
+      "question": "How much did Coca Cola Co report for net foreign currency translation adjustments in 2024?",
+      "answer": "For the year ended December 31, 2024, total consolidated net foreign currency translation adjustments were $(2,893) million, of which $(2,884) million was attributable to shareowners of The Coca-Cola Company and $(9) million to noncontrolling interests [1], [6]. As of December 31, 2024, accumulated net foreign currency translation adjustments were $(15,610) million [1].",
+      "context_ids": [
+        "ko-10-k-2024-12-31#00495968-00497943",
+        "ko-10-k-2025-12-31#00499514-00501386",
+        "ko-10-k-2023-12-31#00490360-00492341",
+        "ko-10-k-2022-12-31#00494999-00496967",
+        "ko-10-k-2024-12-31#00497945-00499986",
+        "ko-10-k-2024-12-31#00321843-00322915",
+        "ko-10-k-2025-12-31#00321551-00322627",
+        "ko-10-k-2023-12-31#00492343-00494361",
+        "ko-10-k-2022-12-31#00496969-00499006",
+        "ko-10-k-2025-12-31#00503812-00505499"
+      ],
+      "cited_ids": [
+        "ko-10-k-2024-12-31#00495968-00497943",
+        "ko-10-k-2024-12-31#00321843-00322915"
+      ],
+      "invalid_citations": [],
+      "refused": false,
+      "prompt_tokens": 5969,
+      "output_tokens": 100,
+      "latency_seconds": 5.316773000000467,
+      "from_cache": true,
+      "model": "gemini-3.6-flash",
+      "arm": "retrieval"
+    },
+    {
+      "query_id": "q-a2ed65894664",
+      "question": "How much did Coca Cola Co report for net foreign currency translation adjustments in 2024?",
+      "answer": "In 2024, The Coca-Cola Company reported net foreign currency translation adjustments of $(2,893) million [63].",
+      "context_ids": [
+        "ko-10-k-2024-12-31#fulldoc"
+      ],
+      "cited_ids": [],
+      "invalid_citations": [
+        63
+      ],
+      "refused": false,
+      "prompt_tokens": 145417,
+      "output_tokens": 31,
+      "latency_seconds": 60.56586310000421,
+      "from_cache": false,
+      "model": "gemini-3.6-flash",
+      "arm": "long_context"
+    },
+    {
+      "query_id": "q-c240217b0e48",
+      "question": "How much did Boeing Co report for expected to be collected after one year in 2023?",
+      "answer": "For 2023, Boeing reported unbillable contract assets expected to be collected after one year of $1,771 and outstanding claims expected to be collected after one year of $4",
+      "context_ids": [
+        "ba-10-k-2023-12-31#00260529-00261897",
+        "ba-10-k-2024-12-31#00277940-00279354",
+        "ba-10-k-2025-12-31#00285466-00286801",
+        "ba-10-k-2022-12-31#00262616-00264072",
+        "csco-10-k-2023-07-29#00053871-00055879",
+        "cat-10-k-2023-12-31#00362679-00364594",
+        "cat-10-k-2024-12-31#00367097-00368983",
+        "ba-10-k-2023-12-31#00388986-00392280",
+        "ba-10-k-2024-12-31#00422246-00425629",
+        "ko-10-k-2023-12-31#00222816-00223275"
+      ],
+      "cited_ids": [],
+      "invalid_citations": [],
+      "refused": false,
+      "prompt_tokens": 5853,
+      "output_tokens": 41,
+      "latency_seconds": 26.082811899999797,
+      "from_cache": false,
+      "model": "gemini-3.6-flash",
+      "arm": "retrieval"
+    },
+    {
+      "query_id": "q-c240217b0e48",
+      "question": "How much did Boeing Co report for expected to be collected after one year in 2023?",
+      "answer": "In 2023, Boeing reported the following amounts expected to be collected after one year under long-term contracts [8]:\n\n* **Unbilled contract assets:** $1,771 million\n* **Claims:** $40 million\n* **Commercial customer incentives (unbilled receivables):** $42 million",
+      "context_ids": [
+        "ba-10-k-2023-12-31#fulldoc"
+      ],
+      "cited_ids": [],
+      "invalid_citations": [
+        8
+      ],
+      "refused": false,
+      "prompt_tokens": 99857,
+      "output_tokens": 67,
+      "latency_seconds": 19.485274300001038,
+      "from_cache": false,
+      "model": "gemini-3.6-flash",
+      "arm": "long_context"
+    },
+    {
+      "query_id": "q-b941f09afa0a",
+      "question": "Report Boeing Co's other postretirement benefit obligations figure for the 2025 fiscal year.",
+      "answer": "NOT IN CONTEXT",
+      "context_ids": [
+        "pfe-10-k-2025-12-31#00531752-00533132",
+        "pg-10-k-2025-06-30#00250696-00252637",
+        "ko-10-k-2025-12-31#00477654-00478974",
+        "so-10-k-2024-12-31#00961600-00963390",
+        "vz-10-k-2025-12-31#00201395-00203107",
+        "t-10-k-2025-12-31#00139062-00140983",
+        "ko-10-k-2025-12-31#00475894-00477652",
+        "t-10-k-2024-12-31#00145520-00147380",
+        "so-10-k-2025-12-31#00988617-00990023",
+        "t-10-k-2025-12-31#00307173-00309123"
+      ],
+      "cited_ids": [],
+      "invalid_citations": [],
+      "refused": true,
+      "prompt_tokens": 5379,
+      "output_tokens": 4,
+      "latency_seconds": 7.691904200000863,
+      "from_cache": false,
+      "model": "gemini-3.6-flash",
+      "arm": "retrieval"
+    },
+    {
+      "query_id": "q-b941f09afa0a",
+      "question": "Report Boeing Co's other postretirement benefit obligations figure for the 2025 fiscal year.",
+      "answer": "As of December 31, 2025, Boeing's accumulated postretirement benefit obligations for its other postretirement benefit plans were $2,527 million [18],",
+      "context_ids": [
+        "ba-10-k-2025-12-31#fulldoc"
+      ],
+      "cited_ids": [],
+      "invalid_citations": [
+        18
+      ],
+      "refused": false,
+      "prompt_tokens": 109865,
+      "output_tokens": 40,
+      "latency_seconds": 10.365626799997699,
+      "from_cache": false,
+      "model": "gemini-3.6-flash",
+      "arm": "long_context"
+    },
+    {
+      "query_id": "q-32397c0ecee7",
+      "question": "American Express Co tax credits and tax-exempt income 2024",
+      "answer": "In 2024, the decrease in taxes resulting from tax credits and tax-exempt income was (0.7) percent [5], [10].",
+      "context_ids": [
+        "axp-10-k-2025-12-31#00496586-00498648",
+        "jpm-10-k-2024-12-31#01234194-01235995",
+        "jpm-10-k-2025-12-31#01206142-01207546",
+        "bac-10-k-2024-12-31#00858870-00860408",
+        "axp-10-k-2025-12-31#00581927-00583829",
+        "axp-10-k-2024-12-31#00500203-00502154",
+        "jpm-10-k-2022-12-31#01252806-01254606",
+        "bac-10-k-2025-12-31#00859993-00861662",
+        "jpm-10-k-2024-12-31#01149154-01150990",
+        "axp-10-k-2024-12-31#00582528-00584523"
+      ],
+      "cited_ids": [
+        "axp-10-k-2025-12-31#00581927-00583829",
+        "axp-10-k-2024-12-31#00582528-00584523"
+      ],
+      "invalid_citations": [],
+      "refused": false,
+      "prompt_tokens": 6056,
+      "output_tokens": 34,
+      "latency_seconds": 6.967065500000899,
+      "from_cache": false,
+      "model": "gemini-3.6-flash",
+      "arm": "retrieval"
+    },
+    {
+      "query_id": "q-33b69c95fabf",
+      "question": "Blackrock Finance, Inc. cash management 2022",
+      "answer": "NOT IN CONTEXT",
+      "context_ids": [
+        "blk-10-k-2024-12-31#00419254-00421271",
+        "blk-10-k-2025-12-31#00437888-00439902",
+        "blk-10-k-2024-12-31#00454699-00456442",
+        "blk-10-k-2025-12-31#00435810-00437886",
+        "blk-10-k-2024-12-31#00417170-00419252",
+        "blk-10-k-2024-12-31#00410689-00417168",
+        "blk-10-k-2025-12-31#00426574-00433785",
+        "blk-10-k-2024-12-31#00005831-00007039",
+        "blk-10-k-2025-12-31#00433787-00435808",
+        "blk-10-k-2025-12-31#00423112-00426568"
+      ],
+      "cited_ids": [],
+      "invalid_citations": [],
+      "refused": true,
+      "prompt_tokens": 9166,
+      "output_tokens": 4,
+      "latency_seconds": 4.749783100000059,
+      "from_cache": false,
+      "model": "gemini-3.6-flash",
+      "arm": "retrieval"
+    }
+  ],
+  "scores": [
+    {
+      "query_id": "q-d6e7b22bac1e",
+      "arm": "retrieval",
+      "refused": true,
+      "value_correct": null,
+      "citation_precision": null,
+      "citation_recall": null,
+      "cited_a_hallucinated_passage": false,
+      "faithfulness": null
+    },
+    {
+      "query_id": "q-d6e7b22bac1e",
+      "arm": "long_context",
+      "refused": true,
+      "value_correct": null,
+      "citation_precision": null,
+      "citation_recall": null,
+      "cited_a_hallucinated_passage": false,
+      "faithfulness": null
+    },
+    {
+      "query_id": "q-af076cc0cc00",
+      "arm": "retrieval",
+      "refused": false,
+      "value_correct": true,
+      "citation_precision": 0.5,
+      "citation_recall": true,
+      "cited_a_hallucinated_passage": false,
+      "faithfulness": 1.0
+    },
+    {
+      "query_id": "q-af076cc0cc00",
+      "arm": "long_context",
+      "refused": false,
+      "value_correct": true,
+      "citation_precision": null,
+      "citation_recall": null,
+      "cited_a_hallucinated_passage": true,
+      "faithfulness": 1.0
+    },
+    {
+      "query_id": "q-6d89273660f6",
+      "arm": "retrieval",
+      "refused": true,
+      "value_correct": null,
+      "citation_precision": null,
+      "citation_recall": null,
+      "cited_a_hallucinated_passage": false,
+      "faithfulness": null
+    },
+    {
+      "query_id": "q-6d89273660f6",
+      "arm": "long_context",
+      "refused": true,
+      "value_correct": null,
+      "citation_precision": null,
+      "citation_recall": null,
+      "cited_a_hallucinated_passage": false,
+      "faithfulness": null
+    },
+    {
+      "query_id": "q-c9d23c01389a",
+      "arm": "retrieval",
+      "refused": false,
+      "value_correct": true,
+      "citation_precision": 0.0,
+      "citation_recall": false,
+      "cited_a_hallucinated_passage": false,
+      "faithfulness": 1.0
+    },
+    {
+      "query_id": "q-c9d23c01389a",
+      "arm": "long_context",
+      "refused": false,
+      "value_correct": true,
+      "citation_precision": null,
+      "citation_recall": null,
+      "cited_a_hallucinated_passage": true,
+      "faithfulness": 1.0
+    },
+    {
+      "query_id": "q-6a778420782a",
+      "arm": "retrieval",
+      "refused": false,
+      "value_correct": true,
+      "citation_precision": 0.5,
+      "citation_recall": true,
+      "cited_a_hallucinated_passage": false,
+      "faithfulness": 1.0
+    },
+    {
+      "query_id": "q-6a778420782a",
+      "arm": "long_context",
+      "refused": false,
+      "value_correct": false,
+      "citation_precision": null,
+      "citation_recall": null,
+      "cited_a_hallucinated_passage": false,
+      "faithfulness": 1.0
+    },
+    {
+      "query_id": "q-9dd2108ecdd7",
+      "arm": "retrieval",
+      "refused": false,
+      "value_correct": true,
+      "citation_precision": 0.3333333333333333,
+      "citation_recall": true,
+      "cited_a_hallucinated_passage": false,
+      "faithfulness": 1.0
+    },
+    {
+      "query_id": "q-9dd2108ecdd7",
+      "arm": "long_context",
+      "refused": false,
+      "value_correct": true,
+      "citation_precision": null,
+      "citation_recall": null,
+      "cited_a_hallucinated_passage": true,
+      "faithfulness": 1.0
+    },
+    {
+      "query_id": "q-ac40bbda1cb6",
+      "arm": "retrieval",
+      "refused": false,
+      "value_correct": true,
+      "citation_precision": 1.0,
+      "citation_recall": true,
+      "cited_a_hallucinated_passage": false,
+      "faithfulness": 1.0
+    },
+    {
+      "query_id": "q-ac40bbda1cb6",
+      "arm": "long_context",
+      "refused": false,
+      "value_correct": true,
+      "citation_precision": null,
+      "citation_recall": null,
+      "cited_a_hallucinated_passage": true,
+      "faithfulness": 1.0
+    },
+    {
+      "query_id": "q-68515ec4c774",
+      "arm": "retrieval",
+      "refused": true,
+      "value_correct": null,
+      "citation_precision": null,
+      "citation_recall": null,
+      "cited_a_hallucinated_passage": false,
+      "faithfulness": null
+    },
+    {
+      "query_id": "q-68515ec4c774",
+      "arm": "long_context",
+      "refused": false,
+      "value_correct": true,
+      "citation_precision": null,
+      "citation_recall": null,
+      "cited_a_hallucinated_passage": true,
+      "faithfulness": 1.0
+    },
+    {
+      "query_id": "q-a2ed65894664",
+      "arm": "retrieval",
+      "refused": false,
+      "value_correct": true,
+      "citation_precision": 0.0,
+      "citation_recall": false,
+      "cited_a_hallucinated_passage": false,
+      "faithfulness": 1.0
+    },
+    {
+      "query_id": "q-a2ed65894664",
+      "arm": "long_context",
+      "refused": false,
+      "value_correct": false,
+      "citation_precision": null,
+      "citation_recall": null,
+      "cited_a_hallucinated_passage": true,
+      "faithfulness": 1.0
+    },
+    {
+      "query_id": "q-c240217b0e48",
+      "arm": "retrieval",
+      "refused": false,
+      "value_correct": true,
+      "citation_precision": 0.0,
+      "citation_recall": false,
+      "cited_a_hallucinated_passage": false,
+      "faithfulness": 0.0
+    },
+    {
+      "query_id": "q-c240217b0e48",
+      "arm": "long_context",
+      "refused": false,
+      "value_correct": true,
+      "citation_precision": null,
+      "citation_recall": null,
+      "cited_a_hallucinated_passage": true,
+      "faithfulness": 1.0
+    },
+    {
+      "query_id": "q-b941f09afa0a",
+      "arm": "retrieval",
+      "refused": true,
+      "value_correct": null,
+      "citation_precision": null,
+      "citation_recall": null,
+      "cited_a_hallucinated_passage": false,
+      "faithfulness": null
+    },
+    {
+      "query_id": "q-b941f09afa0a",
+      "arm": "long_context",
+      "refused": false,
+      "value_correct": false,
+      "citation_precision": null,
+      "citation_recall": null,
+      "cited_a_hallucinated_passage": true,
+      "faithfulness": 1.0
+    },
+    {
+      "query_id": "q-32397c0ecee7",
+      "arm": "retrieval",
+      "refused": false,
+      "value_correct": true,
+      "citation_precision": 0.5,
+      "citation_recall": true,
+      "cited_a_hallucinated_passage": false,
+      "faithfulness": 1.0
+    },
+    {
+      "query_id": "q-33b69c95fabf",
+      "arm": "retrieval",
+      "refused": true,
+      "value_correct": null,
+      "citation_precision": null,
+      "citation_recall": null,
+      "cited_a_hallucinated_passage": false,
+      "faithfulness": null
+    }
+  ]
+}
