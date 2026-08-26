@@ -39,3 +39,16 @@ Retrieval p95 4.542 s, long-context p95 16.908 s, ratio 3.7×. Cost figures here
 superseded by the current run, which measures the same thing on more queries; token
 counts do not depend on when a call was made, so cost stays comparable across
 sessions in a way latency does not.
+
+## `generation-n66-live-retrieval-latency.json`
+
+The 66-answer retrieval run, kept for its live latency measurement: 20 timed calls,
+p95 15.489 s, made in the same session as the answers themselves. The long-context
+arm was cache-only in that run and is recorded as not measured, so this is a
+per-arm figure rather than a comparison.
+
+Archived because the next run judges long-context faithfulness and answers nothing
+new, so every answer comes from cache and no call is timed. `publish` refuses that
+write on its own — latency is the one field a successful-looking cached re-run
+destroys — and archiving is the path its message recommends: keep the measurement,
+let the better run through.
