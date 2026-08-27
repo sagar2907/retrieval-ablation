@@ -887,9 +887,10 @@ exactly, including the 40,155 of the re-parsed row-sentence rendering, which is 
 axis that was once silently inert. The baseline nDCG@10 recomputed from scratch --
 fresh corpus, fresh chunking, fresh index, fresh qrels -- comes to 0.1903 against a
 recorded 0.1903. Every Holm-corrected p-value recomputes to the stored value. And
-re-running the entire fifteen-configuration grid reproduces every metric and every
-significance verdict exactly, with the sole difference being the wall-clock
-`seconds` field, which is what §"Reproducibility" already promises.
+re-running the entire fifteen-configuration grid -- on *both* wordings, including
+the paraphrased one the headline finding rests on -- reproduces every metric and all
+fourteen significance verdicts exactly. The sole difference in either file is the
+wall-clock `seconds` field, which is what §"Reproducibility" already promises.
 
 One documented claim was false. Both documents said the significance picture was
 unchanged between the full label set and the audited subset. `chunk-fixed256o32` is
