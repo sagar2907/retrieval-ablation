@@ -285,8 +285,8 @@ rather than as a single project-level claim.
 
 | Missing | Why | What unblocks it |
 |---|---|---|
-| Faithfulness at a usable sample size | 32 judged answers, all faithful — enough to show the pass works, still too few to quote as a rate | free-tier quota for more answers; the judging itself is cheap |
-| Faithfulness of the long-context arm | judging one sends a whole filing to the judge, ~131k prompt tokens against ~7.1k for a retrieval answer | **Measured once, on a different sample:** 9 answers judged, all faithful, archived as `results/archive/generation-long-context-faithfulness.json`. It shares 1 query with the published run's 11, so it is not merged into the table — that would pair two samples as though they were one. Completing it needs a single run with pinning intact: the answers are cached, only the 11 judge calls are new |
+| Faithfulness at a usable sample size | 32 retrieval verdicts and 11 long-context ones — enough to show the pass works and to surface one ungrounded long-context answer, still too few to quote as a rate | more quota; the judging itself is cheap for the retrieval arm |
+| ~~Faithfulness of the long-context arm~~ **done** | — | **Measured: 0.955 over 11 verdicts**, against retrieval's 1.000 over 32, on the same sample the rest of §17 describes. It is the one column where long context is behind |
 | Generation + long-context at full sample | 66 retrieval answers and 11 long-context ones, of 586 queries. The arms have separate budgets now, so the cheap one is no longer capped by the expensive one, but both are still quota-bound | free-tier quota, or re-run tomorrow; the run resumes from cache rather than restarting |
 | Human verification of eval labels | requires a person; the model-assisted pass is labelled `MODEL_CHECKED`, never `HUMAN_VERIFIED` | tick the boxes in `data/eval/verification_sample.md` (40 queries, spread across the overlap range), then run `python -m retrieval_ablation.evalset.human_check` to read them back, and add `--apply` to write the verdicts into the eval set |
 

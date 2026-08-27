@@ -914,12 +914,17 @@ describe eleven queries that share exactly one member with the published run's
 eleven. The cache holds them; nothing in the published sample can use them. The
 re-run had ten fresh judge calls to make and met the day's limit first.
 
-So the figure is real and it is archived as
+So that figure was archived as
 `results/archive/generation-long-context-faithfulness.json`, labelled as what it is:
 a measurement of a different eleven queries, which cannot be paired with the
 published accuracy and cost numbers without comparing two samples as though they
-were one. §17 still reads *not measured* for the arm it tabulates, because that
-remains true of the run it tabulates.
+were one.
+
+It was then done properly. With the results file left in place, the pinning intact
+and `--force-publish` used instead of deleting anything, the eleven long-context
+answers §17 actually tabulates were judged: **0.955**, against retrieval's 1.000.
+The archived run stays, because it is what the detour produced and deleting it would
+tidy away the evidence for this whole passage.
 
 Twice now I have said "this is recoverable" before checking which queries were
 involved. The first time cost a day's quota. The second cost only a paragraph, and
@@ -1314,8 +1319,8 @@ the whole evaluation at what the expensive arm could afford in a day.
 | cost per query | $0.010895 | $0.196508 | **18.0×** |
 | accuracy, of answered | 0.656 | 0.636 | — |
 | refused | 34 of 66 | 0 of 11 | — |
-| faithfulness | 1.000 (32 judged) | not measured | — |
-| p95 latency | 15.489 s | not measured | not comparable |
+| faithfulness | 1.000 (32 judged) | 0.955 (11 judged) | — |
+| p95 latency | not measured | not measured | not comparable |
 <!-- /generated:long-context -->
 
 **The brief's "roughly 1,250× cheaper" is not reproducible.** 1,250× requires
@@ -1351,9 +1356,11 @@ Three caveats that cut against the result. Long context is **handed the correct
 filing** while retrieval must find it among 120. The samples are small and no
 longer equal -- 66 retrieval answers against 11 long-context ones -- because the
 arms were separated to stop the expensive one capping the cheap one. And
-faithfulness is measured on the retrieval arm only: judging a long-context answer
-means sending the whole filing to the judge as well, about 130,000 tokens per
-verdict, so that cell reads *not measured* rather than being quietly skipped.
+faithfulness is now measured on both arms, on the same eleven long-context answers
+the rest of that column describes. It is the one column where long context is
+*behind*: 0.955 against retrieval's 1.000. One of the eleven answers was judged less
+than fully grounded in the filing it was handed, which is the failure mode people
+assume retrieval has and long context does not.
 
 That cell has now had two wrong explanations attached to it, and the second was
 mine from a few hours ago.
@@ -1460,9 +1467,10 @@ non-interaction row differs from its reference on exactly one axis.
    586 queries, and the two arms no longer share a sample size. Cost ratios are
    solid. Accuracy is indicative at this sample. Latency is not measured at all in
    the published run; §17 says why.
-6. **Faithfulness is measured on the retrieval arm only** — 32 verdicts, all
-   faithful. Too few to quote as a rate. The long-context arm is unjudged because
-   one verdict means sending the whole filing to the judge, about 130,000 tokens.
+6. **Faithfulness is measured on both arms** — 32 retrieval verdicts, all faithful,
+   and 11 long-context verdicts at 0.955. Both are too few to quote as a rate. The
+   long-context arm was the expensive one to judge, at about 131,000 prompt tokens
+   per verdict, which is why it came last rather than not at all.
 7. **Approximate token counting** (characters ÷ 4) rather than a real tokenizer.
    Every configuration uses the same counter, so comparisons are valid, but
    boundaries differ from a model's own.
