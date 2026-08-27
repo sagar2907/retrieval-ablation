@@ -1314,14 +1314,27 @@ the whole evaluation at what the expensive arm could afford in a day.
 <!-- generated:long-context -->
 | | retrieval (top-10) | long context (whole filing) | ratio |
 |---|---|---|---|
-| queries answered | 66 | 11 | — |
-| mean prompt tokens | 7,147 | 130,819 | **18.3×** |
-| cost per query | $0.010895 | $0.196508 | **18.0×** |
-| accuracy, of answered | 0.656 | 0.636 | — |
-| refused | 34 of 66 | 0 of 11 | — |
-| faithfulness | 1.000 (32 judged) | 0.955 (11 judged) | — |
-| p95 latency | not measured | not measured | not comparable |
+| queries answered | 89 | 11 | — |
+| mean prompt tokens | 7,054 | 130,819 | **18.5×** |
+| cost per query | $0.010761 | $0.196508 | **18.3×** |
+| accuracy, of answered | 0.698 | 0.636 | — |
+| refused | 46 of 89 | 0 of 11 | — |
+| faithfulness | 0.977 (43 judged) | 0.955 (11 judged) | — |
+| p95 latency | 15.449 s | not measured | not comparable |
 <!-- /generated:long-context -->
+
+**The long-context arm has a reachability ceiling, and it had never been reported.**
+It is handed a prefix of the filing, capped at 800,000 characters. 20 of the 120
+filings exceed that, the largest losing 40% of its text, and `stuff_document`
+labelled every one of them `#fulldoc` -- while its own docstring claimed the id
+recorded the truncation. Across the eval set, 32 of 586 queries have gold beyond the
+cut: the arm is handed text that cannot contain the answer and would be scored as
+though it had the whole filing, which is precisely the mistake the ablation avoids
+by reporting a reachability ceiling for every chunker.
+
+All 11 queries in the table above are reachable, so nothing there is affected. The
+id now records truncation and `long_context_reachable` counts it, so the next run
+records the ceiling rather than leaving it to be discovered.
 
 **The brief's "roughly 1,250× cheaper" is not reproducible.** 1,250× requires
 assuming a 1M-token context, an ~800-token retrieval prompt, *and* zero output
@@ -1357,10 +1370,14 @@ filing** while retrieval must find it among 120. The samples are small and no
 longer equal -- 66 retrieval answers against 11 long-context ones -- because the
 arms were separated to stop the expensive one capping the cheap one. And
 faithfulness is now measured on both arms, on the same eleven long-context answers
-the rest of that column describes. It is the one column where long context is
-*behind*: 0.955 against retrieval's 1.000. One of the eleven answers was judged less
-than fully grounded in the filing it was handed, which is the failure mode people
-assume retrieval has and long context does not.
+the rest of that column describes. Long context is *behind*: 0.955 against
+retrieval's 0.977. One answer in each arm was judged less than fully grounded --
+including one in the arm that was handed the correct filing outright, which is the
+failure mode people assume belongs to retrieval alone.
+
+Retrieval's figure was 1.000 until the sample reached 89 answers, which is worth
+saying rather than quietly updating: a perfect score over 32 judgements meant
+"no counterexample yet", not "cannot happen".
 
 That cell has now had two wrong explanations attached to it, and the second was
 mine from a few hours ago.

@@ -433,3 +433,112 @@ class TestLatencyProtection:
         printed = capsys.readouterr().out
         assert "--force-publish" in printed
         assert "delete it" not in printed
+
+
+class TestLongContextTruncation:
+    """The long-context arm is handed a prefix, and that has to be visible."""
+
+    @staticmethod
+    def document(length: int):
+        from retrieval_ablation.corpus.models import Block, BlockKind, Document, Span
+
+        text = "x" * length
+        return Document(
+            doc_id="d1",
+            text=text,
+            blocks=(
+                Block(
+                    block_id="b1",
+                    kind=BlockKind.PARAGRAPH,
+                    span=Span(0, length),
+                    section_path=("Part I",),
+                ),
+            ),
+            metadata={},
+        )
+
+    @staticmethod
+    def query_at(offset: int):
+        from types import SimpleNamespace
+
+        from retrieval_ablation.corpus.models import GoldPassage, Span
+
+        return SimpleNamespace(
+            gold=(GoldPassage(passage_id="p1", doc_id="d1", span=Span(offset, offset + 10)),)
+        )
+
+    def test_an_untruncated_filing_keeps_the_plain_marker(self):
+        from retrieval_ablation.generation.run import stuff_document
+
+        chunk = stuff_document(self.document(100), budget_chars=1000)[0]
+
+        assert chunk.chunk_id == "d1#fulldoc"
+
+    def test_a_truncated_filing_says_so_in_its_id(self):
+        """Regression: the docstring claimed this and the code did not do it.
+
+        20 of the 120 filings exceed the budget, the largest losing 40% of its
+        text, and every one was labelled `#fulldoc` while holding only a prefix.
+        """
+        from retrieval_ablation.generation.run import stuff_document
+
+        chunk = stuff_document(self.document(5000), budget_chars=1000)[0]
+
+        assert chunk.chunk_id == "d1#fulldoc-truncated-1000"
+        assert len(chunk.text) == 1000
+
+    def test_the_old_marker_still_resolves(self):
+        """Ids already in the response cache must keep working.
+
+        Every long-context answer measured so far cites `#fulldoc`. If the new
+        marker had broken resolution, those answers would silently become
+        unjudgeable and faithfulness would revert to "not measured" -- a fix
+        deleting the measurement it was meant to protect.
+        """
+        from retrieval_ablation.generation.answer import GeneratedAnswer
+        from retrieval_ablation.generation.run import resolve_context
+
+        answer = GeneratedAnswer(
+            query_id="q1",
+            question="?",
+            answer="a",
+            context_ids=("d1#fulldoc",),
+            cited_ids=(),
+            invalid_citations=(),
+            refused=False,
+            prompt_tokens=1,
+            output_tokens=1,
+            latency_seconds=0.1,
+            from_cache=False,
+            model="m",
+            arm="long_context",
+        )
+
+        got = resolve_context(answer, {}, {"d1": self.document(50)})
+
+        assert got is not None
+        assert got[0].startswith("x")
+
+    def test_gold_beyond_the_cut_is_unreachable(self):
+        """Scoring it as a miss would blame the model for text it never saw.
+
+        32 of 586 queries sit here. The ablation reports a reachability ceiling for
+        every chunker for exactly this reason; this arm had none.
+        """
+        from retrieval_ablation.generation.run import long_context_reachable
+
+        doc = self.document(5000)
+
+        assert long_context_reachable(self.query_at(4000), doc, budget_chars=1000) is False
+        assert long_context_reachable(self.query_at(500), doc, budget_chars=1000) is True
+
+    def test_gold_inside_an_untruncated_filing_is_reachable(self):
+        from retrieval_ablation.generation.run import long_context_reachable
+
+        assert long_context_reachable(self.query_at(50), self.document(100), 1000) is True
+
+    def test_gold_past_the_end_of_a_short_document_is_not_reachable(self):
+        """The budget is not the only way a span can fall outside the text."""
+        from retrieval_ablation.generation.run import long_context_reachable
+
+        assert long_context_reachable(self.query_at(500), self.document(100), 1000) is False

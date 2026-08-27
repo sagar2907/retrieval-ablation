@@ -82,19 +82,46 @@ LONG_CONTEXT_CHARS = 800_000
 def stuff_document(doc: Document, budget_chars: int = LONG_CONTEXT_CHARS) -> list[Chunk]:
     """Return the filing as one oversized pseudo-chunk, truncated to budget.
 
-    Presented as a single Chunk so both arms travel through identical code. Its
-    id records the truncation, so a citation pointing at it is never mistaken for
-    a citation of a real retrieved chunk when the two arms are compared.
+    Presented as a single Chunk so both arms travel through identical code, and the
+    id marks it so a citation pointing at it is never mistaken for a citation of a
+    real retrieved chunk when the two arms are compared.
+
+    The id now records truncation, which this docstring claimed before the code did
+    it. 20 of the 120 filings exceed the budget, the largest by 40%, and every one
+    of them was labelled `#fulldoc` while holding a prefix. That matters beyond
+    naming: 32 of 586 queries have gold beyond the cut, so the long-context arm
+    cannot answer them from what it is given, and would be scored as though it had
+    been handed the whole filing. The marker makes the difference visible in the
+    answers file, and `long_context_reachable` counts it.
+
+    The marker still begins with "fulldoc" so ids already in the response cache
+    keep resolving.
     """
     text = doc.text[:budget_chars]
+    truncated = len(doc.text) > budget_chars
+    marker = f"fulldoc-truncated-{budget_chars}" if truncated else "fulldoc"
     return [
         Chunk(
-            chunk_id=f"{doc.doc_id}#fulldoc",
+            chunk_id=f"{doc.doc_id}#{marker}",
             doc_id=doc.doc_id,
             span=Span(0, len(text)),
             text=text,
         )
     ]
+
+
+def long_context_reachable(query, doc: Document, budget_chars: int = LONG_CONTEXT_CHARS) -> bool:
+    """Whether this query's gold passage survives truncation to the budget.
+
+    The ablation reports a reachability ceiling for every chunker, because a
+    configuration that cannot represent a gold passage should not be scored as
+    though it merely ranked it badly. The long-context arm had no equivalent while
+    being the arm most obviously capable of losing one: it is handed a prefix of a
+    filing, and a gold span past the cut is simply absent.
+    """
+    if not query.gold:
+        return False
+    return query.gold[0].span.start < min(budget_chars, len(doc.text))
 
 
 def resolve_context(
@@ -128,7 +155,7 @@ def resolve_context(
             continue
         doc_id, _, marker = context_id.partition("#")
         doc = by_doc.get(doc_id)
-        if marker == "fulldoc" and doc is not None:
+        if marker.startswith("fulldoc") and doc is not None:
             passages.append(stuff_document(doc)[0].text)
             continue
         return None
@@ -390,6 +417,20 @@ def main() -> None:  # noqa: PLR0912,PLR0915 - a linear pipeline; splitting it w
         # that ran on fewer queries, which is the comparison arm.
         "n_long_context_sampled": len(long_context_ids) if not args.skip_long_context else 0,
         "n_queries_total": len(queries),
+        # How many of the long-context sample the arm could answer at all. 20 of the
+        # 120 filings exceed the budget, so a gold passage can sit past the cut and
+        # the arm is handed text that does not contain its answer. The ablation
+        # reports a reachability ceiling for every chunker for this exact reason;
+        # reporting one here stops a truncation loss from being read as a model
+        # failure.
+        "n_long_context_gold_reachable": sum(
+            1
+            for q in chosen
+            if q.query_id in long_context_ids
+            and q.gold
+            and (doc := by_id.get(q.gold[0].doc_id)) is not None
+            and long_context_reachable(q, doc)
+        ),
         "retrieval_top_k": args.top_k,
         "long_context_budget_chars": LONG_CONTEXT_CHARS,
         "long_context_budget_tokens_approx": approx_token_count("x" * LONG_CONTEXT_CHARS),

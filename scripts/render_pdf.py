@@ -702,7 +702,7 @@ EXPECTED = [
     "0.1971",  # baseline nDCG@10, original wording
     "+0.0680",  # its delta over that baseline
     "0.6641",  # best Recall@50 in the grid, semantic chunking
-    "18.0x",  # retrieval vs long context, cost ratio
+    "18.3x",  # retrieval vs long context, cost ratio
     "20.4%",  # label audit rejection rate
     "526,296",  # inline-XBRL characters in one filing
     "42,215",  # chunks under struct512
