@@ -71,8 +71,13 @@ class DenseIndex(Retriever):
     def search(self, query: str, top_k: int = 50) -> list[Hit]:
         if not self.chunk_ids:
             return []
-        query_vector = self.embedder.encode_queries([query])[0]
-        # Both sides are unit vectors, so the dot product is cosine similarity.
+        # Normalised on this side too. The passage side is normalised defensively,
+        # with a comment explaining that a non-unit vector turns the dot product
+        # into something that is not cosine -- and the query side then asserted the
+        # same property instead of enforcing it. Every embedder used here happens to
+        # return unit vectors, so the published scores are genuine cosine, but the
+        # guarantee was one-sided and the class documents cosine.
+        query_vector = l2_normalize(self.embedder.encode_queries([query]))[0]
         scores = self.vectors @ query_vector
 
         k = min(top_k, scores.shape[0])
@@ -96,7 +101,7 @@ class DenseIndex(Retriever):
         if not self.chunk_ids or not queries:
             return [[] for _ in queries]
 
-        query_vectors = self.embedder.encode_queries(list(queries))
+        query_vectors = l2_normalize(self.embedder.encode_queries(list(queries)))
         scores = query_vectors @ self.vectors.T
 
         out: list[list[Hit]] = []

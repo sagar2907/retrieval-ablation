@@ -10,7 +10,7 @@ import numpy as np
 import pytest
 
 from retrieval_ablation.corpus.models import Span
-from retrieval_ablation.embed.base import HashingEmbedder, l2_normalize
+from retrieval_ablation.embed.base import Embedder, HashingEmbedder, l2_normalize
 from retrieval_ablation.evalset.relevance import Chunk
 from retrieval_ablation.index.base import Hit, stable_rank
 from retrieval_ablation.index.bm25 import BM25Index, tokenize
@@ -439,3 +439,70 @@ class TestStableRank:
         """
         hits = [Hit("z", 1.0), Hit("a", 1.0), Hit("m", 1.0)]
         assert [h.chunk_id for h in stable_rank(hits)] == ["a", "m", "z"]
+
+
+class TestDenseScoresAreActuallyCosine:
+    """The class documents cosine similarity, so both sides must be unit vectors."""
+
+    class Unnormalised(Embedder):
+        """An embedder returning non-unit vectors, which the interface permits."""
+
+        dimension = 3
+        name = "unnormalised"
+
+        def encode(self, texts, is_query: bool = False):  # noqa: ARG002 - interface
+            table = {
+                "alpha": [1.0, 0.0, 0.0],
+                "beta": [0.0, 1.0, 0.0],
+                "both": [1.0, 1.0, 0.0],
+                "q": [3.0, 0.3, 0.0],
+            }
+            return np.array([table[t] for t in texts], dtype=np.float32)
+
+    def chunks(self) -> list[Chunk]:
+        return [chunk(name, name) for name in ("alpha", "beta", "both")]
+
+    def test_a_non_unit_query_still_yields_cosine(self):
+        """Regression: passages were normalised defensively, queries only assumed.
+
+        `DenseIndex.__init__` normalises the passage matrix and says why -- a
+        non-unit vector "turns the dot product into something that is not cosine
+        similarity, silently, since the ranking still looks plausible". The query
+        side then asserted that same property in a comment rather than enforcing it.
+
+        Every embedder in this project returns unit vectors, verified against the
+        committed artifacts, so the published dense scores are genuine cosine and no
+        measurement moved. The guarantee was simply one-sided.
+        """
+        index = DenseIndex.build(self.chunks(), self.Unnormalised())
+        got = {h.chunk_id: h.score for h in index.search("q", top_k=3)}
+
+        q = np.array([3.0, 0.3, 0.0])
+        for name, vec in (("alpha", [1, 0, 0]), ("beta", [0, 1, 0]), ("both", [1, 1, 0])):
+            v = np.array(vec, dtype=np.float64)
+            cosine = float(q @ v / (np.linalg.norm(q) * np.linalg.norm(v)))
+            assert got[name] == pytest.approx(cosine, abs=1e-6)
+
+    def test_scores_stay_inside_the_cosine_range(self):
+        index = DenseIndex.build(self.chunks(), self.Unnormalised())
+
+        for hit in index.search("q", top_k=3):
+            assert -1.0 - 1e-6 <= hit.score <= 1.0 + 1e-6
+
+    def test_the_batch_path_agrees_with_the_single_path(self):
+        """Two code paths computing the same quantity must not diverge."""
+        index = DenseIndex.build(self.chunks(), self.Unnormalised())
+
+        single = {h.chunk_id: h.score for h in index.search("q", top_k=3)}
+        batch = {h.chunk_id: h.score for h in index.search_batch(["q"], top_k=3)[0]}
+
+        assert single == pytest.approx(batch)
+
+    def test_a_unit_embedder_is_unaffected(self):
+        """The fix must be a no-op for every embedder actually used here."""
+        index = DenseIndex.build(self.chunks(), HashingEmbedder(dimension=16))
+
+        scores = [h.score for h in index.search("alpha", top_k=3)]
+
+        assert scores == sorted(scores, reverse=True)
+        assert all(-1.0 - 1e-6 <= s <= 1.0 + 1e-6 for s in scores)

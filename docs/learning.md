@@ -892,6 +892,20 @@ the paraphrased one the headline finding rests on -- reproduces every metric and
 fourteen significance verdicts exactly. The sole difference in either file is the
 wall-clock `seconds` field, which is what §"Reproducibility" already promises.
 
+One latent defect was found in code rather than prose. `DenseIndex` normalises its
+passage matrix defensively, with a comment explaining that a non-unit vector "turns
+the dot product into something that is not cosine similarity -- silently, since the
+ranking still looks plausible". The query side then *asserted* that same property in
+a comment instead of enforcing it. Every embedder this project uses returns unit
+vectors -- checked against the committed artifacts, where every stored norm is
+exactly 1.000000 -- so every published dense score is genuine cosine and no
+measurement moved. But the guarantee was one-sided, and a caller supplying an
+unnormalised embedder would have got scores scaled by the query's magnitude while
+the class documented cosine. Ranking would have survived, since a positive constant
+does not reorder; anything reading the scores would not. Now normalised on both
+sides, with a test that supplies a deliberately unnormalised embedder and requires
+the scores to equal hand-computed cosine.
+
 One documented claim was false. Both documents said the significance picture was
 unchanged between the full label set and the audited subset. `chunk-fixed256o32` is
 p = 0.063 on all labels and p = 0.046 on the accepted subset, so it crosses 0.05 --
