@@ -250,8 +250,13 @@ matters:
 Three things to take from it. **The differences are tiny** — every configuration
 moves between −0.0015 and +0.0101, far smaller than the effects being measured.
 **The ranking is identical**, so no conclusion here rests on the label defects.
-And the significance picture is unchanged: the same configurations are significant
-on both label sets.
+The significance picture is **almost** unchanged, and the exception is stated
+because it is the kind of thing this section exists to surface: `chunk-fixed256o32`
+sits at p = 0.063 on all labels and p = 0.046 on the accepted subset, so it crosses
+the 0.05 line. Nothing else moves across, and no conclusion in this README rests on
+that row — it is a chunking arm that loses to the baseline either way. A result
+balanced on the third decimal is a result the label set can decide, which is an
+argument for reading the interval rather than the verdict.
 
 The audit covered the original 216 queries; the 370 added later are unaudited and
 carry `GENERATED`, so "accepted" here means "not rejected by the audit that ran",
@@ -370,6 +375,14 @@ lexical arms — runs natively on Windows.
 - **The grid varies one axis at a time and cannot detect interactions.** One crossed
   cell (hybrid + reranking) is run explicitly because that interaction is the
   study's headline claim.
+- **Ten filings have no Part headings.** Intel's four, GE's four and Duke's two use a
+  cross-reference index rather than Part/Item section divisions, so their section
+  paths are shallower than the other 110. This affects how structure-aware chunking
+  places boundaries in those documents; it does not affect gold labels, which are
+  character spans.
+- **Service timings are single-run.** The index build and `/search` latency quoted
+  below come from one run on one machine and vary by roughly 20% between runs. They
+  are not metrics and should not be read as reproducible to the digit.
 
 ## Running the service
 

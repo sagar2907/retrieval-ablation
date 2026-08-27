@@ -876,6 +876,37 @@ point survives in the form the data supports -- the baseline gains 2.89x from a
 question quoting the document, reranking 1.31x, the embedding arms 1.16x -- but the
 sentence as written was false, and it had been read past many times.
 
+**A verification pass over every component, and what it found.**
+
+Asked to verify the whole project rather than trust it, the checks that mattered
+were the ones that recompute rather than re-read. The corpus verifies against its
+manifest; all 586 gold spans resolve and contain the value their query asks for;
+both wordings carry identical ids and gold; no chunker produces a duplicate id or a
+chunk whose span does not slice to its own text; every recorded chunk count rebuilds
+exactly, including the 40,155 of the re-parsed row-sentence rendering, which is the
+axis that was once silently inert. The baseline nDCG@10 recomputed from scratch --
+fresh corpus, fresh chunking, fresh index, fresh qrels -- comes to 0.1903 against a
+recorded 0.1903. Every Holm-corrected p-value recomputes to the stored value. And
+re-running the entire fifteen-configuration grid reproduces every metric and every
+significance verdict exactly, with the sole difference being the wall-clock
+`seconds` field, which is what §"Reproducibility" already promises.
+
+One documented claim was false. Both documents said the significance picture was
+unchanged between the full label set and the audited subset. `chunk-fixed256o32` is
+p = 0.063 on all labels and p = 0.046 on the accepted subset, so it crosses 0.05 --
+the sentence was true when written and was never re-checked after the eval set grew
+from 216 queries to 586. It is corrected above.
+
+Three things were found that are not defects but belong in an honest account. Ten of
+the 120 filings -- Intel's four, GE's four, Duke's two -- carry no Part headings at
+all, because those companies use a cross-reference index instead of Part/Item
+section divisions, so their section paths are shallower than the rest of the corpus.
+The service timings quoted here are single-run figures on one machine and vary by
+about 20% between runs, which is normal and is not the same kind of number as a
+metric. And `Embedder.encode` claims a caller "cannot forget" the query/passage
+distinction while defaulting to passage; every caller in this repository uses the
+explicit wrappers, so the claim is stronger than the code but nothing relies on it.
+
 **The guard was right and I went around it anyway.**
 
 Judging the long-context arm needs no new answers, so every answer comes from cache
@@ -1291,8 +1322,19 @@ Re-running the whole grid on the 542 accepted labels:
 - **The ranking is stable, not identical.** Adjacent configurations separated by
   thousandths trade places, which is noise and is exactly why none of them is
   reported as a finding.
-- **The significance picture is unchanged** on both label sets, which is the point
-  of running the check at all: no conclusion here rests on the label defects.
+- **The significance picture survives, with one exception worth naming.**
+  `chunk-fixed256o32` is p = 0.063 on all labels and p = 0.046 on the accepted
+  subset: it crosses 0.05 when 33 rejected labels are removed. Nothing else changes
+  verdict, and no conclusion here rests on that row -- it loses to the baseline on
+  both label sets, by 0.0415 and 0.0443. But the honest reading is that a
+  configuration balanced on the third decimal can be decided by the label set, which
+  is precisely why this document reports intervals beside every point estimate.
+
+  This sentence previously read "the significance picture is unchanged". It was
+  written when that was true and never re-checked against the accepted-subset run
+  after the eval set grew, which is the same drift as every other stale claim in
+  section 14 -- caught here only because verification asked the results rather than
+  the prose.
 
 The audit covered the original 216 queries. The 370 added when the set was
 extended are unaudited and carry `GENERATED`, so "accepted" means "not rejected by
