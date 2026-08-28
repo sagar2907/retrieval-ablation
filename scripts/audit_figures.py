@@ -37,6 +37,17 @@ The check also cannot tell whether a figure is in the right sentence. It only kn
 the number exists in some measurement. Both limits are the price of a check simple
 enough that its output is believed.
 
+It deliberately stops at three decimal places, and that was measured rather than
+assumed. A stale two-decimal figure did slip through -- the README gave the eval
+set's median content-word overlap as 0.46 with a range of 0.22-0.88, when the median
+is 0.50, the mean 0.47 and the range 0.17-0.82 -- so the obvious response was to add
+a two-decimal pattern. It does not work. The results files contain thousands of
+numbers, and 91 of the 101 possible values between 0.00 and 1.00 already appear
+somewhere among them, "0.46" included. The extension passed on the exact error that
+motivated it: a check that cannot fail, which is the defect this repository produces
+most often. It was removed rather than shipped, and two-decimal figures are read by a
+person instead.
+
 Numbers that legitimately do not appear in the results need an entry in `ALLOWED`
 with a reason. Two kinds qualify: a historical value quoted deliberately, and a
 difference derived from two results files. Requiring the reason in writing is the
@@ -96,6 +107,14 @@ ALLOWED = {
     "73.2%": (
         "derived: the baseline's relative nDCG loss under paraphrasing, computed "
         "from ablation.json and ablation-paraphrased.json. Rounded to 73% elsewhere"
+    ),
+    "1.31": ("derived: the same ratio for rerank-bm25-100, 0.2205 / 0.1682"),
+    "1.74": ("derived: the same ratio for retrieval-dense-bge, 0.1174 / 0.0676"),
+    "0.277": (
+        "derived: mean nDCG@10 over the 30 queries containing 'AT&T', measured "
+        "during the verification pass to test whether the tokeniser splitting '&' "
+        "hurts those queries. It does not -- they beat the 0.171 of queries with no "
+        "ampersand, which is in results/ as the baseline's metrics_all figure"
     ),
     "71.8%": (
         "from a one-off retrieval-depth diagnostic that was never written to "

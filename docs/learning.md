@@ -892,6 +892,32 @@ the paraphrased one the headline finding rests on -- reproduces every metric and
 fourteen significance verdicts exactly. The sole difference in either file is the
 wall-clock `seconds` field, which is what §"Reproducibility" already promises.
 
+Verifying the retrieval internals by hand found nothing wrong with them. BM25
+reproduces a hand-computed score from the standard formula exactly, its IDF floor
+holds, and its tokeniser emits both `34,550` and `34550` so a query written either
+way still matches. RRF matches a hand-computed reciprocal-rank sum. `lexical_overlap`
+recomputes to the stored value for all 1,172 queries across both wordings, which is
+what the low/high split in Finding 2 rests on.
+
+One tokenisation quirk turned up and was dismissed with evidence rather than
+argument: `&` splits, so "AT&T" becomes the tokens `at` and `t` and the company name
+stops discriminating. That looks like it should hurt, and it does not -- those 30
+queries average nDCG 0.277 against 0.171 for queries with no ampersand at all.
+
+**A stale figure the audit could not see, and the fix that did not work.** The README
+described the eval set's median content-word overlap as 0.46 with a range of
+0.22-0.88. The median is 0.50, the mean is 0.47, and the range is 0.17-0.82 -- so the
+number was stale *and* mislabelled, since 0.46 was the mean of the older 216-query
+set. Two decimal places, which is below what the figure audit scans, so nothing
+caught it.
+
+Adding a two-decimal pattern was the obvious response and it is decoration. The
+results files hold thousands of numbers, and 91 of the 101 values between 0.00 and
+1.00 already appear among them -- "0.46" included. The extension passed on the exact
+error that motivated it. It was measured, found vacuous, and removed rather than
+shipped, which is the first time in this project a guard was caught before rather
+than after it went in.
+
 One latent defect was found in code rather than prose. `DenseIndex` normalises its
 passage matrix defensively, with a comment explaining that a non-unit vector "turns
 the dot product into something that is not cosine similarity -- silently, since the
@@ -1526,7 +1552,8 @@ non-interaction row differs from its reference on exactly one axis.
 ## 21. Honest limitations
 
 1. **Queries were templated**, reusing the corpus's own wording — median overlap
-   0.46. This is the limitation the paraphrased set was built to remove, and doing
+   0.50, mean 0.47. This is the limitation the paraphrased set was built to remove,
+   and doing
    so produced the study's headline finding, so it is no longer a caveat but a
    measured axis. The original wording is still reported beside it because the gap
    between them *is* the result.

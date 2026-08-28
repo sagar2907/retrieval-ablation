@@ -362,7 +362,7 @@ lexical arms — runs natively on Windows.
   The schema tracks this per query and a test asserts labels are marked
   `GENERATED`.
 - **Queries are templated, so they reuse the corpus's wording.** Median content-word
-  overlap with the gold passage is 0.46 (range 0.22–0.88). This hands a lexical
+  overlap with the gold passage is 0.50, mean 0.47, range 0.17–0.82. This hands a lexical
   matcher an exact string match, so overlap is recorded per query and results are
   split at 0.4 into low- and high-overlap subsets. A configuration whose advantage
   exists only in the high-overlap column is winning at string matching.
