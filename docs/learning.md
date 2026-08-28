@@ -459,7 +459,9 @@ documents as non-relevant. This eval set labels exactly one gold row per query,
 while a filing states the same figure in the income statement, the MD&A prose, and
 often a segment table.
 
-Measured: **15.3%** of queries have an unjudged top-10 chunk carrying the answer;
+Measured on the 216-query eval set that existed when this analysis ran, and not
+re-run since it grew to 586 -- so read these as the effect's size, not as current
+figures: **15.3%** of queries have an unjudged top-10 chunk carrying the answer;
 **11.6%** are scored as complete misses *despite the answer being retrieved*.
 
 So a "lenient" judgement set was built — any chunk of the gold document containing
@@ -891,6 +893,27 @@ re-running the entire fifteen-configuration grid -- on *both* wordings, includin
 the paraphrased one the headline finding rests on -- reproduces every metric and all
 fourteen significance verdicts exactly. The sole difference in either file is the
 wall-clock `seconds` field, which is what §"Reproducibility" already promises.
+
+The last modules verified were the ones the suite covered least. `to_row_sentences`
+does what §8 says: each data row becomes a self-contained line carrying its column
+header and row label, so `31,370` arrives as "Research and development -- 2024:
+31,370" rather than as a bare number three columns into row nine. The lenient-labels
+arithmetic in §13 reproduces exactly -- all six numbers of its worked example, and
+every figure in `results/unjudged_analysis.json`.
+
+Two things came out of that. The unjudged analysis was run on the 216-query eval set
+and has never been re-run at 586, which neither §13 nor the limitations list said.
+That is the third measurement in this project cited without its scope after the set
+grew -- after the label audit and the generation sample -- and the pattern is worth
+naming: a figure that was complete when written becomes a *partial* figure the
+moment the thing it measured got bigger, without anybody editing a word.
+
+And the SEC client's rate limiter had no tests at all. It is the one piece of code
+here whose failure is not a wrong number: exceeding the published ceiling gets the
+address blocked, and the corpus becomes unrebuildable for anyone reading this
+repository. It works -- five requests at 20/s take the four intervals between them,
+a non-positive rate is refused, and the configured 5/s is half SEC's published 10 --
+but "it works" was not previously demonstrated anywhere. It is now.
 
 Verifying the retrieval internals by hand found nothing wrong with them. BM25
 reproduces a hand-computed score from the standard formula exactly, its IDF floor
@@ -1560,7 +1583,8 @@ non-interaction row differs from its reference on exactly one axis.
    between them *is* the result.
 2. **Labels are model-checked, not human-verified**, and only 216 of the 586 were
    checked at all. The 370 added when the set was extended are unaudited.
-3. **Single gold passage per query** understates retrieval by ~12% (§13).
+3. **Single gold passage per query** understates retrieval by ~12% (§13), measured
+   on the 216-query set and not re-run at 586.
 4. **All fifteen configurations are measured**, on both wordings. This item used to
    read "six of fifteen unmeasured" and stayed in the list for several commits after
    the GPU runs closed that gap — a limitations section that understated the work,
