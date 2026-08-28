@@ -1397,13 +1397,14 @@ the whole evaluation at what the expensive arm could afford in a day.
 <!-- generated:long-context -->
 | | retrieval (top-10) | long context (whole filing) | ratio |
 |---|---|---|---|
-| queries answered | 89 | 11 | — |
-| mean prompt tokens | 7,054 | 130,819 | **18.5×** |
-| cost per query | $0.010761 | $0.196508 | **18.3×** |
-| accuracy, of answered | 0.698 | 0.636 | — |
-| refused | 46 of 89 | 0 of 11 | — |
-| faithfulness | 0.977 (43 judged) | 0.955 (11 judged) | — |
-| p95 latency | 15.449 s | not measured | not comparable |
+| queries answered | 110 | 11 | — |
+| mean prompt tokens | 6,752 | 130,819 | **19.4×** |
+| cost per query | $0.010308 | $0.196508 | **19.1×** |
+| accuracy, of answered | 0.692 | 0.636 | — |
+| refused | 58 of 110 | 0 of 11 | — |
+| gold reachable in what the arm read | 110 of 110 | 11 of 11 | — |
+| faithfulness | 0.981 (52 judged) | 0.955 (11 judged) | — |
+| p95 latency | 11.698 s | not measured | not comparable |
 <!-- /generated:long-context -->
 
 **The long-context arm has a reachability ceiling, and it had never been reported.**
@@ -1434,8 +1435,8 @@ tokens, which is more than a day's free-tier allowance. Cost survives the same
 problem: token counts do not depend on when a call was made.
 
 **Retrieval refuses half the questions, and that is the whole story:** it declined
-34 of 66 because the answer was not in its top-10. On the ones it did answer it is
-now marginally *more* accurate than long context, 0.656 against 0.636, and it cites
+58 of 110 because the answer was not in its top-10. On the ones it did answer it is
+now more accurate than long context, 0.692 against 0.636, and it cites
 its sources -- which the long-context arm structurally cannot, since its entire
 context is one document. So the honest summary is that retrieval is eighteen times
 cheaper and answers half as often, and the gap is created by its first stage, not by
@@ -1450,11 +1451,11 @@ rate is the difference that survives.
 
 Three caveats that cut against the result. Long context is **handed the correct
 filing** while retrieval must find it among 120. The samples are small and no
-longer equal -- 66 retrieval answers against 11 long-context ones -- because the
+longer equal -- 110 retrieval answers against 11 long-context ones -- because the
 arms were separated to stop the expensive one capping the cheap one. And
 faithfulness is now measured on both arms, on the same eleven long-context answers
 the rest of that column describes. Long context is *behind*: 0.955 against
-retrieval's 0.977. One answer in each arm was judged less than fully grounded --
+retrieval's 0.981. One answer in each arm was judged less than fully grounded --
 including one in the arm that was handed the correct filing outright, which is the
 failure mode people assume belongs to retrieval alone.
 
@@ -1564,11 +1565,11 @@ non-interaction row differs from its reference on exactly one axis.
    read "six of fifteen unmeasured" and stayed in the list for several commits after
    the GPU runs closed that gap — a limitations section that understated the work,
    which is the same drift as one that overstates it and no more honest.
-5. **Generation is measured on 66 retrieval answers and 11 long-context ones**, of
+5. **Generation is measured on 110 retrieval answers and 11 long-context ones**, of
    586 queries, and the two arms no longer share a sample size. Cost ratios are
    solid. Accuracy is indicative at this sample. Latency is not measured at all in
    the published run; §17 says why.
-6. **Faithfulness is measured on both arms** — 32 retrieval verdicts, all faithful,
+6. **Faithfulness is measured on both arms** — 52 retrieval verdicts at 0.981,
    and 11 long-context verdicts at 0.955. Both are too few to quote as a rate. The
    long-context arm was the expensive one to judge, at about 131,000 prompt tokens
    per verdict, which is why it came last rather than not at all.

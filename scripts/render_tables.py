@@ -258,6 +258,12 @@ def generation() -> str:
         f"{lc['value_accuracy_of_answered']:.3f} | — |",
         f"| refused | {rag['n_refused']} of {rag['n_answers']} | "
         f"{lc['n_refused']} of {lc['n_answers']} | — |",
+        # The long-context arm is handed a prefix of the filing, capped at the
+        # budget, so a gold passage past the cut is simply absent from what it
+        # reads. The ablation reports a reachability ceiling for every chunker;
+        # this row is the same idea for the arm most able to lose one.
+        f"| gold reachable in what the arm read | {rag['n_answers']} of "
+        f"{rag['n_answers']} | {_reachable(payload)} | — |",
         f"| faithfulness | {_faith(rag)} | {_faith(lc)} | — |",
     ]
 
@@ -275,6 +281,15 @@ def generation() -> str:
         ratio_cell = "not comparable"
     lines.append(f"| p95 latency | {cell_rag} | {cell_lc} | {ratio_cell} |")
     return "\n".join(lines)
+
+
+def _reachable(payload: dict) -> str:
+    """How many long-context queries had gold inside the truncated filing."""
+    n = payload.get("n_long_context_gold_reachable")
+    total = payload.get("n_long_context_sampled")
+    if n is None or not total:
+        return "not recorded"
+    return f"{n} of {total}"
 
 
 def _faith(arm: dict) -> str:

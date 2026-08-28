@@ -290,9 +290,9 @@ rather than as a single project-level claim.
 
 | Missing | Why | What unblocks it |
 |---|---|---|
-| Faithfulness at a usable sample size | 43 retrieval verdicts at 0.977 and 11 long-context ones at 0.955 — one ungrounded answer has now appeared in each arm, so neither is a clean sweep, and both samples remain too small to quote as a rate | more quota; the retrieval judging is cheap |
-| ~~Faithfulness of the long-context arm~~ **done** | — | **0.955 over 11 verdicts**, on the same sample §17 tabulates, against retrieval's 0.977 over 43 |
-| Generation + long-context at full sample | 89 retrieval answers and 11 long-context ones, of 586 queries. The arms have separate budgets, so the cheap one is no longer capped by the expensive one | more quota; the run resumes from cache rather than restarting |
+| Faithfulness at a usable sample size | 52 retrieval verdicts at 0.981 and 11 long-context at 0.955 — one ungrounded answer in each arm, so neither is a clean sweep, and both samples remain too small to quote as a rate | more quota; the retrieval judging is cheap |
+| ~~Faithfulness of the long-context arm~~ **done** | — | **0.955 over 11 verdicts**, on the same sample §17 tabulates, against retrieval's 0.981 over 52 |
+| Generation + long-context at full sample | 110 retrieval answers and 11 long-context ones, of 586 queries. The arms have separate budgets, so the cheap one is no longer capped by the expensive one | more quota; the run resumes from cache rather than restarting |
 | Human verification of eval labels | requires a person; the model-assisted pass is labelled `MODEL_CHECKED`, never `HUMAN_VERIFIED` | tick the boxes in `data/eval/verification_sample.md` (40 queries, spread across the overlap range), then run `python -m retrieval_ablation.evalset.human_check` to read them back, and add `--apply` to write the verdicts into the eval set |
 
 ### The parse was not reproducible across machines
