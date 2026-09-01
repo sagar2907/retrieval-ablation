@@ -294,3 +294,41 @@ class TestAgreementIsNotLoss:
         applied = human_check.apply_verdicts(summary, path)
 
         assert applied.total == summary.n_marked == 3
+
+    def test_a_reason_is_recorded_even_when_the_status_already_agrees(self, tmp_path):
+        """Regression: two real rejection reasons were thrown away.
+
+        On the first run of this workflow against a completed sample, two of the
+        eight rejections landed on queries the model audit had already rejected.
+        The status matched, so the whole record was skipped -- and the reasons the
+        person had written went with it.
+
+        Agreement is not nothing. The model audit records *that* it rejected a
+        query and never why; someone writing "several figures under one label;
+        unclear which is 2024" has supplied information the file does not already
+        hold, and the matching status is no argument for discarding it.
+        """
+        path = tmp_path / "queries.jsonl"
+        write_eval_set([query("q1", Verification.REJECTED)], path)
+        summary = human_check.parse(
+            sample(tmp_path, [("q1", False, True, "several figures under one label")])
+        )
+
+        applied = human_check.apply_verdicts(summary, path)
+
+        after = read_eval_set(path)[0]
+        assert applied.changed == 0
+        assert applied.already_agreed == 1
+        assert after.verification is Verification.REJECTED
+        assert after.metadata["human_reject_reason"] == "several figures under one label"
+
+    def test_an_agreeing_verdict_with_no_reason_rewrites_nothing(self, tmp_path):
+        """Only a reason justifies touching a record whose status already matches."""
+        path = tmp_path / "queries.jsonl"
+        write_eval_set([query("q1", Verification.HUMAN_VERIFIED)], path)
+        summary = human_check.parse(sample(tmp_path, [("q1", True, False, "")]))
+
+        applied = human_check.apply_verdicts(summary, path)
+
+        assert (applied.changed, applied.already_agreed) == (0, 1)
+        assert "human_reject_reason" not in read_eval_set(path)[0].metadata

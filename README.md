@@ -284,16 +284,16 @@ rather than as a single project-level claim.
 | Generation + long-context comparison | numbers above, from the API's own reported token counts; cost only — latency is reported as not measured, because the two arms' timings came from different sessions |
 | FastAPI service, Docker, citation UI | live run: index 31.7 s, /search 1.9 ms, /answer 429 path verified |
 
-**587 tests pass, offline, with no API key and no model download.** `ruff` clean.
+**589 tests pass, offline, with no API key and no model download.** `ruff` clean.
 
 ### Not done
 
 | Missing | Why | What unblocks it |
 |---|---|---|
-| Faithfulness at a usable sample size | 52 retrieval verdicts at 0.981 and 11 long-context at 0.955 — one ungrounded answer in each arm, so neither is a clean sweep, and both samples remain too small to quote as a rate | more quota; the retrieval judging is cheap |
+| Faithfulness at a usable sample size | 62 retrieval verdicts at 0.968 and 11 long-context at 0.955 — ungrounded answers in both arms now, and both samples still too small to quote as a rate | more quota; the retrieval judging is cheap |
 | ~~Faithfulness of the long-context arm~~ **done** | — | **0.955 over 11 verdicts**, on the same sample §17 tabulates, against retrieval's 0.981 over 52 |
-| Generation + long-context at full sample | 110 retrieval answers and 11 long-context ones, of 586 queries. The arms have separate budgets, so the cheap one is no longer capped by the expensive one | more quota; the run resumes from cache rather than restarting |
-| Human verification of eval labels | requires a person; the model-assisted pass is labelled `MODEL_CHECKED`, never `HUMAN_VERIFIED` | tick the boxes in `data/eval/verification_sample.md` (40 queries, spread across the overlap range), then run `python -m retrieval_ablation.evalset.human_check` to read them back, and add `--apply` to write the verdicts into the eval set |
+| Generation + long-context at full sample | 130 retrieval answers and 11 long-context ones, of 586 queries. The arms have separate budgets, so the cheap one is no longer capped by the expensive one | more quota; the run resumes from cache rather than restarting |
+| ~~Human verification of eval labels~~ **done, on a sample** | — | **40 of 586 queries checked by a person: 32 accepted, 8 rejected, 20.0%** — against the model audit's 20.4%, and agreeing with it on 14 of the 16 queries both judged (87.5%). The eval set now carries 32 `HUMAN_VERIFIED` labels. The remaining 546 are still `MODEL_CHECKED` or `GENERATED`; see §16b |
 
 ### The parse was not reproducible across machines
 
@@ -355,12 +355,12 @@ lexical arms — runs natively on Windows.
 
 ### Known limitations, stated up front
 
-- **Eval labels are generated, not human-verified.** They are mechanically correct
-  by construction — every gold passage provably contains the value asked for — but
-  nobody has confirmed the queries read naturally or that the labelled span is what
-  a person would cite. `data/eval/verification_sample.md` exists to change that.
-  The schema tracks this per query and a test asserts labels are marked
-  `GENERATED`.
+- **Most eval labels are still not human-verified.** They are mechanically correct
+  by construction — every gold passage provably contains the value asked for. A
+  40-query sample has now been checked by a person (32 accepted, 8 rejected, 20.0%;
+  see §16b of the learning document), so the eval set carries 32 `HUMAN_VERIFIED`
+  labels. The other 546 remain `MODEL_CHECKED` or `GENERATED`, and the schema tracks
+  the distinction per query rather than asserting it once for the project.
 - **Queries are templated, so they reuse the corpus's wording.** Median content-word
   overlap with the gold passage is 0.50, mean 0.47, range 0.17–0.82. This hands a lexical
   matcher an exact string match, so overlap is recorded per query and results are

@@ -145,6 +145,7 @@ def apply_verdicts(summary: Summary, queries_path: Path | None = None) -> Applie
 
     changed = 0
     already_agreed = 0
+    reasons_recorded = 0
     out = []
     for query in queries:
         verdict = by_id.get(query.query_id)
@@ -157,7 +158,22 @@ def apply_verdicts(summary: Summary, queries_path: Path | None = None) -> Applie
             # than skipped silently, because "nothing to do" and "verdict lost"
             # look identical in a bare change count.
             already_agreed += 1
-            out.append(query)
+            # But agreement is not nothing. A reason is new information even when
+            # the status is not: the model audit records *that* it rejected a
+            # query, never why, and a person writing "several figures under one
+            # label; unclear which is 2024" has said something the file does not
+            # already contain. Skipping the whole record threw two such reasons
+            # away on the first real run of this workflow.
+            if verdict.reason and query.metadata.get("human_reject_reason") != verdict.reason:
+                out.append(
+                    dataclasses.replace(
+                        query,
+                        metadata={**query.metadata, "human_reject_reason": verdict.reason},
+                    )
+                )
+                reasons_recorded += 1
+            else:
+                out.append(query)
             continue
         metadata = dict(query.metadata)
         if verdict.reason:
@@ -165,7 +181,7 @@ def apply_verdicts(summary: Summary, queries_path: Path | None = None) -> Applie
         out.append(dataclasses.replace(query, verification=wanted, metadata=metadata))
         changed += 1
 
-    if changed:
+    if changed or reasons_recorded:
         write_eval_set(out, target)
     return Applied(changed=changed, already_agreed=already_agreed)
 

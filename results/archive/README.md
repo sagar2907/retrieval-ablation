@@ -72,3 +72,15 @@ and is superseded. Only the long-context verdicts are worth reading here.
 
 Completing this properly needs one run with pinning intact: the answers are cached,
 so only the 11 judge calls are new.
+
+## `generation-n110-live-latency.json`
+
+The 110-answer retrieval run, kept for its live latency sample: 21 timed calls made
+in the same session as the answers they describe. Archived before force-publishing
+the 129-answer run, whose retrieval answers were largely served from cache and which
+therefore carries fewer timed calls (18).
+
+Same reasoning as the other archived latency runs: `publish` refuses a write that
+loses live-latency samples, because a cached re-run reproduces every other figure and
+silently destroys that one. Everything else in the superseding run is larger --
+140 scores against 121, 73 faithfulness verdicts against 63.

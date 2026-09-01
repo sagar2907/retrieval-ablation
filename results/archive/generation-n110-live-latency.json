@@ -1,6 +1,6 @@
 {
   "model": "gemini-3.6-flash",
-  "n_queries_sampled": 170,
+  "n_queries_sampled": 140,
   "n_long_context_sampled": 11,
   "n_queries_total": 586,
   "n_long_context_gold_reachable": 11,
@@ -24,18 +24,18 @@
       "n_faithfulness_judged": 11
     },
     "retrieval": {
-      "n_answers": 130,
-      "n_answered": 63,
-      "n_refused": 67,
-      "refusal_rate": 0.5153846153846153,
-      "value_accuracy_of_answered": 0.6825396825396826,
-      "n_value_scored": 63,
-      "value_accuracy_of_all": 0.33076923076923076,
-      "citation_precision": 0.291005291005291,
-      "citation_recall": 0.47619047619047616,
+      "n_answers": 110,
+      "n_answered": 52,
+      "n_refused": 58,
+      "refusal_rate": 0.5272727272727272,
+      "value_accuracy_of_answered": 0.6923076923076923,
+      "n_value_scored": 52,
+      "value_accuracy_of_all": 0.32727272727272727,
+      "citation_precision": 0.30128205128205127,
+      "citation_recall": 0.4807692307692308,
       "hallucinated_citation_rate": 0.0,
-      "faithfulness": 0.967741935483871,
-      "n_faithfulness_judged": 62
+      "faithfulness": 0.9807692307692307,
+      "n_faithfulness_judged": 52
     }
   },
   "value_accuracy_ci95": {
@@ -46,10 +46,10 @@
       "n": 11
     },
     "retrieval": {
-      "point": 0.6825396825396826,
-      "low": 0.5714285714285714,
-      "high": 0.7936507936507936,
-      "n": 63
+      "point": 0.6923076923076923,
+      "low": 0.5576923076923077,
+      "high": 0.8076923076923077,
+      "n": 52
     }
   },
   "cost": {
@@ -62,12 +62,12 @@
       "cost_per_query_usd": 0.19650764
     },
     "retrieval": {
-      "n": 130,
-      "prompt_tokens": 899038,
-      "output_tokens": 3096,
-      "mean_prompt_tokens": 6915.7,
-      "total_cost_usd": 1.371777,
-      "cost_per_query_usd": 0.01055213
+      "n": 110,
+      "prompt_tokens": 742690,
+      "output_tokens": 2651,
+      "mean_prompt_tokens": 6751.7,
+      "total_cost_usd": 1.133917,
+      "cost_per_query_usd": 0.01030834
     }
   },
   "latency": {
@@ -78,33 +78,33 @@
       "note": "no answers were generated live in this run; cached timings describe an earlier session and are not comparable"
     },
     "retrieval": {
-      "n_live": 1,
-      "p50": 39.088,
-      "p95": 39.088,
-      "max": 39.088
+      "n_live": 21,
+      "p50": 6.274,
+      "p95": 11.698,
+      "max": 17.426
     }
   },
   "comparison": {
     "measured": true,
-    "retrieval_cost_per_query_usd": 0.01055213,
+    "retrieval_cost_per_query_usd": 0.01030834,
     "long_context_cost_per_query_usd": 0.19650764,
-    "cost_ratio_long_context_over_retrieval": 18.6,
-    "retrieval_mean_prompt_tokens": 6915.7,
+    "cost_ratio_long_context_over_retrieval": 19.1,
+    "retrieval_mean_prompt_tokens": 6751.7,
     "long_context_mean_prompt_tokens": 130818.7,
-    "retrieval_p95_latency_s": 39.088,
+    "retrieval_p95_latency_s": 11.698,
     "long_context_p95_latency_s": null,
     "latency_ratio": null,
     "latency_note": "not comparable: an arm produced no live call in this run, so its timings would come from a different session under different load"
   },
   "api_usage": {
-    "live_calls": 214,
-    "cached_calls": 213,
-    "prompt_tokens": 4178448,
-    "output_tokens": 3654,
-    "thought_tokens": 77892,
-    "rate_limited_responses": 10,
-    "seconds_spent_waiting": 475.1,
-    "p95_latency_seconds": 54.18
+    "live_calls": 184,
+    "cached_calls": 154,
+    "prompt_tokens": 3950433,
+    "output_tokens": 3188,
+    "thought_tokens": 66492,
+    "rate_limited_responses": 11,
+    "seconds_spent_waiting": 462.0,
+    "p95_latency_seconds": 31.6
   },
   "answers": [
     {
@@ -2757,7 +2757,7 @@
       "prompt_tokens": 6565,
       "output_tokens": 4,
       "latency_seconds": 9.778924000000188,
-      "from_cache": true,
+      "from_cache": false,
       "model": "gemini-3.6-flash",
       "arm": "retrieval"
     },
@@ -2783,7 +2783,7 @@
       "prompt_tokens": 4248,
       "output_tokens": 3,
       "latency_seconds": 6.4157693000006475,
-      "from_cache": true,
+      "from_cache": false,
       "model": "gemini-3.6-flash",
       "arm": "retrieval"
     },
@@ -2809,7 +2809,7 @@
       "prompt_tokens": 5105,
       "output_tokens": 4,
       "latency_seconds": 3.659882899999502,
-      "from_cache": true,
+      "from_cache": false,
       "model": "gemini-3.6-flash",
       "arm": "retrieval"
     },
@@ -2835,7 +2835,7 @@
       "prompt_tokens": 4010,
       "output_tokens": 4,
       "latency_seconds": 6.27439509999931,
-      "from_cache": true,
+      "from_cache": false,
       "model": "gemini-3.6-flash",
       "arm": "retrieval"
     },
@@ -2861,7 +2861,7 @@
       "prompt_tokens": 5947,
       "output_tokens": 41,
       "latency_seconds": 3.612326700000267,
-      "from_cache": true,
+      "from_cache": false,
       "model": "gemini-3.6-flash",
       "arm": "retrieval"
     },
@@ -2887,7 +2887,7 @@
       "prompt_tokens": 5834,
       "output_tokens": 4,
       "latency_seconds": 6.773846099999901,
-      "from_cache": true,
+      "from_cache": false,
       "model": "gemini-3.6-flash",
       "arm": "retrieval"
     },
@@ -2916,7 +2916,7 @@
       "prompt_tokens": 4207,
       "output_tokens": 41,
       "latency_seconds": 4.853770799999438,
-      "from_cache": true,
+      "from_cache": false,
       "model": "gemini-3.6-flash",
       "arm": "retrieval"
     },
@@ -2942,7 +2942,7 @@
       "prompt_tokens": 5916,
       "output_tokens": 4,
       "latency_seconds": 17.425759200000357,
-      "from_cache": true,
+      "from_cache": false,
       "model": "gemini-3.6-flash",
       "arm": "retrieval"
     },
@@ -2970,7 +2970,7 @@
       "prompt_tokens": 4879,
       "output_tokens": 31,
       "latency_seconds": 3.2590720999996847,
-      "from_cache": true,
+      "from_cache": false,
       "model": "gemini-3.6-flash",
       "arm": "retrieval"
     },
@@ -2996,7 +2996,7 @@
       "prompt_tokens": 8744,
       "output_tokens": 4,
       "latency_seconds": 6.256881000000249,
-      "from_cache": true,
+      "from_cache": false,
       "model": "gemini-3.6-flash",
       "arm": "retrieval"
     },
@@ -3025,7 +3025,7 @@
       "prompt_tokens": 6136,
       "output_tokens": 79,
       "latency_seconds": 6.006826699999692,
-      "from_cache": true,
+      "from_cache": false,
       "model": "gemini-3.6-flash",
       "arm": "retrieval"
     },
@@ -3055,7 +3055,7 @@
       "prompt_tokens": 4360,
       "output_tokens": 123,
       "latency_seconds": 6.725285699999404,
-      "from_cache": true,
+      "from_cache": false,
       "model": "gemini-3.6-flash",
       "arm": "retrieval"
     },
@@ -3083,7 +3083,7 @@
       "prompt_tokens": 4181,
       "output_tokens": 30,
       "latency_seconds": 6.810756900000342,
-      "from_cache": true,
+      "from_cache": false,
       "model": "gemini-3.6-flash",
       "arm": "retrieval"
     },
@@ -3109,7 +3109,7 @@
       "prompt_tokens": 4534,
       "output_tokens": 4,
       "latency_seconds": 6.52738810000028,
-      "from_cache": true,
+      "from_cache": false,
       "model": "gemini-3.6-flash",
       "arm": "retrieval"
     },
@@ -3135,7 +3135,7 @@
       "prompt_tokens": 4040,
       "output_tokens": 4,
       "latency_seconds": 7.931771800000206,
-      "from_cache": true,
+      "from_cache": false,
       "model": "gemini-3.6-flash",
       "arm": "retrieval"
     },
@@ -3163,7 +3163,7 @@
       "prompt_tokens": 4997,
       "output_tokens": 54,
       "latency_seconds": 9.78129809999973,
-      "from_cache": true,
+      "from_cache": false,
       "model": "gemini-3.6-flash",
       "arm": "retrieval"
     },
@@ -3189,7 +3189,7 @@
       "prompt_tokens": 5514,
       "output_tokens": 4,
       "latency_seconds": 5.875504300000102,
-      "from_cache": true,
+      "from_cache": false,
       "model": "gemini-3.6-flash",
       "arm": "retrieval"
     },
@@ -3215,7 +3215,7 @@
       "prompt_tokens": 4400,
       "output_tokens": 4,
       "latency_seconds": 6.19002139999975,
-      "from_cache": true,
+      "from_cache": false,
       "model": "gemini-3.6-flash",
       "arm": "retrieval"
     },
@@ -3241,7 +3241,7 @@
       "prompt_tokens": 7026,
       "output_tokens": 4,
       "latency_seconds": 11.697617799999534,
-      "from_cache": true,
+      "from_cache": false,
       "model": "gemini-3.6-flash",
       "arm": "retrieval"
     },
@@ -3270,7 +3270,7 @@
       "prompt_tokens": 5657,
       "output_tokens": 33,
       "latency_seconds": 3.362129399999503,
-      "from_cache": true,
+      "from_cache": false,
       "model": "gemini-3.6-flash",
       "arm": "retrieval"
     },
@@ -3299,548 +3299,6 @@
       "prompt_tokens": 8588,
       "output_tokens": 34,
       "latency_seconds": 5.396910599999501,
-      "from_cache": true,
-      "model": "gemini-3.6-flash",
-      "arm": "retrieval"
-    },
-    {
-      "query_id": "q-3f010395ed29",
-      "question": "Report Chevron Corp's net borrowings (repayments) of short-term obligations with three months or less maturity figure for the 2023 fiscal year.",
-      "answer": "NOT IN CONTEXT",
-      "context_ids": [
-        "cvx-10-k-2023-12-31#00301473-00304858",
-        "cvx-10-k-2022-12-31#00285767-00289152",
-        "cvx-10-k-2024-12-31#00305977-00309688",
-        "cvx-10-k-2025-12-31#00310070-00313796",
-        "wmt-10-k-2026-01-31#00209787-00211750",
-        "msft-10-k-2024-06-30#00249429-00250044",
-        "jnj-10-k-2023-12-31#00243806-00245873",
-        "abbv-10-k-2024-12-31#00317598-00319566",
-        "nke-10-k-2026-05-31#00275289-00276964",
-        "wmt-10-k-2024-01-31#00223975-00225906"
-      ],
-      "cited_ids": [],
-      "invalid_citations": [],
-      "refused": true,
-      "prompt_tokens": 7460,
-      "output_tokens": 4,
-      "latency_seconds": 83.94841499999166,
-      "from_cache": true,
-      "model": "gemini-3.6-flash",
-      "arm": "retrieval"
-    },
-    {
-      "query_id": "q-cbefe5d3d090",
-      "question": "Blackrock, Inc. alternatives subtotal 2024",
-      "answer": "For 2024, BlackRock, Inc. reports the following figures for the **Alternatives subtotal**:\n\n* **Investment advisory, administration fees and securities lending revenue:** $1",
-      "context_ids": [
-        "blk-10-k-2025-12-31#00327787-00329797",
-        "blk-10-k-2025-12-31#00326159-00327785",
-        "blk-10-k-2024-12-31#00311213-00313113",
-        "blk-10-k-2025-12-31#00609050-00611013",
-        "blk-10-k-2024-12-31#00580395-00582421",
-        "blk-10-k-2023-12-31#00308202-00309959",
-        "blk-10-k-2024-12-31#00284087-00286003",
-        "blk-10-k-2024-12-31#00337023-00338930",
-        "blk-10-k-2022-12-31#00295696-00297595",
-        "blk-10-k-2023-12-31#00529553-00531536"
-      ],
-      "cited_ids": [],
-      "invalid_citations": [],
-      "refused": false,
-      "prompt_tokens": 9304,
-      "output_tokens": 38,
-      "latency_seconds": 33.443007599998964,
-      "from_cache": true,
-      "model": "gemini-3.6-flash",
-      "arm": "retrieval"
-    },
-    {
-      "query_id": "q-9f33eda94a35",
-      "question": "Report Goldman Sachs Group Inc's commodity prices figure for the 2021 fiscal year.",
-      "answer": "NOT IN CONTEXT",
-      "context_ids": [
-        "gs-10-k-2022-12-31#01125050-01127096",
-        "gs-10-k-2025-12-31#01131088-01133103",
-        "gs-10-k-2023-12-31#01147883-01149814",
-        "gs-10-k-2022-12-31#01115240-01117103",
-        "gs-10-k-2023-12-31#01153721-01155753",
-        "gs-10-k-2024-12-31#01147841-01149900",
-        "gs-10-k-2025-12-31#01119195-01121241",
-        "gs-10-k-2024-12-31#01141946-01143990",
-        "gs-10-k-2024-12-31#01139984-01141944",
-        "gs-10-k-2023-12-31#01145853-01147881"
-      ],
-      "cited_ids": [],
-      "invalid_citations": [],
-      "refused": true,
-      "prompt_tokens": 5991,
-      "output_tokens": 4,
-      "latency_seconds": 6.351873300009174,
-      "from_cache": true,
-      "model": "gemini-3.6-flash",
-      "arm": "retrieval"
-    },
-    {
-      "query_id": "q-3c4ff18570b3",
-      "question": "What was At&T Inc.'s long-term rate of return on plan assets for 2022?",
-      "answer": "NOT IN CONTEXT",
-      "context_ids": [
-        "t-10-k-2025-12-31#00139062-00140983",
-        "t-10-k-2022-12-31#00349888-00351615",
-        "t-10-k-2023-12-31#00337383-00339124",
-        "cvx-10-k-2023-12-31#00394476-00396180",
-        "cvx-10-k-2024-12-31#00401731-00403435",
-        "xom-10-k-2022-12-31#00259517-00261556",
-        "cvx-10-k-2022-12-31#00230538-00232577",
-        "ko-10-k-2022-12-31#00477185-00478843",
-        "ba-10-k-2022-12-31#00302570-00304405",
-        "cvx-10-k-2022-12-31#00372119-00373794"
-      ],
-      "cited_ids": [],
-      "invalid_citations": [],
-      "refused": true,
-      "prompt_tokens": 5100,
-      "output_tokens": 4,
-      "latency_seconds": 63.33432449999964,
-      "from_cache": true,
-      "model": "gemini-3.6-flash",
-      "arm": "retrieval"
-    },
-    {
-      "query_id": "q-e7bc09844a4b",
-      "question": "How much did Coca Cola Co report for current maturities of long-term debt in 2025?",
-      "answer": "",
-      "context_ids": [
-        "ko-10-k-2025-12-31#00322629-00325112",
-        "ko-10-k-2024-12-31#00322917-00325293",
-        "ko-10-k-2022-12-31#00316305-00318772",
-        "ko-10-k-2023-12-31#00315394-00317863",
-        "ko-10-k-2024-12-31#00585936-00590776",
-        "ko-10-k-2025-12-31#00000000-00000841",
-        "ko-10-k-2025-12-31#00200471-00202466",
-        "ko-10-k-2025-12-31#00603106-00608043",
-        "ko-10-k-2023-12-31#00018403-00020017",
-        "ko-10-k-2025-12-31#00613537-00618699"
-      ],
-      "cited_ids": [],
-      "invalid_citations": [],
-      "refused": false,
-      "prompt_tokens": 10904,
-      "output_tokens": 0,
-      "latency_seconds": 53.439025100000435,
-      "from_cache": true,
-      "model": "gemini-3.6-flash",
-      "arm": "retrieval"
-    },
-    {
-      "query_id": "q-07fc5cb423b0",
-      "question": "Report Exxon Mobil Corp's total equity companies figure for the 2023 fiscal year.",
-      "answer": "In the 2023 fiscal year, the total productive development wells drilled for equity companies was 8, while total dry development wells drilled for equity companies was \u2014 [5, 7, 9].",
-      "context_ids": [
-        "xom-10-k-2023-12-31#00006273-00007862",
-        "xom-10-k-2024-12-31#00006212-00007965",
-        "xom-10-k-2022-12-31#00005721-00007458",
-        "xom-10-k-2025-12-31#00006214-00008044",
-        "xom-10-k-2023-12-31#00072444-00074362",
-        "xom-10-k-2023-12-31#00271315-00273379",
-        "xom-10-k-2024-12-31#00075045-00076964",
-        "cvx-10-k-2023-12-31#00348002-00350518",
-        "xom-10-k-2025-12-31#00077273-00079237",
-        "cvx-10-k-2024-12-31#00355440-00358562"
-      ],
-      "cited_ids": [],
-      "invalid_citations": [],
-      "refused": false,
-      "prompt_tokens": 6217,
-      "output_tokens": 43,
-      "latency_seconds": 38.462529200012796,
-      "from_cache": true,
-      "model": "gemini-3.6-flash",
-      "arm": "retrieval"
-    },
-    {
-      "query_id": "q-7ad7b7280ce9",
-      "question": "How much did Unitedhealth Group Inc report for forfeiture rate in 2025?",
-      "answer": "NOT IN CONTEXT",
-      "context_ids": [
-        "unh-10-k-2025-12-31#00330721-00334371",
-        "unh-10-k-2024-12-31#00312357-00317888",
-        "unh-10-k-2023-12-31#00307179-00312466",
-        "unh-10-k-2022-12-31#00300499-00305730",
-        "unh-10-k-2025-12-31#00326067-00330696",
-        "unh-10-k-2023-12-31#00312491-00315224",
-        "unh-10-k-2024-12-31#00306454-00312332",
-        "unh-10-k-2022-12-31#00295088-00300474",
-        "unh-10-k-2023-12-31#00301985-00307154",
-        "unh-10-k-2024-12-31#00303729-00306429"
-      ],
-      "cited_ids": [],
-      "invalid_citations": [],
-      "refused": true,
-      "prompt_tokens": 13585,
-      "output_tokens": 4,
-      "latency_seconds": 24.521327499998733,
-      "from_cache": true,
-      "model": "gemini-3.6-flash",
-      "arm": "retrieval"
-    },
-    {
-      "query_id": "q-e11629cdc653",
-      "question": "How much did Apple Inc. report for percentage of total net sales in 2023?",
-      "answer": "In 2023, Apple Inc. reported research and development expense as 8% of total net sales, selling, general and administrative expense as 7% of total net sales, and total operating expenses as 14% of total net sales [3], [4], [7].",
-      "context_ids": [
-        "aapl-10-k-2025-09-27#00181840-00183562",
-        "aapl-10-k-2024-09-28#00108222-00110180",
-        "aapl-10-k-2024-09-28#00110182-00112241",
-        "aapl-10-k-2023-09-30#00107664-00109704",
-        "aapl-10-k-2025-09-27#00111009-00113063",
-        "aapl-10-k-2023-09-30#00105597-00107662",
-        "aapl-10-k-2025-09-27#00113065-00114772",
-        "aapl-10-k-2022-09-24#00109206-00111210",
-        "aapl-10-k-2022-09-24#00107214-00109204",
-        "aapl-10-k-2023-09-30#00176414-00178079"
-      ],
-      "cited_ids": [
-        "aapl-10-k-2024-09-28#00110182-00112241",
-        "aapl-10-k-2023-09-30#00107664-00109704",
-        "aapl-10-k-2025-09-27#00113065-00114772"
-      ],
-      "invalid_citations": [],
-      "refused": false,
-      "prompt_tokens": 6888,
-      "output_tokens": 61,
-      "latency_seconds": 33.151399199996376,
-      "from_cache": true,
-      "model": "gemini-3.6-flash",
-      "arm": "retrieval"
-    },
-    {
-      "query_id": "q-fde5c42ff189",
-      "question": "How much did Johnson & Johnson report for credit losses and accounts receivable allowances in 2022?",
-      "answer": "NOT IN CONTEXT",
-      "context_ids": [
-        "jnj-10-k-2024-12-29#00429456-00433646",
-        "jnj-10-k-2025-12-28#00426068-00430258",
-        "jnj-10-k-2023-12-31#00424932-00428506",
-        "t-10-k-2022-12-31#00232901-00234826",
-        "jnj-10-k-2024-12-29#00189467-00191217",
-        "jnj-10-k-2024-12-29#00324589-00325409",
-        "jnj-10-k-2023-12-31#00407284-00408967",
-        "jnj-10-k-2024-12-29#00411370-00413106",
-        "jnj-10-k-2023-01-01#00467211-00472099",
-        "jnj-10-k-2023-01-01#00472106-00474723"
-      ],
-      "cited_ids": [],
-      "invalid_citations": [],
-      "refused": true,
-      "prompt_tokens": 9042,
-      "output_tokens": 4,
-      "latency_seconds": 95.64831299999787,
-      "from_cache": true,
-      "model": "gemini-3.6-flash",
-      "arm": "retrieval"
-    },
-    {
-      "query_id": "q-31512e832d75",
-      "question": "Report Verizon Communications Inc's non-network internal-use software (7 years) figure for the 2022 fiscal year.",
-      "answer": "As of December 31, 2022, Verizon Communications Inc.'s non-network internal-use software (7 years) had a gross amount of $23,421 million, accumulated amortization of $(16,397) million, and a net amount of $7,024 million [5].",
-      "context_ids": [
-        "vz-10-k-2023-12-31#00277857-00279871",
-        "vz-10-k-2022-12-31#00284941-00286813",
-        "vz-10-k-2024-12-31#00275248-00277283",
-        "vz-10-k-2025-12-31#00264445-00266484",
-        "vz-10-k-2022-12-31#00340478-00341944",
-        "vz-10-k-2022-12-31#00237093-00239084",
-        "vz-10-k-2022-12-31#00044238-00045816",
-        "vz-10-k-2023-12-31#00230337-00232327",
-        "vz-10-k-2022-12-31#00460747-00462118",
-        "nvda-10-k-2023-01-29#00179206-00180696"
-      ],
-      "cited_ids": [
-        "vz-10-k-2022-12-31#00340478-00341944"
-      ],
-      "invalid_citations": [],
-      "refused": false,
-      "prompt_tokens": 3933,
-      "output_tokens": 71,
-      "latency_seconds": 36.32532970000466,
-      "from_cache": true,
-      "model": "gemini-3.6-flash",
-      "arm": "retrieval"
-    },
-    {
-      "query_id": "q-f415d3dbc5a9",
-      "question": "What was General Electric Co's other net interest and investment income (loss)(a) for 2024?",
-      "answer": "NOT IN CONTEXT",
-      "context_ids": [
-        "mrk-10-k-2024-12-31#00453581-00455430",
-        "so-10-k-2024-12-31#00250141-00251765",
-        "duk-10-k-2024-12-31#00227761-00229638",
-        "duk-10-k-2024-12-31#00239800-00241701",
-        "ko-10-k-2025-12-31#00269770-00271248",
-        "so-10-k-2025-12-31#00274769-00276703",
-        "duk-10-k-2025-12-31#00565405-00567151",
-        "amgn-10-k-2024-12-31#00332305-00334314",
-        "duk-10-k-2024-12-31#00563468-00565259",
-        "ba-10-k-2025-12-31#00113609-00115642"
-      ],
-      "cited_ids": [],
-      "invalid_citations": [],
-      "refused": true,
-      "prompt_tokens": 5849,
-      "output_tokens": 4,
-      "latency_seconds": 59.26197059999686,
-      "from_cache": true,
-      "model": "gemini-3.6-flash",
-      "arm": "retrieval"
-    },
-    {
-      "query_id": "q-7e0e662a981a",
-      "question": "Coca Cola Co benefit payments for other postretirement benefit plans 2026",
-      "answer": "Expected benefit payments for Coca-Cola Company's other postretirement benefits in 2026 are $88 million [8].",
-      "context_ids": [
-        "ko-10-k-2025-12-31#00499514-00501386",
-        "ko-10-k-2023-12-31#00490360-00492341",
-        "ko-10-k-2022-12-31#00494999-00496967",
-        "ko-10-k-2024-12-31#00495968-00497943",
-        "ko-10-k-2023-12-31#00492343-00494361",
-        "ko-10-k-2022-12-31#00496969-00499006",
-        "ko-10-k-2024-12-31#00497945-00499986",
-        "mrk-10-k-2025-12-31#00575539-00577508",
-        "ko-10-k-2025-12-31#00501388-00502142",
-        "so-10-k-2024-12-31#00990449-00992363"
-      ],
-      "cited_ids": [
-        "mrk-10-k-2025-12-31#00575539-00577508"
-      ],
-      "invalid_citations": [],
-      "refused": false,
-      "prompt_tokens": 5598,
-      "output_tokens": 28,
-      "latency_seconds": 59.9454887000029,
-      "from_cache": true,
-      "model": "gemini-3.6-flash",
-      "arm": "retrieval"
-    },
-    {
-      "query_id": "q-adf785400759",
-      "question": "How much did Johnson & Johnson report for discontinued operations - diluted in 2023?",
-      "answer": "In 2023, Johnson & Johnson reported $8.52 for discontinued operations - diluted per share [1], [2], [3].",
-      "context_ids": [
-        "jnj-10-k-2023-12-31#00180040-00181957",
-        "jnj-10-k-2025-12-28#00183355-00185264",
-        "jnj-10-k-2024-12-29#00179553-00181463",
-        "jnj-10-k-2024-12-29#00189467-00191217",
-        "jnj-10-k-2024-12-29#00392064-00393518",
-        "jnj-10-k-2023-12-31#00380959-00382537",
-        "jnj-10-k-2025-12-28#00384782-00386361",
-        "jnj-10-k-2025-12-28#00387828-00389892",
-        "jnj-10-k-2025-12-28#00219947-00221951",
-        "jnj-10-k-2024-12-29#00388008-00390013"
-      ],
-      "cited_ids": [
-        "jnj-10-k-2023-12-31#00180040-00181957",
-        "jnj-10-k-2025-12-28#00183355-00185264",
-        "jnj-10-k-2024-12-29#00179553-00181463"
-      ],
-      "invalid_citations": [],
-      "refused": false,
-      "prompt_tokens": 5586,
-      "output_tokens": 32,
-      "latency_seconds": 35.914443899993785,
-      "from_cache": true,
-      "model": "gemini-3.6-flash",
-      "arm": "retrieval"
-    },
-    {
-      "query_id": "q-af076cc0cc00",
-      "question": "What was Goldman Sachs Group Inc's tlac to rwas for 2025?",
-      "answer": "As of December 2025, Goldman Sachs's TLAC to RWAs ratio was 41.3% [7], and its TLAC to RWAs requirement was 22.0% [1].",
-      "context_ids": [
-        "gs-10-k-2025-12-31#00467965-00469943",
-        "gs-10-k-2023-12-31#00447576-00449604",
-        "gs-10-k-2022-12-31#00444769-00446734",
-        "gs-10-k-2024-12-31#00454493-00456543",
-        "gs-10-k-2024-12-31#00088333-00089872",
-        "gs-10-k-2022-12-31#00093601-00095444",
-        "gs-10-k-2025-12-31#00469945-00471916",
-        "gs-10-k-2025-12-31#00463329-00464794",
-        "gs-10-k-2024-12-31#00452518-00454491",
-        "gs-10-k-2023-12-31#00986121-00987599"
-      ],
-      "cited_ids": [
-        "gs-10-k-2025-12-31#00469945-00471916",
-        "gs-10-k-2025-12-31#00467965-00469943"
-      ],
-      "invalid_citations": [],
-      "refused": false,
-      "prompt_tokens": 5313,
-      "output_tokens": 47,
-      "latency_seconds": 4.623959199998353,
-      "from_cache": true,
-      "model": "gemini-3.6-flash",
-      "arm": "retrieval"
-    },
-    {
-      "query_id": "q-a297df092e2e",
-      "question": "In 2023, what amount did Boeing Co record as commodity contracts?",
-      "answer": "NOT IN CONTEXT",
-      "context_ids": [
-        "ba-10-k-2023-12-31#00333674-00334268",
-        "ko-10-k-2023-12-31#00403636-00405197",
-        "ko-10-k-2023-12-31#00397193-00398758",
-        "ko-10-k-2023-12-31#00309757-00310612",
-        "cvx-10-k-2024-12-31#00321116-00323157",
-        "jpm-10-k-2022-12-31#00815580-00817605",
-        "jpm-10-k-2023-12-31#00861191-00862557",
-        "jpm-10-k-2023-12-31#00862559-00864264",
-        "amgn-10-k-2024-12-31#00348530-00349865",
-        "ba-10-k-2023-12-31#00180061-00181465"
-      ],
-      "cited_ids": [],
-      "invalid_citations": [],
-      "refused": true,
-      "prompt_tokens": 4049,
-      "output_tokens": 4,
-      "latency_seconds": 34.35787710000295,
-      "from_cache": true,
-      "model": "gemini-3.6-flash",
-      "arm": "retrieval"
-    },
-    {
-      "query_id": "q-54748c2cd21b",
-      "question": "What was General Electric Co's healthcare for 2022?",
-      "answer": "At December 31, 2022, General Electric Co.'s HealthCare segment employed approximately 49,000 people [6].",
-      "context_ids": [
-        "ge-10-k-2023-12-31#00452933-00453266",
-        "ge-10-k-2024-12-31#00421667-00422627",
-        "ge-10-k-2025-12-31#00397998-00403328",
-        "ge-10-k-2022-12-31#00467528-00472872",
-        "abbv-10-k-2022-12-31#00104510-00106068",
-        "ge-10-k-2022-12-31#00025530-00027175",
-        "ge-10-k-2025-12-31#00409775-00415918",
-        "abbv-10-k-2024-12-31#00106286-00108299",
-        "abbv-10-k-2025-12-31#00111802-00113815",
-        "ge-10-k-2023-12-31#00467240-00473454"
-      ],
-      "cited_ids": [
-        "ge-10-k-2022-12-31#00025530-00027175"
-      ],
-      "invalid_citations": [],
-      "refused": false,
-      "prompt_tokens": 8900,
-      "output_tokens": 33,
-      "latency_seconds": 54.179816100004246,
-      "from_cache": true,
-      "model": "gemini-3.6-flash",
-      "arm": "retrieval"
-    },
-    {
-      "query_id": "q-fdaa35bd2eff",
-      "question": "What was Merck & Co., Inc.'s short-term investments for 2022?",
-      "answer": "In 2022, Merck & Co., Inc.'s short-term investments were $498 [9], [10].",
-      "context_ids": [
-        "mrk-10-k-2023-12-31#00611805-00617014",
-        "mrk-10-k-2024-12-31#00623552-00627775",
-        "mrk-10-k-2025-12-31#00644087-00648992",
-        "mrk-10-k-2024-12-31#00618475-00623526",
-        "mrk-10-k-2022-12-31#00612137-00616611",
-        "mrk-10-k-2023-12-31#00608797-00611779",
-        "mrk-10-k-2025-12-31#00649018-00653133",
-        "mrk-10-k-2024-12-31#00614105-00618449",
-        "mrk-10-k-2022-12-31#00348589-00350694",
-        "mrk-10-k-2023-12-31#00348576-00350682"
-      ],
-      "cited_ids": [
-        "mrk-10-k-2022-12-31#00348589-00350694",
-        "mrk-10-k-2023-12-31#00348576-00350682"
-      ],
-      "invalid_citations": [],
-      "refused": false,
-      "prompt_tokens": 14975,
-      "output_tokens": 30,
-      "latency_seconds": 44.1748338000034,
-      "from_cache": true,
-      "model": "gemini-3.6-flash",
-      "arm": "retrieval"
-    },
-    {
-      "query_id": "q-53747fd96e08",
-      "question": "What was General Electric Co's balance at december for 2022?",
-      "answer": "NOT IN CONTEXT",
-      "context_ids": [
-        "so-10-k-2023-12-31#00691110-00693147",
-        "so-10-k-2024-12-31#00682136-00683997",
-        "ge-10-k-2024-12-31#00429759-00436017",
-        "vz-10-k-2023-12-31#00322757-00324656",
-        "ge-10-k-2022-12-31#00472893-00479388",
-        "ge-10-k-2023-12-31#00453268-00460629",
-        "so-10-k-2022-12-31#00763483-00765198",
-        "ge-10-k-2025-12-31#00409775-00415918",
-        "ge-10-k-2023-12-31#00460650-00467219",
-        "ge-10-k-2024-12-31#00436038-00440721"
-      ],
-      "cited_ids": [],
-      "invalid_citations": [],
-      "refused": true,
-      "prompt_tokens": 13662,
-      "output_tokens": 4,
-      "latency_seconds": 6.183527500004857,
-      "from_cache": true,
-      "model": "gemini-3.6-flash",
-      "arm": "retrieval"
-    },
-    {
-      "query_id": "q-a6e27a7a09c4",
-      "question": "In 2024, what amount did Amgen Inc record as total product sales?",
-      "answer": "In 2024, Amgen Inc. recorded $32,026 million in product sales [1].",
-      "context_ids": [
-        "amgn-10-k-2024-12-31#00448960-00451045",
-        "amgn-10-k-2022-12-31#00599138-00601116",
-        "amgn-10-k-2024-12-31#00534244-00536202",
-        "amgn-10-k-2024-12-31#00532217-00534242",
-        "amgn-10-k-2025-12-31#00496799-00498258",
-        "amgn-10-k-2022-12-31#00424566-00426441",
-        "amgn-10-k-2024-12-31#00492502-00494408",
-        "amgn-10-k-2023-12-31#00613817-00615664",
-        "amgn-10-k-2024-12-31#00328381-00330260",
-        "amgn-10-k-2024-12-31#00631780-00633568"
-      ],
-      "cited_ids": [
-        "amgn-10-k-2024-12-31#00448960-00451045"
-      ],
-      "invalid_citations": [],
-      "refused": false,
-      "prompt_tokens": 5244,
-      "output_tokens": 26,
-      "latency_seconds": 104.64881120000791,
-      "from_cache": true,
-      "model": "gemini-3.6-flash",
-      "arm": "retrieval"
-    },
-    {
-      "query_id": "q-50cdd532e7b0",
-      "question": "Report Nike, Inc.'s risk-free interest rate figure for the 2025 fiscal year.",
-      "answer": "NOT IN CONTEXT",
-      "context_ids": [
-        "nke-10-k-2026-05-31#00379317-00384977",
-        "nke-10-k-2025-05-31#00376615-00382236",
-        "nke-10-k-2025-05-31#00160550-00162470",
-        "nke-10-k-2024-05-31#00008944-00010788",
-        "nke-10-k-2026-05-31#00008939-00010828",
-        "nke-10-k-2025-05-31#00008939-00010897",
-        "nke-10-k-2023-05-31#00374534-00380383",
-        "nke-10-k-2025-05-31#00169295-00171301",
-        "nke-10-k-2023-05-31#00008909-00010727",
-        "nke-10-k-2026-05-31#00169941-00172008"
-      ],
-      "cited_ids": [],
-      "invalid_citations": [],
-      "refused": true,
-      "prompt_tokens": 8748,
-      "output_tokens": 4,
-      "latency_seconds": 39.08764579999843,
       "from_cache": false,
       "model": "gemini-3.6-flash",
       "arm": "retrieval"
@@ -5056,206 +4514,6 @@
       "citation_recall": true,
       "cited_a_hallucinated_passage": false,
       "faithfulness": 1.0
-    },
-    {
-      "query_id": "q-3f010395ed29",
-      "arm": "retrieval",
-      "refused": true,
-      "value_correct": null,
-      "citation_precision": null,
-      "citation_recall": null,
-      "cited_a_hallucinated_passage": false,
-      "faithfulness": null
-    },
-    {
-      "query_id": "q-cbefe5d3d090",
-      "arm": "retrieval",
-      "refused": false,
-      "value_correct": false,
-      "citation_precision": 0.0,
-      "citation_recall": false,
-      "cited_a_hallucinated_passage": false,
-      "faithfulness": 0.0
-    },
-    {
-      "query_id": "q-9f33eda94a35",
-      "arm": "retrieval",
-      "refused": true,
-      "value_correct": null,
-      "citation_precision": null,
-      "citation_recall": null,
-      "cited_a_hallucinated_passage": false,
-      "faithfulness": null
-    },
-    {
-      "query_id": "q-3c4ff18570b3",
-      "arm": "retrieval",
-      "refused": true,
-      "value_correct": null,
-      "citation_precision": null,
-      "citation_recall": null,
-      "cited_a_hallucinated_passage": false,
-      "faithfulness": null
-    },
-    {
-      "query_id": "q-e7bc09844a4b",
-      "arm": "retrieval",
-      "refused": false,
-      "value_correct": false,
-      "citation_precision": 0.0,
-      "citation_recall": false,
-      "cited_a_hallucinated_passage": false,
-      "faithfulness": null
-    },
-    {
-      "query_id": "q-07fc5cb423b0",
-      "arm": "retrieval",
-      "refused": false,
-      "value_correct": true,
-      "citation_precision": 0.0,
-      "citation_recall": false,
-      "cited_a_hallucinated_passage": false,
-      "faithfulness": 1.0
-    },
-    {
-      "query_id": "q-7ad7b7280ce9",
-      "arm": "retrieval",
-      "refused": true,
-      "value_correct": null,
-      "citation_precision": null,
-      "citation_recall": null,
-      "cited_a_hallucinated_passage": false,
-      "faithfulness": null
-    },
-    {
-      "query_id": "q-e11629cdc653",
-      "arm": "retrieval",
-      "refused": false,
-      "value_correct": true,
-      "citation_precision": 0.3333333333333333,
-      "citation_recall": true,
-      "cited_a_hallucinated_passage": false,
-      "faithfulness": 1.0
-    },
-    {
-      "query_id": "q-fde5c42ff189",
-      "arm": "retrieval",
-      "refused": true,
-      "value_correct": null,
-      "citation_precision": null,
-      "citation_recall": null,
-      "cited_a_hallucinated_passage": false,
-      "faithfulness": null
-    },
-    {
-      "query_id": "q-31512e832d75",
-      "arm": "retrieval",
-      "refused": false,
-      "value_correct": true,
-      "citation_precision": 1.0,
-      "citation_recall": true,
-      "cited_a_hallucinated_passage": false,
-      "faithfulness": 1.0
-    },
-    {
-      "query_id": "q-f415d3dbc5a9",
-      "arm": "retrieval",
-      "refused": true,
-      "value_correct": null,
-      "citation_precision": null,
-      "citation_recall": null,
-      "cited_a_hallucinated_passage": false,
-      "faithfulness": null
-    },
-    {
-      "query_id": "q-7e0e662a981a",
-      "arm": "retrieval",
-      "refused": false,
-      "value_correct": false,
-      "citation_precision": 0.0,
-      "citation_recall": false,
-      "cited_a_hallucinated_passage": false,
-      "faithfulness": 1.0
-    },
-    {
-      "query_id": "q-adf785400759",
-      "arm": "retrieval",
-      "refused": false,
-      "value_correct": true,
-      "citation_precision": 0.3333333333333333,
-      "citation_recall": true,
-      "cited_a_hallucinated_passage": false,
-      "faithfulness": 1.0
-    },
-    {
-      "query_id": "q-af076cc0cc00",
-      "arm": "retrieval",
-      "refused": false,
-      "value_correct": true,
-      "citation_precision": 0.5,
-      "citation_recall": true,
-      "cited_a_hallucinated_passage": false,
-      "faithfulness": 1.0
-    },
-    {
-      "query_id": "q-a297df092e2e",
-      "arm": "retrieval",
-      "refused": true,
-      "value_correct": null,
-      "citation_precision": null,
-      "citation_recall": null,
-      "cited_a_hallucinated_passage": false,
-      "faithfulness": null
-    },
-    {
-      "query_id": "q-54748c2cd21b",
-      "arm": "retrieval",
-      "refused": false,
-      "value_correct": false,
-      "citation_precision": 0.0,
-      "citation_recall": false,
-      "cited_a_hallucinated_passage": false,
-      "faithfulness": 1.0
-    },
-    {
-      "query_id": "q-fdaa35bd2eff",
-      "arm": "retrieval",
-      "refused": false,
-      "value_correct": true,
-      "citation_precision": 0.5,
-      "citation_recall": true,
-      "cited_a_hallucinated_passage": false,
-      "faithfulness": 1.0
-    },
-    {
-      "query_id": "q-53747fd96e08",
-      "arm": "retrieval",
-      "refused": true,
-      "value_correct": null,
-      "citation_precision": null,
-      "citation_recall": null,
-      "cited_a_hallucinated_passage": false,
-      "faithfulness": null
-    },
-    {
-      "query_id": "q-a6e27a7a09c4",
-      "arm": "retrieval",
-      "refused": false,
-      "value_correct": true,
-      "citation_precision": 0.0,
-      "citation_recall": false,
-      "cited_a_hallucinated_passage": false,
-      "faithfulness": 1.0
-    },
-    {
-      "query_id": "q-50cdd532e7b0",
-      "arm": "retrieval",
-      "refused": true,
-      "value_correct": null,
-      "citation_precision": null,
-      "citation_recall": null,
-      "cited_a_hallucinated_passage": false,
-      "faithfulness": null
     }
   ]
 }

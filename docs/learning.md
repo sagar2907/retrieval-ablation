@@ -1428,6 +1428,39 @@ A model auditing labels a program generated from the same tables is not an
 independent second opinion, and cannot see that a *different* passage would have
 been the better gold.
 
+### 16b. The labels are now human-verified, on a sample
+
+For most of this project's life the honest position was that no human had checked a
+single label, and the limitations list said so. That has changed: all 40 entries of
+`data/eval/verification_sample.md` are marked, and the verdicts are applied. The eval
+set now carries 32 `HUMAN_VERIFIED` labels and 49 rejections, 8 of them human.
+
+**The human rejection rate is 20.0% -- 8 of 40 -- against the model audit's 20.4%.**
+Those two numbers landing within half a point of each other is worth stating
+carefully, because a matching rate proves nothing on its own: two judges can reject
+the same *proportion* while disagreeing about every individual case. So the overlap
+was checked. Sixteen of the forty had also been judged by the model, and the two
+agree on fourteen -- **87.5%** -- disagreeing in both directions once each. The model
+kept "Apple Inc. other current assets 2025", which the human called a wrong question;
+the human kept a Merck net-income query the model had rejected.
+
+That is the first evidence this project has about whether a model auditing labels a
+program generated is worth anything. On this sample it is: not a substitute for a
+person, and not noise either.
+
+**The rejections fall into exactly the two categories the limitations section already
+named**, which is a mild vindication of that section rather than a new finding. Five
+are row labels that were never questions -- "What was Chevron Corp's international
+for 2023?", "Apple Inc. other current assets 2025", "General Electric Co's other
+items". Three are rows carrying several figures under one label, where the query
+cannot say which is meant: Coca-Cola's purchase obligations across five maturity
+buckets, Duke Energy's hedge funds, Chevron's net borrowings.
+
+The sample is 40 of 586, so this does not make the benchmark human-verified. It makes
+40 queries human-verified and gives a measured rejection rate with a confidence
+interval a reader can compute for themselves, where before there was an assertion
+that nobody had looked.
+
 ## 17. Retrieval versus long context
 
 `gemini-3.6-flash`, costs computed from the API's own reported token counts. The
@@ -1438,14 +1471,14 @@ the whole evaluation at what the expensive arm could afford in a day.
 <!-- generated:long-context -->
 | | retrieval (top-10) | long context (whole filing) | ratio |
 |---|---|---|---|
-| queries answered | 110 | 11 | — |
-| mean prompt tokens | 6,752 | 130,819 | **19.4×** |
-| cost per query | $0.010308 | $0.196508 | **19.1×** |
-| accuracy, of answered | 0.692 | 0.636 | — |
-| refused | 58 of 110 | 0 of 11 | — |
-| gold reachable in what the arm read | 110 of 110 | 11 of 11 | — |
-| faithfulness | 0.981 (52 judged) | 0.955 (11 judged) | — |
-| p95 latency | 11.698 s | not measured | not comparable |
+| queries answered | 130 | 11 | — |
+| mean prompt tokens | 6,916 | 130,819 | **18.9×** |
+| cost per query | $0.010552 | $0.196508 | **18.6×** |
+| accuracy, of answered | 0.683 | 0.636 | — |
+| refused | 67 of 130 | 0 of 11 | — |
+| gold reachable in what the arm read | 130 of 130 | 11 of 11 | — |
+| faithfulness | 0.968 (62 judged) | 0.955 (11 judged) | — |
+| p95 latency | 39.088 s | not measured | not comparable |
 <!-- /generated:long-context -->
 
 **The long-context arm has a reachability ceiling, and it had never been reported.**
@@ -1476,8 +1509,8 @@ tokens, which is more than a day's free-tier allowance. Cost survives the same
 problem: token counts do not depend on when a call was made.
 
 **Retrieval refuses half the questions, and that is the whole story:** it declined
-58 of 110 because the answer was not in its top-10. On the ones it did answer it is
-now more accurate than long context, 0.692 against 0.636, and it cites
+67 of 130 because the answer was not in its top-10. On the ones it did answer it is
+now more accurate than long context, 0.683 against 0.636, and it cites
 its sources -- which the long-context arm structurally cannot, since its entire
 context is one document. So the honest summary is that retrieval is eighteen times
 cheaper and answers half as often, and the gap is created by its first stage, not by
@@ -1492,11 +1525,11 @@ rate is the difference that survives.
 
 Three caveats that cut against the result. Long context is **handed the correct
 filing** while retrieval must find it among 120. The samples are small and no
-longer equal -- 110 retrieval answers against 11 long-context ones -- because the
+longer equal -- 130 retrieval answers against 11 long-context ones -- because the
 arms were separated to stop the expensive one capping the cheap one. And
 faithfulness is now measured on both arms, on the same eleven long-context answers
 the rest of that column describes. Long context is *behind*: 0.955 against
-retrieval's 0.981. One answer in each arm was judged less than fully grounded --
+retrieval's 0.968. Ungrounded answers have now appeared in both arms --
 including one in the arm that was handed the correct filing outright, which is the
 failure mode people assume belongs to retrieval alone.
 
@@ -1607,11 +1640,11 @@ non-interaction row differs from its reference on exactly one axis.
    read "six of fifteen unmeasured" and stayed in the list for several commits after
    the GPU runs closed that gap — a limitations section that understated the work,
    which is the same drift as one that overstates it and no more honest.
-5. **Generation is measured on 110 retrieval answers and 11 long-context ones**, of
+5. **Generation is measured on 130 retrieval answers and 11 long-context ones**, of
    586 queries, and the two arms no longer share a sample size. Cost ratios are
    solid. Accuracy is indicative at this sample. Latency is not measured at all in
    the published run; §17 says why.
-6. **Faithfulness is measured on both arms** — 52 retrieval verdicts at 0.981,
+6. **Faithfulness is measured on both arms** — 62 retrieval verdicts at 0.968,
    and 11 long-context verdicts at 0.955. Both are too few to quote as a rate. The
    long-context arm was the expensive one to judge, at about 131,000 prompt tokens
    per verdict, which is why it came last rather than not at all.

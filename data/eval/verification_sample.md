@@ -28,7 +28,7 @@ Sampled 40 of 586 queries, spread across the lexical-overlap range.
 ```
 
 - [ ] ok
-- [ ] reject &mdash; reason:
+- [x] reject &mdash; reason:several figures under one label; unclear which is 2024
 
 ## 2. `q-a2c71352568c`
 
@@ -46,7 +46,7 @@ Sampled 40 of 586 queries, spread across the lexical-overlap range.
 ```
 
 - [ ] ok
-- [ ] reject &mdash; reason:
+- [x] reject &mdash; reason: wrong question
 
 ## 3. `q-14bb7017d00d`
 
@@ -63,7 +63,7 @@ Sampled 40 of 586 queries, spread across the lexical-overlap range.
 | Accumulated depreciation | (61) | (78) |
 ```
 
-- [ ] ok
+- [x] ok
 - [ ] reject &mdash; reason:
 
 ## 4. `q-1dc64d00b96b`
@@ -81,7 +81,7 @@ Sampled 40 of 586 queries, spread across the lexical-overlap range.
 | Dividend yield | 4.1 | % | 3.5 | % | 5.0 | % |
 ```
 
-- [ ] ok
+- [x] ok
 - [ ] reject &mdash; reason:
 
 ## 5. `q-c18a9de5829f`
@@ -99,7 +99,7 @@ Sampled 40 of 586 queries, spread across the lexical-overlap range.
 | Discount rate | 4.8 % | 4.6 % |
 ```
 
-- [ ] ok
+- [x] ok
 - [ ] reject &mdash; reason:
 
 ## 6. `q-88eacdeedbbc`
@@ -117,7 +117,7 @@ Sampled 40 of 586 queries, spread across the lexical-overlap range.
 | Net Income | $ 5.73 | $ 5.16 | $ 2.79 |
 ```
 
-- [ ] ok
+- [x] ok
 - [ ] reject &mdash; reason:
 
 ## 7. `q-1d3dbe696ef3`
@@ -136,7 +136,7 @@ Sampled 40 of 586 queries, spread across the lexical-overlap range.
 ```
 
 - [ ] ok
-- [ ] reject &mdash; reason:
+- [x] reject &mdash; reason:wrong question, i thing it should as what is the total sum amount of the finished goods
 
 ## 8. `q-76502a04414e`
 
@@ -154,7 +154,7 @@ Sampled 40 of 586 queries, spread across the lexical-overlap range.
 ```
 
 - [ ] ok
-- [ ] reject &mdash; reason:
+- [x] reject &mdash; reason:wrong question
 
 ## 9. `q-cd14f105d979`
 
@@ -172,7 +172,7 @@ Sampled 40 of 586 queries, spread across the lexical-overlap range.
 ```
 
 - [ ] ok
-- [ ] reject &mdash; reason:
+- [x] reject &mdash; reason:several figures under one label; unclear which is 2023
 
 ## 10. `q-6bc728443601`
 
@@ -189,7 +189,7 @@ Sampled 40 of 586 queries, spread across the lexical-overlap range.
 | Actual tax rates | 21.5 % | 20.3 % |
 ```
 
-- [ ] ok
+- [x] ok
 - [ ] reject &mdash; reason:
 
 ## 11. `q-a65454159ba5`
@@ -207,7 +207,7 @@ Sampled 40 of 586 queries, spread across the lexical-overlap range.
 | Total capital ratio | 13.3 % | 12.4 % |
 ```
 
-- [ ] ok
+- [x] ok
 - [ ] reject &mdash; reason:
 
 ## 12. `q-43d8a28a33bf`
@@ -225,7 +225,7 @@ Sampled 40 of 586 queries, spread across the lexical-overlap range.
 | Dividends paid | (398) | (399) | (395) |
 ```
 
-- [ ] ok
+- [x] ok
 - [ ] reject &mdash; reason:
 
 ## 13. `q-e69449d66cb7`
@@ -243,7 +243,7 @@ Sampled 40 of 586 queries, spread across the lexical-overlap range.
 | Accounts receivable | (15,399) | (13,063) | (6,172) |
 ```
 
-- [ ] ok
+- [x] ok
 - [ ] reject &mdash; reason:
 
 ## 14. `q-64eb6479d438`
@@ -261,7 +261,7 @@ Sampled 40 of 586 queries, spread across the lexical-overlap range.
 | Gain (loss) on repurchases1 | $ (14) |  | $ (16) |  | $ (21) |
 ```
 
-- [ ] ok
+- [x] ok
 - [ ] reject &mdash; reason:
 
 ## 15. `q-cbe5bc330dd7`
@@ -279,7 +279,7 @@ Sampled 40 of 586 queries, spread across the lexical-overlap range.
 | Retained earnings | 63,069 | 53,895 |
 ```
 
-- [ ] ok
+- [x] ok
 - [ ] reject &mdash; reason:
 
 ## 16. `q-fe40ac3b38ff`
@@ -298,7 +298,7 @@ Sampled 40 of 586 queries, spread across the lexical-overlap range.
 ```
 
 - [ ] ok
-- [ ] reject &mdash; reason:
+- [x] reject &mdash; reason: wrong question
 
 ## 17. `q-ee30e5c38720`
 
@@ -315,7 +315,7 @@ Sampled 40 of 586 queries, spread across the lexical-overlap range.
 | Total Consolidated Subsidiaries | 4 | 4 | 2 |
 ```
 
-- [ ] ok
+- [x] ok
 - [ ] reject &mdash; reason:
 
 ## 18. `q-94f3046d9845`
@@ -333,7 +333,7 @@ Sampled 40 of 586 queries, spread across the lexical-overlap range.
 | Earnings of foreign subsidiaries | 192 | — |
 ```
 
-- [ ] ok
+- [x] ok
 - [ ] reject &mdash; reason:
 
 ## 19. `q-1983dea0cb00`
@@ -351,7 +351,7 @@ Sampled 40 of 586 queries, spread across the lexical-overlap range.
 | Subpart F deferred tax benefit | 0.0 % | -4.7 % | 0.0 % |
 ```
 
-- [ ] ok
+- [x] ok
 - [ ] reject &mdash; reason:
 
 ## 20. `q-96878bfe5e50`
@@ -369,7 +369,7 @@ Sampled 40 of 586 queries, spread across the lexical-overlap range.
 | Weighted-average discount rate | 3.1 % | 2.9 % |
 ```
 
-- [ ] ok
+- [x] ok
 - [ ] reject &mdash; reason:
 
 ## 21. `q-14ebb28195eb`
@@ -387,7 +387,7 @@ Sampled 40 of 586 queries, spread across the lexical-overlap range.
 | Remaining performance period (in years) | 2.9 | 2.9 | 2.9 |
 ```
 
-- [ ] ok
+- [x] ok
 - [ ] reject &mdash; reason:
 
 ## 22. `q-570240733a01`
@@ -405,7 +405,7 @@ Sampled 40 of 586 queries, spread across the lexical-overlap range.
 | Total acquired intangible assets | $ 2,174 | $ 5,814 |
 ```
 
-- [ ] ok
+- [x] ok
 - [ ] reject &mdash; reason:
 
 ## 23. `q-b799f5f6fd89`
@@ -424,7 +424,7 @@ Sampled 40 of 586 queries, spread across the lexical-overlap range.
 ```
 
 - [ ] ok
-- [ ] reject &mdash; reason:
+- [x] reject &mdash; reason: i think this is a wrong question
 
 ## 24. `q-f1620d85d312`
 
@@ -441,7 +441,7 @@ Sampled 40 of 586 queries, spread across the lexical-overlap range.
 | Stock-based compensation | 1.5 % | -0.5 % | -1.1 % |
 ```
 
-- [ ] ok
+- [x] ok
 - [ ] reject &mdash; reason:
 
 ## 25. `q-2721d9fba126`
@@ -459,7 +459,7 @@ Sampled 40 of 586 queries, spread across the lexical-overlap range.
 | Active multi-asset | 7 | % | 8 | % | 9 | % | 9 | % |
 ```
 
-- [ ] ok
+- [x] ok
 - [ ] reject &mdash; reason:
 
 ## 26. `q-50a4fb24f648`
@@ -477,7 +477,7 @@ Sampled 40 of 586 queries, spread across the lexical-overlap range.
 | Depreciation and amortization | $ 36,531 | $ 37,931 |
 ```
 
-- [ ] ok
+- [x] ok
 - [ ] reject &mdash; reason:
 
 ## 27. `q-970bbd0ce1e3`
@@ -495,7 +495,7 @@ Sampled 40 of 586 queries, spread across the lexical-overlap range.
 | Natural gas and fuel oil(a) | 34.7 % | 33.3 % | 34.2 % | 3.39 | 3.81 | 6.35 |
 ```
 
-- [ ] ok
+- [x] ok
 - [ ] reject &mdash; reason:
 
 ## 28. `q-b5717601ae50`
@@ -513,7 +513,7 @@ Sampled 40 of 586 queries, spread across the lexical-overlap range.
 | Unamortized Underwriting Fees | (135) | (96) |
 ```
 
-- [ ] ok
+- [x] ok
 - [ ] reject &mdash; reason:
 
 ## 29. `q-f441618e228a`
@@ -531,7 +531,7 @@ Sampled 40 of 586 queries, spread across the lexical-overlap range.
 | Foreign currency contracts | $ 1,067 | $ 59 | $ 8 | $ 19 | $ (6) |
 ```
 
-- [ ] ok
+- [x] ok
 - [ ] reject &mdash; reason:
 
 ## 30. `q-1abf4e6d79b9`
@@ -549,7 +549,7 @@ Sampled 40 of 586 queries, spread across the lexical-overlap range.
 | Net impact of repatriated international earnings | (0.4) % | (0.4) % | (0.3) % |
 ```
 
-- [ ] ok
+- [x] ok
 - [ ] reject &mdash; reason:
 
 ## 31. `q-c671df566fac`
@@ -567,7 +567,7 @@ Sampled 40 of 586 queries, spread across the lexical-overlap range.
 | Tax credits and tax-exempt income (a) | (0.9) | (0.1) | (4.1) |
 ```
 
-- [ ] ok
+- [x] ok
 - [ ] reject &mdash; reason:
 
 ## 32. `q-4ff9e4d212e4`
@@ -585,7 +585,7 @@ Sampled 40 of 586 queries, spread across the lexical-overlap range.
 | Risk-free interest rate | 4.4 % | 3.4 % | 2.8 % |
 ```
 
-- [ ] ok
+- [x] ok
 - [ ] reject &mdash; reason:
 
 ## 33. `q-f4a5ba2c1a33`
@@ -603,7 +603,7 @@ Sampled 40 of 586 queries, spread across the lexical-overlap range.
 | Net actuarial loss/(gain) | $18,175 | $17,448 | ($1,852) | ($1,862) |
 ```
 
-- [ ] ok
+- [x] ok
 - [ ] reject &mdash; reason:
 
 ## 34. `q-dd272cf2b440`
@@ -621,7 +621,7 @@ Sampled 40 of 586 queries, spread across the lexical-overlap range.
 | Weighted average remaining lease term (years) | 11 | 12 |
 ```
 
-- [ ] ok
+- [x] ok
 - [ ] reject &mdash; reason:
 
 ## 35. `q-decdaecc8339`
@@ -639,7 +639,7 @@ Sampled 40 of 586 queries, spread across the lexical-overlap range.
 | Risk-free rate | 4.33 % | 4.15 % | 3.74 % |
 ```
 
-- [ ] ok
+- [x] ok
 - [ ] reject &mdash; reason:
 
 ## 36. `q-51ef51e607cf`
@@ -657,7 +657,7 @@ Sampled 40 of 586 queries, spread across the lexical-overlap range.
 | Statutory federal income tax rate | 21 % | 21 % | 21 % |
 ```
 
-- [ ] ok
+- [x] ok
 - [ ] reject &mdash; reason:
 
 ## 37. `q-20e8ba9a8645`
@@ -675,7 +675,7 @@ Sampled 40 of 586 queries, spread across the lexical-overlap range.
 | Weighted-average remaining lease term (in years) | 6.6 | 6.9 |
 ```
 
-- [ ] ok
+- [x] ok
 - [ ] reject &mdash; reason:
 
 ## 38. `q-3f010395ed29`
@@ -694,7 +694,7 @@ Sampled 40 of 586 queries, spread across the lexical-overlap range.
 ```
 
 - [ ] ok
-- [ ] reject &mdash; reason:
+- [x] reject &mdash; reason: confusiong figures
 
 ## 39. `q-13972440f043`
 
@@ -711,7 +711,7 @@ Sampled 40 of 586 queries, spread across the lexical-overlap range.
 | Inventory and long-term contract methods of income recognition | ($5,115) | ($4,369) |
 ```
 
-- [ ] ok
+- [x] ok
 - [ ] reject &mdash; reason:
 
 ## 40. `q-4f72a926cf6b`
@@ -729,5 +729,5 @@ Sampled 40 of 586 queries, spread across the lexical-overlap range.
 | Settlement of First Republic deposit and other related party transactions(c) | 5,447 |
 ```
 
-- [ ] ok
+- [x] ok
 - [ ] reject &mdash; reason:
