@@ -154,10 +154,11 @@ class TestApplyVerdicts:
             sample(tmp_path, [("q1", True, False, ""), ("q2", False, True, "bad")])
         )
 
-        changed = human_check.apply_verdicts(summary, path)
+        applied = human_check.apply_verdicts(summary, path)
 
         by_id = {q.query_id: q for q in read_eval_set(path)}
-        assert changed == 2
+        assert applied.changed == 2
+        assert applied.already_agreed == 0
         assert by_id["q1"].verification is Verification.HUMAN_VERIFIED
         assert by_id["q2"].verification is Verification.REJECTED
         assert by_id["q2"].metadata["human_reject_reason"] == "bad"
@@ -186,8 +187,10 @@ class TestApplyVerdicts:
         path = self.path_with(tmp_path, [query("q1")])
         summary = human_check.parse(sample(tmp_path, [("q1", True, False, "")]))
 
-        assert human_check.apply_verdicts(summary, path) == 1
-        assert human_check.apply_verdicts(summary, path) == 0
+        assert human_check.apply_verdicts(summary, path).changed == 1
+        # Re-applying is not a lost verdict: the status already matches.
+        second = human_check.apply_verdicts(summary, path)
+        assert (second.changed, second.already_agreed) == (0, 1)
 
     def test_gold_and_text_are_never_altered(self, tmp_path):
         """Verification records an opinion about a label, not a new label."""
@@ -249,3 +252,45 @@ class TestVerificationSampleSpread:
     def test_the_low_end_is_still_included(self):
         """The fix must not trade one end of the range for the other."""
         assert self.spread(586, 40)[0] == 0
+
+
+class TestAgreementIsNotLoss:
+    """A verdict matching the recorded status changes nothing, and must say so."""
+
+    def test_agreeing_with_an_existing_rejection_is_counted_separately(self, tmp_path):
+        """Regression in reporting: 7 verdicts reported as "6 changed".
+
+        The model audit has already rejected 44 of the 586 queries. A human
+        rejecting one of those agrees with it and changes nothing, so a bare change
+        count is one lower than the number of ticks -- indistinguishable, to the
+        person who did the ticking, from a verdict that was silently dropped.
+        Found by dry-running the real sample file rather than a fixture.
+        """
+        path = tmp_path / "queries.jsonl"
+        write_eval_set(
+            [query("q1", Verification.REJECTED), query("q2", Verification.GENERATED)], path
+        )
+        summary = human_check.parse(
+            sample(tmp_path, [("q1", False, True, "still bad"), ("q2", False, True, "also bad")])
+        )
+
+        applied = human_check.apply_verdicts(summary, path)
+
+        assert applied.changed == 1
+        assert applied.already_agreed == 1
+        assert applied.total == 2 == summary.n_marked
+
+    def test_total_accounts_for_every_marked_verdict(self, tmp_path):
+        """changed + already_agreed must reconcile with what the person marked."""
+        path = tmp_path / "queries.jsonl"
+        write_eval_set([query(f"q{i}") for i in range(1, 4)], path)
+        summary = human_check.parse(
+            sample(
+                tmp_path,
+                [("q1", True, False, ""), ("q2", True, False, ""), ("q3", False, True, "no")],
+            )
+        )
+
+        applied = human_check.apply_verdicts(summary, path)
+
+        assert applied.total == summary.n_marked == 3

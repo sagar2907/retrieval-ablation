@@ -54,6 +54,26 @@ class Verdict:
 
 
 @dataclass(frozen=True)
+class Applied:
+    """What `apply_verdicts` did, separating two things a single count hides.
+
+    A verdict that agrees with the status a query already carries changes nothing,
+    and reporting only `changed` makes that indistinguishable from a verdict that
+    was silently dropped. Marking seven entries and being told "6 changed" should
+    not leave a reader wondering which of those two happened -- the model audit has
+    already rejected 44 queries, so a human agreeing with one of those rejections is
+    an ordinary outcome, not a lost answer.
+    """
+
+    changed: int
+    already_agreed: int
+
+    @property
+    def total(self) -> int:
+        return self.changed + self.already_agreed
+
+
+@dataclass(frozen=True)
 class Summary:
     n_entries: int
     n_marked: int
@@ -107,43 +127,47 @@ def parse(path: Path | None = None) -> Summary:
     )
 
 
-def apply_verdicts(summary: Summary, queries_path: Path | None = None) -> int:
-    """Write the verdicts into the eval set, returning how many queries changed.
+def apply_verdicts(summary: Summary, queries_path: Path | None = None) -> Applied:
+    """Write the verdicts into the eval set.
 
     Only queries a person actually marked are touched. Everything else keeps the
     status it had, so running this against a half-finished sample cannot relabel the
     rest of the benchmark by omission.
+
+    Returns both the number of queries changed and the number whose status the
+    verdict already matched. The second is not a failure: a human rejecting a query
+    the model audit had already rejected is agreement, and folding it into a single
+    "changed" count makes a complete run look like it lost a verdict.
     """
     target = QUERIES_PATH if queries_path is None else queries_path
     queries = read_eval_set(target)
     by_id = {v.query_id: v for v in summary.verdicts}
 
     changed = 0
+    already_agreed = 0
     out = []
     for query in queries:
         verdict = by_id.get(query.query_id)
-        if verdict is None or query.verification is (
-            Verification.HUMAN_VERIFIED if verdict.accepted else Verification.REJECTED
-        ):
+        if verdict is None:
+            out.append(query)
+            continue
+        wanted = Verification.HUMAN_VERIFIED if verdict.accepted else Verification.REJECTED
+        if query.verification is wanted:
+            # The verdict agrees with the status already recorded. Counted rather
+            # than skipped silently, because "nothing to do" and "verdict lost"
+            # look identical in a bare change count.
+            already_agreed += 1
             out.append(query)
             continue
         metadata = dict(query.metadata)
         if verdict.reason:
             metadata["human_reject_reason"] = verdict.reason
-        out.append(
-            dataclasses.replace(
-                query,
-                verification=(
-                    Verification.HUMAN_VERIFIED if verdict.accepted else Verification.REJECTED
-                ),
-                metadata=metadata,
-            )
-        )
+        out.append(dataclasses.replace(query, verification=wanted, metadata=metadata))
         changed += 1
 
     if changed:
         write_eval_set(out, target)
-    return changed
+    return Applied(changed=changed, already_agreed=already_agreed)
 
 
 def report(summary: Summary) -> str:
@@ -207,8 +231,14 @@ def main() -> None:
 
     print(report(summary))
     if args.apply:
-        changed = apply_verdicts(summary)
-        print(f"  wrote {changed} verification change(s) into {QUERIES_PATH.name}")
+        applied = apply_verdicts(summary)
+        print(f"  {applied.changed} status change(s) written into {QUERIES_PATH.name}")
+        if applied.already_agreed:
+            print(
+                f"  {applied.already_agreed} verdict(s) already matched the recorded "
+                f"status and needed no change -- agreement, not a lost answer"
+            )
+        print(f"  {applied.total} of {summary.n_marked} marked verdicts accounted for")
 
 
 if __name__ == "__main__":

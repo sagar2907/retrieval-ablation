@@ -1025,6 +1025,24 @@ Twice now I have said "this is recoverable" before checking which queries were
 involved. The first time cost a day's quota. The second cost only a paragraph, and
 only because the paragraph was checked before anyone read it.
 
+**And then the same class of ambiguity in the reader it was built for.** Dry-running
+the finished workflow against the *real* sample file rather than a fixture -- seven
+entries marked, five accepted, two rejected -- produced the message "6 changed". Both
+numbers were correct. One of the two rejections landed on a query the model audit had
+already rejected, so applying it changed nothing.
+
+But nothing in the output said so, and the person who ticked seven boxes has no way
+to tell agreement from a dropped verdict. That is the project's own "not measured
+versus measured zero" rule appearing in a new place: here it is "changed versus
+already consistent", and collapsing them makes a complete run look like it lost an
+answer. `apply_verdicts` now returns both counts and the CLI reconciles them against
+what was marked.
+
+Worth noting how it was found. The unit tests were green and remain green -- they use
+fixtures where nothing is pre-rejected, so the case could not arise. It took running
+the real file, with the real 44 model-rejected queries in it, to produce the
+condition at all.
+
 **A mechanism the documentation described and the code did not have.**
 `build.py` writes `verification_sample.md` for a person to mark, and its docstring
 said "a reader marks each entry, the marks are fed back, and the verified subset
